@@ -19,7 +19,7 @@ const moodColors = {
 
 export function EventCard({ event, showHost = true }: EventCardProps) {
   return (
-    <Card className="bg-gray-800 border-gray-700 overflow-hidden">
+    <Card className="bg-white/5 backdrop-blur-md border-white/10 overflow-hidden transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] hover:shadow-[0_8px_32px_rgba(120,119,198,0.2)] cursor-pointer">
       {/* Event Image */}
       <div className="relative h-40 overflow-hidden">
         <ImageWithFallback
@@ -27,8 +27,8 @@ export function EventCard({ event, showHost = true }: EventCardProps) {
           alt={event.title}
           className="w-full h-full object-cover"
         />
-        <Badge 
-          variant="outline" 
+        <Badge
+          variant="outline"
           className={`absolute top-2 right-2 ${moodColors[event.mood]}`}
         >
           {event.mood}
