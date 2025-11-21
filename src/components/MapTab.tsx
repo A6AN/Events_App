@@ -228,12 +228,34 @@ export const MapTab = () => {
         `https://api.olamaps.io/places/v1/details?place_id=${result.place_id}&api_key=${OLA_MAPS_API_KEY}`
       );
       const data = await response.json();
+      console.log('Place Details Response:', data);
 
-      if (data.geometry && data.geometry.location && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo({
-          center: [data.geometry.location.lng, data.geometry.location.lat],
-          zoom: 15
-        });
+      // Check for different response structures (Google Places style vs others)
+      const geometry = data.result?.geometry || data.geometry;
+      const location = geometry?.location;
+
+      if (location && mapInstanceRef.current) {
+        const lat = typeof location.lat === 'function' ? location.lat() : parseFloat(location.lat);
+        const lng = typeof location.lng === 'function' ? location.lng() : parseFloat(location.lng);
+
+        if (!isNaN(lat) && !isNaN(lng)) {
+          console.log('Flying to:', { lat, lng });
+          mapInstanceRef.current.flyTo({
+            center: [lng, lat],
+            zoom: 15,
+            duration: 2000 // Add smooth animation duration
+          });
+
+          // Add a default marker
+          olaMapsRef.current
+            .addMarker({})
+            .setLngLat([lng, lat])
+            .addTo(mapInstanceRef.current);
+        } else {
+          console.error('Invalid coordinates:', location);
+        }
+      } else {
+        console.error('Could not find location in response:', data);
       }
     } catch (error) {
       console.error('Error fetching place details:', error);
