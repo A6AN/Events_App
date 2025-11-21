@@ -83,7 +83,7 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
     }
   }, []);
 
-  // Geocoding search with Nominatim (OpenStreetMap)
+  // Geocoding search with Ola Maps API
   useEffect(() => {
     if (searchTimeoutRef.current) {
       clearTimeout(searchTimeoutRef.current);
@@ -98,14 +98,18 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
     searchTimeoutRef.current = setTimeout(async () => {
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?` +
-          `q=${encodeURIComponent(searchQuery)}&format=json&limit=5&` +
-          `countrycodes=in&addressdetails=1`
+          `https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(searchQuery)}&api_key=${OLA_MAPS_API_KEY}`
         );
         const data = await response.json();
-        setSearchResults(data);
+
+        // Ola Maps returns predictions array
+        if (data.predictions && Array.isArray(data.predictions)) {
+          setSearchResults(data.predictions.slice(0, 5));
+        } else {
+          setSearchResults([]);
+        }
       } catch (error) {
-        console.error('Search error:', error);
+        console.error('Ola Maps search error:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -198,10 +202,10 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
         zoomControl={false}
         ref={mapRef as any}
       >
-        {/* Map Tiles - Using CartoDB (Ola Maps tiles have CORS issues from localhost) */}
+        {/* Ola Maps Tile Layer - Dark Theme */}
         <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          attribution='&copy; <a href="https://www.olamaps.io">Ola Maps</a>'
+          url={`https://api.olamaps.io/tiles/v1/styles/default-dark-standard/{z}/{x}/{y}.png?api_key=${OLA_MAPS_API_KEY}`}
         />
 
         <LocationMarker />
@@ -256,10 +260,12 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                   <div>
-                    <div className="text-sm font-medium text-foreground">{result.display_name.split(',')[0]}</div>
-                    <div className="text-xs text-muted-foreground line-clamp-1">
-                      {result.display_name.split(',').slice(1).join(',')}
-                    </div>
+                    <div className="text-sm font-medium text-foreground">{result.description}</div>
+                    {result.structured_formatting?.secondary_text && (
+                      <div className="text-xs text-muted-foreground line-clamp-1">
+                        {result.structured_formatting.secondary_text}
+                      </div>
+                    )}
                   </div>
                 </div>
               </button>
@@ -326,7 +332,7 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
               <MapPin className="h-3.5 w-3.5 text-primary" />
               <span>{filteredEvents.length} events found</span>
             </div>
-            <div className="text-muted-foreground text-[10px]">Tap on hotspots to view details</div>
+            <div className="text-muted-foreground text-[10px]">Powered by Ola Maps 🇮🇳</div>
           </div>
           {torchMode && (
             <div className="text-primary flex items-center gap-1 text-[10px] animate-pulse">
