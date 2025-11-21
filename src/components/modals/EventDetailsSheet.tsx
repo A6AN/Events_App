@@ -1,9 +1,9 @@
 import { Instagram, Users, Clock, MapPin, X } from 'lucide-react';
-import { Button } from './ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Badge } from './ui/badge';
-import { Event } from '../types';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { Button } from '../ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Badge } from '../ui/badge';
+import { Event } from '../../types';
+import { ImageWithFallback } from '../figma/ImageWithFallback';
 
 interface EventDetailSheetProps {
   event: Event | null;
@@ -11,17 +11,17 @@ interface EventDetailSheetProps {
   onClose: () => void;
 }
 
-export function EventDetailSheet({ event, open, onClose }: EventDetailSheetProps) {
+export function EventDetailsSheet({ event, open, onClose }: EventDetailSheetProps) {
   if (!event || !open) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div 
+      <div
         className="fixed inset-0 bg-black/50 z-40 animate-in fade-in"
         onClick={onClose}
       />
-      
+
       {/* Bottom Sheet */}
       <div className="fixed bottom-0 left-0 right-0 z-50 bg-card rounded-t-3xl border-t border-border animate-in slide-in-from-bottom duration-300 max-w-lg mx-auto">
         {/* Event Image */}
@@ -39,8 +39,8 @@ export function EventDetailSheet({ event, open, onClose }: EventDetailSheetProps
           >
             <X className="h-5 w-5" />
           </Button>
-          <Badge 
-            variant="outline" 
+          <Badge
+            variant="outline"
             className="absolute top-4 left-4 bg-primary/20 text-primary border-primary/50"
           >
             {event.mood}
@@ -98,7 +98,7 @@ export function EventDetailSheet({ event, open, onClose }: EventDetailSheetProps
           </div>
 
           {/* RSVP Button */}
-          <Button 
+          <Button
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground py-6"
           >
             RSVP to Event

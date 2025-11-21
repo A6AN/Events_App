@@ -7,7 +7,7 @@ import { SocialTab } from './components/SocialTab';
 import { ProfileTab } from './components/ProfileTab';
 import { TicketsTab } from './components/TicketsTab';
 import { VenuesTab } from './components/VenuesTab';
-import { EventDetailSheet } from './components/EventDetailSheet';
+import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { mockEvents } from './data/mockEvents';
 import { mockTickets } from './data/mockTickets';
@@ -55,7 +55,7 @@ function AppContent() {
           </TabsContent>
 
           <TabsContent value="map" className="absolute inset-0 m-0">
-            <MapTab events={mockEvents} onEventSelect={handleEventSelect} />
+            <MapTab />
           </TabsContent>
 
           <TabsContent value="tickets" className="absolute inset-0 m-0">
@@ -73,40 +73,40 @@ function AppContent() {
 
         {/* Bottom Navigation */}
         <TabsList className="w-full h-20 bg-card/80 backdrop-blur-lg border-t border-border grid grid-cols-5 rounded-none p-2 shrink-0">
-          <TabsTrigger 
-            value="social" 
+          <TabsTrigger
+            value="social"
             className="flex-col gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
           >
             <Users className="h-5 w-5" />
             <span className="text-[10px]">Social</span>
           </TabsTrigger>
-          
-          <TabsTrigger 
-            value="map" 
+
+          <TabsTrigger
+            value="map"
             className="flex-col gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
           >
             <Map className="h-5 w-5" />
             <span className="text-[10px]">Map</span>
           </TabsTrigger>
-          
-          <TabsTrigger 
-            value="tickets" 
+
+          <TabsTrigger
+            value="tickets"
             className="flex-col gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
           >
             <Ticket className="h-5 w-5" />
             <span className="text-[10px]">Tickets</span>
           </TabsTrigger>
 
-          <TabsTrigger 
-            value="venues" 
+          <TabsTrigger
+            value="venues"
             className="flex-col gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
           >
             <Building2 className="h-5 w-5" />
             <span className="text-[10px]">Venues</span>
           </TabsTrigger>
-          
-          <TabsTrigger 
-            value="profile" 
+
+          <TabsTrigger
+            value="profile"
             className="flex-col gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary data-[state=active]:text-primary-foreground transition-all"
           >
             <User className="h-5 w-5" />
@@ -116,10 +116,10 @@ function AppContent() {
       </Tabs>
 
       {/* Event Detail Sheet */}
-      <EventDetailSheet 
-        event={selectedEvent} 
-        open={sheetOpen} 
-        onClose={handleCloseSheet} 
+      <EventDetailsSheet
+        event={selectedEvent}
+        open={sheetOpen}
+        onClose={handleCloseSheet}
       />
     </div>
   );
