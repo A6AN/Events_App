@@ -1,10 +1,11 @@
-import { Instagram, Edit2, Grid3X3, Calendar } from 'lucide-react';
+import { Instagram, Edit2, Grid3X3, Calendar, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Event } from '../types';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 interface ProfileTabProps {
   events: Event[];
@@ -12,7 +13,8 @@ interface ProfileTabProps {
 
 export function ProfileTab({ events }: ProfileTabProps) {
   const [activeTab, setActiveTab] = useState<'hosted' | 'attended'>('hosted');
-  
+  const { signOut } = useAuth();
+
   // Split events into hosted and attended (mock data)
   const hostedEvents = events.slice(0, 3);
   const attendedEvents = events.slice(3);
@@ -27,13 +29,13 @@ export function ProfileTab({ events }: ProfileTabProps) {
             <div className="flex items-center gap-4 mb-4">
               {/* Avatar */}
               <Avatar className="h-20 w-20 border-2 border-primary/30">
-                <AvatarImage 
-                  src="https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080" 
-                  alt="Profile" 
+                <AvatarImage
+                  src="https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                  alt="Profile"
                 />
                 <AvatarFallback>AM</AvatarFallback>
               </Avatar>
-              
+
               {/* Stats */}
               <div className="flex-1 grid grid-cols-3 gap-2 text-center">
                 <div>
@@ -63,17 +65,24 @@ export function ProfileTab({ events }: ProfileTabProps) {
 
             {/* Action Buttons */}
             <div className="flex gap-2">
-              <Button 
+              <Button
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground border-0"
               >
                 <Edit2 className="h-4 w-4 mr-2" />
                 Edit Profile
               </Button>
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 className="bg-card border-border text-foreground hover:bg-muted"
               >
                 <Instagram className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-card border-border text-destructive hover:bg-destructive/10"
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-4 w-4" />
               </Button>
             </div>
           </div>
@@ -82,11 +91,10 @@ export function ProfileTab({ events }: ProfileTabProps) {
           <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md border-b border-border grid grid-cols-2">
             <button
               onClick={() => setActiveTab('hosted')}
-              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${
-                activeTab === 'hosted' 
-                  ? 'text-foreground' 
-                  : 'text-muted-foreground'
-              }`}
+              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${activeTab === 'hosted'
+                ? 'text-foreground'
+                : 'text-muted-foreground'
+                }`}
             >
               <Grid3X3 className="h-4 w-4" />
               <span className="text-sm">Hosted</span>
@@ -96,11 +104,10 @@ export function ProfileTab({ events }: ProfileTabProps) {
             </button>
             <button
               onClick={() => setActiveTab('attended')}
-              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${
-                activeTab === 'attended' 
-                  ? 'text-foreground' 
-                  : 'text-muted-foreground'
-              }`}
+              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${activeTab === 'attended'
+                ? 'text-foreground'
+                : 'text-muted-foreground'
+                }`}
             >
               <Calendar className="h-4 w-4" />
               <span className="text-sm">Attended</span>
@@ -115,8 +122,8 @@ export function ProfileTab({ events }: ProfileTabProps) {
             {activeTab === 'hosted' && (
               <div className="grid grid-cols-3 gap-1">
                 {hostedEvents.map((event) => (
-                  <div 
-                    key={event.id} 
+                  <div
+                    key={event.id}
                     className="aspect-square relative group cursor-pointer overflow-hidden"
                   >
                     <ImageWithFallback
@@ -141,8 +148,8 @@ export function ProfileTab({ events }: ProfileTabProps) {
             {activeTab === 'attended' && (
               <div className="grid grid-cols-3 gap-1">
                 {attendedEvents.map((event) => (
-                  <div 
-                    key={event.id} 
+                  <div
+                    key={event.id}
                     className="aspect-square relative group cursor-pointer overflow-hidden"
                   >
                     <ImageWithFallback
