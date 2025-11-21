@@ -202,10 +202,10 @@ export function MapTab({ events, onEventSelect }: MapTabProps) {
         zoomControl={false}
         ref={mapRef as any}
       >
-        {/* Ola Maps Tile Layer - Dark Theme */}
+        {/* CartoDB Dark Tiles (Ola Maps geocoding for search) */}
         <TileLayer
-          attribution='&copy; <a href="https://www.olamaps.io">Ola Maps</a>'
-          url={`https://api.olamaps.io/tiles/v1/styles/default-dark-standard/{z}/{x}/{y}.png?api_key=${OLA_MAPS_API_KEY}`}
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
         />
 
         <LocationMarker />
