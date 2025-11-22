@@ -50,6 +50,9 @@ export const MapTab = () => {
 
     const initMap = () => {
       try {
+        console.log('Initializing Ola Maps...');
+        console.log('API Key present:', !!OLA_MAPS_API_KEY);
+
         // @ts-ignore
         olaMapsRef.current = new OlaMaps({
           apiKey: OLA_MAPS_API_KEY,
