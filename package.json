@@ -63,6 +63,6 @@
             "dev": "vite",
             "build": "vite build",
             "predeploy": "npm run build",
-            "deploy": "gh-pages -d build"
+            "deploy": "GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=commit.gpgsign GIT_CONFIG_VALUE_0=false gh-pages -d build"
       }
 }

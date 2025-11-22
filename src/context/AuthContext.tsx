@@ -59,11 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { error };
     };
 
+    const getRedirectUrl = () => {
+        // In production (GitHub Pages), we need to include the repository name
+        if (import.meta.env.PROD) {
+            return 'https://a6an.github.io/Events_App';
+        }
+        // In development, use the current origin (localhost)
+        return window.location.origin;
+    };
+
     const signInWithGoogle = async () => {
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin,
+                redirectTo: getRedirectUrl(),
             },
         });
         return { error };
