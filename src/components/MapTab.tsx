@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search, Navigation, MapPin, X, Loader2 } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
-import { mockEvents } from '../data/mockEvents';
+import { fetchEvents } from '../lib/supabase';
+import { Event } from '../types';
 import { TorchFilter } from './map/TorchFilter';
 import { MoodFilter } from './map/MoodFilter';
 import { EventDetailsSheet } from './modals/EventDetailsSheet';
@@ -19,16 +20,29 @@ export const MapTab = () => {
   const markersRef = useRef<any[]>([]);
   const userMarkerRef = useRef<any>(null);
 
+  const [events, setEvents] = useState<Event[]>([]);
+  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [isEventSheetOpen, setIsEventSheetOpen] = useState(false);
   const [torchMode, setTorchMode] = useState(false);
   const [torchRadius, setTorchRadius] = useState(5); // km
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const searchTimeoutRef = useRef<NodeJS.Timeout>();
+
+  // Fetch Events
+  useEffect(() => {
+    const loadEvents = async () => {
+      setIsLoadingEvents(true);
+      const data = await fetchEvents();
+      setEvents(data);
+      setIsLoadingEvents(false);
+    };
+    loadEvents();
+  }, []);
 
   // Initialize Ola Maps
   useEffect(() => {
@@ -122,7 +136,7 @@ export const MapTab = () => {
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    const filteredEvents = mockEvents.filter(event => {
+    const filteredEvents = events.filter(event => {
       // Mood filter
       if (selectedMood && event.mood !== selectedMood) return false;
 
@@ -178,10 +192,10 @@ export const MapTab = () => {
     });
   };
 
-  // Update markers when filters change
+  // Update markers when filters change or events load
   useEffect(() => {
     renderMarkers();
-  }, [selectedMood, torchMode, torchRadius, userLocation]);
+  }, [events, selectedMood, torchMode, torchRadius, userLocation]);
 
   // Geocoding search with Ola Maps API
   useEffect(() => {
@@ -366,7 +380,7 @@ export const MapTab = () => {
         <div className="bg-background/80 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-lg inline-flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
-            <span className="text-xs font-medium">{mockEvents.length} events</span>
+            <span className="text-xs font-medium">{events.length} events</span>
           </div>
           <div className="w-px h-3 bg-border" />
           <div className="text-[10px] text-muted-foreground">Powered by Ola Maps 🇮🇳</div>

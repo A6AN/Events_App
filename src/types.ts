@@ -9,6 +9,7 @@ export interface Event {
   };
   imageUrl: string;
   host: {
+    id?: string;
     name: string;
     avatar: string;
     instagram?: string;
@@ -16,6 +17,35 @@ export interface Event {
   attendees: number;
   mood: 'Chill' | 'Energetic' | 'Creative' | 'Romantic';
   description?: string;
+  price?: number;
+  capacity?: number;
+  category?: string;
+}
+
+// Database types matching Supabase schema
+export interface DbEvent {
+  id: string;
+  created_at: string;
+  title: string;
+  description: string | null;
+  date: string;
+  location_name: string;
+  latitude: number;
+  longitude: number;
+  price: number;
+  capacity: number | null;
+  image_url: string | null;
+  host_id: string;
+  category: string | null;
+  mood: string | null;
+}
+
+export interface DbProfile {
+  id: string;
+  username: string | null;
+  full_name: string | null;
+  avatar_url: string | null;
+  website: string | null;
 }
 
 export interface TicketEvent {
