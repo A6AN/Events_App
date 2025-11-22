@@ -60,11 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     const getRedirectUrl = () => {
-        // In production (GitHub Pages), we need to include the repository name
-        if (import.meta.env.PROD) {
-            return 'https://a6an.github.io/Events_App';
-        }
-        // In development, use the current origin (localhost)
+        // For Vercel and Localhost, window.location.origin is correct
         return window.location.origin;
     };
 
