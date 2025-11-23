@@ -96,3 +96,51 @@ export async function uploadEventImage(file: File) {
 
     return data.publicUrl;
 }
+
+export const rsvpToEvent = async (eventId: string, userId: string) => {
+    const { data, error } = await supabase
+        .from('tickets')
+        .insert([
+            { event_id: eventId, user_id: userId }
+        ])
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error RSVPing to event:', error);
+        throw error;
+    }
+    return data;
+};
+
+export const getUserTickets = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('tickets')
+        .select(`
+      *,
+      event:events (*)
+    `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching user tickets:', error);
+        return [];
+    }
+    return data;
+};
+
+export const checkRsvpStatus = async (eventId: string, userId: string) => {
+    const { data, error } = await supabase
+        .from('tickets')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .single();
+
+    if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
+        console.error('Error checking RSVP status:', error);
+    }
+
+    return !!data;
+};

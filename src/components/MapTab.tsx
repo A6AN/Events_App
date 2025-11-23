@@ -67,8 +67,8 @@ export const MapTab = () => {
 
         mapInstanceRef.current = myMap;
 
-        // Add navigation controls
-        myMap.addControl(new olaMapsRef.current.NavigationControl(), 'bottom-right');
+        // NavigationControl causing issues in prod, disabling for now
+        // myMap.addControl(new olaMapsRef.current.NavigationControl(), 'bottom-right');
 
         // Wait for map to load before adding markers
         myMap.on('load', () => {
