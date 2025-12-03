@@ -7,7 +7,7 @@ import { Event } from '../types';
 import { TorchFilter } from './map/TorchFilter';
 import { MoodFilter } from './map/MoodFilter';
 import { EventDetailsSheet } from './modals/EventDetailsSheet';
-import { CreateEventModal } from './modals/CreateEventModal';
+import { CreateEventWizard } from './modals/CreateEventWizard';
 import { OlaMaps } from 'olamaps-web-sdk';
 import '../styles/leaflet-custom.css';
 
@@ -31,7 +31,7 @@ export const MapTab = () => {
   const [torchMode, setTorchMode] = useState(false);
   const [torchRadius, setTorchRadius] = useState(5); // km
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch Events
   useEffect(() => {
@@ -73,6 +73,40 @@ export const MapTab = () => {
         // Wait for map to load before adding markers
         myMap.on('load', () => {
           renderMarkers();
+
+          // Tone down landmarks
+          try {
+            const layers = myMap.getStyle().layers;
+            if (layers) {
+              layers.forEach((layer: any) => {
+                // Target POI, landmark, and label layers
+                if (
+                  layer.id.includes('poi') ||
+                  layer.id.includes('landmark') ||
+                  (layer.id.includes('label') && !layer.id.includes('road')) // Avoid dimming road labels too much if not desired
+                ) {
+                  // Mute text colors
+                  if (layer.paint && layer.paint['text-color']) {
+                    myMap.setPaintProperty(layer.id, 'text-color', '#888888');
+                  }
+
+                  // Mute icon colors if present (some layers use icon-color)
+                  if (layer.paint && layer.paint['icon-color']) {
+                    myMap.setPaintProperty(layer.id, 'icon-color', '#888888');
+                  }
+
+                  // Reduce opacity for a more subtle look
+                  if (layer.type === 'symbol') {
+                    myMap.setPaintProperty(layer.id, 'text-opacity', 0.7);
+                    myMap.setPaintProperty(layer.id, 'icon-opacity', 0.7);
+                  }
+                }
+              });
+              console.log('🗺️ Landmark colors toned down');
+            }
+          } catch (e) {
+            console.error('Error styling map layers:', e);
+          }
         });
 
       } catch (error) {
@@ -308,7 +342,7 @@ export const MapTab = () => {
             className="pl-9 pr-9 bg-background/80 backdrop-blur-md border-white/20 shadow-lg"
           />
           {searchQuery && (
-            <button
+            <Button
               onClick={() => {
                 setSearchQuery('');
                 setSearchResults([]);
@@ -316,7 +350,7 @@ export const MapTab = () => {
               className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
               <X className="h-4 w-4" />
-            </button>
+            </Button>
           )}
         </div>
 
@@ -330,7 +364,7 @@ export const MapTab = () => {
               </div>
             ) : (
               searchResults.map((result) => (
-                <button
+                <Button
                   key={result.place_id}
                   className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0"
                   onClick={() => handleSearchResultClick(result)}
@@ -346,7 +380,7 @@ export const MapTab = () => {
                       )}
                     </div>
                   </div>
-                </button>
+                </Button>
               ))
             )}
           </div>
@@ -392,7 +426,7 @@ export const MapTab = () => {
 
       {/* Create Event FAB */}
       <div className="absolute bottom-24 right-4 z-[400]">
-        <CreateEventModal />
+        <CreateEventWizard />
       </div>
 
       {/* Event Details Sheet */}

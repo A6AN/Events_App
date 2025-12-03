@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Flame } from 'lucide-react';
 import { Slider } from '../../components/ui/slider';
+import { Button } from '../ui/button';
 import { cn } from '../ui/utils';
 
 interface TorchFilterProps {
@@ -19,7 +20,7 @@ export const TorchFilter: React.FC<TorchFilterProps> = ({
 }) => {
     return (
         <div className="flex flex-col items-end gap-4">
-            <button
+            <Button
                 onClick={onToggle}
                 className={cn(
                     "relative group flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 shadow-lg backdrop-blur-md border border-white/20",
@@ -32,7 +33,7 @@ export const TorchFilter: React.FC<TorchFilterProps> = ({
                 <span className="absolute right-full mr-3 px-2 py-1 rounded-md bg-background/90 text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                     Torch Mode
                 </span>
-            </button>
+            </Button>
 
             {isActive && (
                 <motion.div

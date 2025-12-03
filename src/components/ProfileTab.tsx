@@ -1,5 +1,4 @@
-import { Instagram, Edit2, Grid3X3, Calendar, LogOut, Ticket } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import { Grid3X3, Ticket } from 'lucide-react';
 import { Button } from './ui/button';
 import { Event } from '../types';
 import { ScrollArea } from './ui/scroll-area';
@@ -8,6 +7,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getUserTickets } from '../lib/supabase';
 import { TicketCard } from './tickets/TicketCard';
+import { ProfileHeader } from './profile/ProfileHeader';
+import { motion } from 'framer-motion';
+import { cn } from './ui/utils';
 
 interface ProfileTabProps {
   events: Event[];
@@ -15,7 +17,7 @@ interface ProfileTabProps {
 
 export function ProfileTab({ events }: ProfileTabProps) {
   const [activeTab, setActiveTab] = useState<'hosted' | 'attended'>('hosted');
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const [tickets, setTickets] = useState<any[]>([]);
 
   // Fetch tickets when tab is active
@@ -31,132 +33,98 @@ export function ProfileTab({ events }: ProfileTabProps) {
   return (
     <div className="h-full bg-background">
       <ScrollArea className="h-full relative">
-        <div className="pb-20">
-          {/* Profile Header - Instagram Style */}
-          <div className="p-4 border-b border-border bg-card/80 backdrop-blur-sm">
-            {/* Profile Info Row */}
-            <div className="flex items-center gap-4 mb-4">
-              {/* Avatar */}
-              <Avatar className="h-20 w-20 border-2 border-primary/30">
-                <AvatarImage
-                  src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"}
-                  alt="Profile"
-                />
-                <AvatarFallback>{user?.email?.[0].toUpperCase()}</AvatarFallback>
-              </Avatar>
+        <div className="pb-24">
+          {/* New Profile Header */}
+          <ProfileHeader
+            hostedCount={hostedEvents.length}
+            attendedCount={tickets.length}
+            followersCount={128} // Mocked for now
+          />
 
-              {/* Stats */}
-              <div className="flex-1 grid grid-cols-3 gap-2 text-center">
-                <div>
-                  <div className="text-foreground">{hostedEvents.length}</div>
-                  <div className="text-muted-foreground text-xs">Hosted</div>
-                </div>
-                <div>
-                  <div className="text-foreground">{tickets.length}</div>
-                  <div className="text-muted-foreground text-xs">Tickets</div>
-                </div>
-                <div>
-                  <div className="text-foreground">0</div>
-                  <div className="text-muted-foreground text-xs">Followers</div>
-                </div>
-              </div>
-            </div>
+          {/* Tab Selector - Sliding Pill */}
+          <div className="px-4 mb-4">
+            <div className="bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-xl flex relative">
+              {/* Sliding Background */}
+              <motion.div
+                className="absolute top-1 bottom-1 bg-primary rounded-lg z-0"
+                initial={false}
+                animate={{
+                  left: activeTab === 'hosted' ? '4px' : '50%',
+                  width: 'calc(50% - 4px)',
+                  x: activeTab === 'attended' ? '0%' : '0%'
+                }}
+                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              />
 
-            {/* Name & Bio */}
-            <div className="mb-3">
-              <h1 className="text-foreground text-lg font-semibold">{user?.user_metadata?.full_name || 'User'}</h1>
-              <p className="text-muted-foreground text-sm">Event Enthusiast</p>
-            </div>
+              <button
+                onClick={() => setActiveTab('hosted')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg relative z-10 transition-colors duration-200",
+                  activeTab === 'hosted' ? "text-white" : "text-white/60 hover:text-white"
+                )}
+              >
+                <Grid3X3 className="h-4 w-4" />
+                <span className="text-sm font-medium">Hosted</span>
+              </button>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <Button
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground border-0"
+              <button
+                onClick={() => setActiveTab('attended')}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg relative z-10 transition-colors duration-200",
+                  activeTab === 'attended' ? "text-white" : "text-white/60 hover:text-white"
+                )}
               >
-                <Edit2 className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-card border-border text-foreground hover:bg-muted"
-              >
-                <Instagram className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                className="bg-card border-border text-destructive hover:bg-destructive/10"
-                onClick={() => signOut()}
-              >
-                <LogOut className="h-4 w-4" />
-              </Button>
+                <Ticket className="h-4 w-4" />
+                <span className="text-sm font-medium">Attended</span>
+              </button>
             </div>
           </div>
 
-          {/* Tab Selector - Instagram Style */}
-          <div className="sticky top-0 z-10 bg-card/90 backdrop-blur-md border-b border-border grid grid-cols-2">
-            <button
-              onClick={() => setActiveTab('hosted')}
-              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${activeTab === 'hosted'
-                ? 'text-foreground'
-                : 'text-muted-foreground'
-                }`}
-            >
-              <Grid3X3 className="h-4 w-4" />
-              <span className="text-sm">Hosted</span>
-              {activeTab === 'hosted' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('attended')}
-              className={`flex items-center justify-center gap-2 py-3 transition-colors relative ${activeTab === 'attended'
-                ? 'text-foreground'
-                : 'text-muted-foreground'
-                }`}
-            >
-              <Ticket className="h-4 w-4" />
-              <span className="text-sm">My Tickets</span>
-              {activeTab === 'attended' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary" />
-              )}
-            </button>
-          </div>
-
-          {/* Events Grid - Instagram Style */}
-          <div className="p-1">
+          {/* Content Grid */}
+          <div className="px-1">
             {activeTab === 'hosted' && (
-              <div className="grid grid-cols-3 gap-1">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="grid grid-cols-3 gap-1"
+              >
                 {hostedEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="aspect-square relative group cursor-pointer overflow-hidden"
+                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-md"
                   >
                     <ImageWithFallback
                       src={event.imageUrl}
                       alt={event.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                     {/* Overlay on hover */}
                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2">
                       <div className="text-white text-center">
-                        <div className="text-xs mb-1">{event.title}</div>
-                        <div className="text-[10px] text-gray-300">{event.attendees} attendees</div>
+                        <div className="text-xs font-bold mb-1 line-clamp-1">{event.title}</div>
+                        <div className="text-[10px] text-gray-300">{event.attendees} guests</div>
                       </div>
                     </div>
-                    {/* Mood indicator */}
-                    <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary" />
                   </div>
                 ))}
                 {hostedEvents.length === 0 && (
-                  <div className="col-span-3 py-10 text-center text-muted-foreground text-sm">
-                    No events hosted yet.
+                  <div className="col-span-3 py-10 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+                    <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-2">
+                      <Grid3X3 className="h-6 w-6 text-white/20" />
+                    </div>
+                    <p>No events hosted yet.</p>
+                    <Button variant="link" className="text-primary text-xs">Create your first event</Button>
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
 
             {activeTab === 'attended' && (
-              <div className="p-4 space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="px-3 space-y-4"
+              >
                 {tickets.map((ticket) => (
                   <TicketCard
                     key={ticket.id}
@@ -165,11 +133,15 @@ export function ProfileTab({ events }: ProfileTabProps) {
                   />
                 ))}
                 {tickets.length === 0 && (
-                  <div className="py-10 text-center text-muted-foreground text-sm">
-                    You haven't RSVP'd to any events yet.
+                  <div className="py-10 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
+                    <div className="h-12 w-12 rounded-full bg-white/5 flex items-center justify-center mb-2">
+                      <Ticket className="h-6 w-6 text-white/20" />
+                    </div>
+                    <p>No tickets yet.</p>
+                    <Button variant="link" className="text-primary text-xs">Explore events</Button>
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
           </div>
         </div>

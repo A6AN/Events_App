@@ -79,12 +79,12 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               />
               <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-background" />
 
-              <button
+              <Button
                 onClick={onClose}
                 className="absolute top-4 right-4 p-2 bg-black/20 backdrop-blur-md rounded-full text-white hover:bg-black/40 transition-colors"
               >
                 <X className="w-5 h-5" />
-              </button>
+              </Button>
             </div>
 
             {/* Content */}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { Map, Users, User, Ticket, Building2, Sun, Moon } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
@@ -19,6 +19,9 @@ import { mockEvents } from './data/mockEvents';
 import { mockTickets } from './data/mockTickets';
 import { mockVenues } from './data/mockVenues';
 import { Event } from './types';
+import { App as CapApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { supabase } from './lib/supabase';
 
 function AppContent() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
@@ -165,7 +168,90 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+
+
 export default function App() {
+  useEffect(() => {
+    console.log('🔗 Setting up deep link listener...');
+
+    const listener = CapApp.addListener('appUrlOpen', async ({ url }) => {
+      console.log('🚀 Deep link received:', url);
+
+      if (url.includes('login-callback')) {
+        console.log('✅ Login callback detected');
+        try {
+          // Close the browser if it's open
+          await Browser.close().catch(() => {
+            console.log('Browser already closed or not open');
+          });
+
+          // Log full URL to see format
+          console.log('📋 Full URL:', url);
+
+          // Try both hash (#) and query (?) formats
+          let accessToken = null;
+          let refreshToken = null;
+
+          // Check for hash fragments (implicit flow)
+          const hashIndex = url.indexOf('#');
+          if (hashIndex !== -1) {
+            const hash = url.substring(hashIndex + 1);
+            console.log('📦 Hash found:', hash);
+            const params = new URLSearchParams(hash);
+            accessToken = params.get('access_token');
+            refreshToken = params.get('refresh_token');
+          }
+
+          // Also check query params (PKCE flow)
+          if (!accessToken) {
+            const queryIndex = url.indexOf('?');
+            if (queryIndex !== -1) {
+              const query = url.substring(queryIndex + 1);
+              console.log('📦 Query found:', query);
+              const params = new URLSearchParams(query);
+              accessToken = params.get('access_token');
+              refreshToken = params.get('refresh_token');
+            }
+          }
+
+          console.log('🔑 Tokens found:', {
+            hasAccess: !!accessToken,
+            hasRefresh: !!refreshToken
+          });
+
+          if (accessToken && refreshToken) {
+            console.log('💾 Setting session...');
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (error) {
+              console.error('❌ Set session error:', error);
+            } else {
+              console.log('✅ Session set successfully!', data);
+
+              // Force a session refresh to trigger AuthContext update
+              const { data: sessionData } = await supabase.auth.getSession();
+              console.log('🔄 Refreshed session:', sessionData);
+            }
+          } else {
+            console.warn('⚠️ No tokens found in URL');
+          }
+        } catch (e) {
+          console.error('💥 Deep link error:', e);
+        }
+      } else {
+        console.log('⏭️ Not a login callback, ignoring');
+      }
+    });
+
+    return () => {
+      console.log('🧹 Cleaning up deep link listener');
+      listener.then(l => l.remove());
+    };
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>

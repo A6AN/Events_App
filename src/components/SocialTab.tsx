@@ -4,6 +4,7 @@ import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 
 interface SocialTabProps {
   events: Event[];
@@ -34,7 +35,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-5">
             {events.map((event) => (
-              <div 
+              <div
                 key={event.id}
                 onClick={() => onEventSelect(event)}
                 className="group cursor-pointer"
@@ -60,12 +61,12 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
                       alt={event.title}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    
+
                     {/* Gradient overlay */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                    
+
                     {/* Mood badge */}
-                    <Badge 
+                    <Badge
                       className="absolute top-3 right-3 bg-primary text-primary-foreground border-0"
                     >
                       {event.mood}
@@ -84,14 +85,14 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
                   {/* Interaction bar */}
                   <div className="p-4 flex items-center justify-between border-t border-border">
                     <div className="flex items-center gap-4 text-muted-foreground text-sm">
-                      <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      <Button className="flex items-center gap-1.5 hover:text-primary transition-colors">
                         <Heart className="h-4 w-4" />
                         <span>{Math.floor(Math.random() * 50) + 10}</span>
-                      </button>
-                      <button className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      </Button>
+                      <Button className="flex items-center gap-1.5 hover:text-primary transition-colors">
                         <MessageCircle className="h-4 w-4" />
                         <span>{Math.floor(Math.random() * 20) + 5}</span>
-                      </button>
+                      </Button>
                       <div className="flex items-center gap-1.5">
                         <Users className="h-4 w-4" />
                         <span>{event.attendees} going</span>
