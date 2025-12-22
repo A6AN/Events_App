@@ -252,6 +252,52 @@ export default function App() {
     };
   }, []);
 
+  // Handle Web OAuth Redirects (Vercel/Localhost)
+  useEffect(() => {
+    const handleWebRedirect = async () => {
+      // Check if we have a hash with an access token
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        console.log('🌍 Web redirect detected');
+        try {
+          // Parse the hash
+          const params = new URLSearchParams(hash.substring(1)); // remove #
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+
+          console.log('🔑 Web Tokens found:', {
+            hasAccess: !!accessToken,
+            hasRefresh: !!refreshToken
+          });
+
+          if (accessToken && refreshToken) {
+            console.log('💾 Setting web session...');
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            });
+
+            if (error) {
+              console.error('❌ Set web session error:', error);
+            } else {
+              console.log('✅ Web session set successfully!', data);
+
+              // Clear the hash to clean up the URL
+              window.history.replaceState(null, '', window.location.pathname);
+
+              // Force a session refresh to trigger AuthContext update
+              await supabase.auth.getSession();
+            }
+          }
+        } catch (e) {
+          console.error('💥 Web redirect error:', e);
+        }
+      }
+    };
+
+    handleWebRedirect();
+  }, []);
+
   return (
     <ThemeProvider>
       <AuthProvider>
