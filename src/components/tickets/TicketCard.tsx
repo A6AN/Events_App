@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
-import { motion } from 'framer-motion';
-import { Calendar, MapPin, Clock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calendar, MapPin, Clock, Sparkles, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { DbEvent } from '../../types';
 
@@ -11,92 +11,162 @@ interface TicketCardProps {
 }
 
 export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
+    const [showQR, setShowQR] = useState(false);
+
     const ticketData = JSON.stringify({
         ticketId,
         eventId: event.id,
-        userId: 'user_id_placeholder', // In a real app, this would be validated on scan
+        userId: 'user_id_placeholder',
     });
 
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="relative overflow-hidden rounded-3xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="relative overflow-hidden rounded-3xl"
         >
-            {/* Holographic Overlay Effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+            {/* Main Ticket Container */}
+            <div className="relative bg-gradient-to-br from-white/10 to-white/5 backdrop-blur-2xl border border-white/20 rounded-3xl overflow-hidden shadow-2xl">
 
-            <div className="flex flex-col md:flex-row">
-                {/* Event Image Section */}
-                <div className="relative h-48 md:h-auto md:w-1/3">
-                    <div
-                        className="absolute inset-0 bg-cover bg-center"
-                        style={{ backgroundImage: `url(${event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'})` }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent md:bg-gradient-to-r" />
+                {/* Holographic Shimmer Overlay */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer pointer-events-none" />
 
-                    <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="text-xl font-bold text-white mb-1">{event.title}</h3>
-                        <div className="flex items-center text-white/80 text-sm">
-                            <MapPin className="w-3 h-3 mr-1" />
-                            <span className="truncate">{event.location_name}</span>
+                {/* Pattern Background */}
+                <div className="absolute inset-0 opacity-[0.02]" style={{
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                }} />
+
+                <div className="relative">
+                    {/* Event Image Section */}
+                    <div className="relative h-40 overflow-hidden">
+                        <div
+                            className="absolute inset-0 bg-cover bg-center"
+                            style={{ backgroundImage: `url(${event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'})` }}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black" />
+
+                        {/* Premium Badge */}
+                        <div className="absolute top-4 left-4 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full px-3 py-1 flex items-center gap-1.5 shadow-lg">
+                            <Sparkles className="h-3 w-3 text-white" />
+                            <span className="text-xs font-bold text-white">VIP ACCESS</span>
+                        </div>
+
+                        {/* Event Info Overlay */}
+                        <div className="absolute bottom-0 left-0 right-0 p-4">
+                            <h3 className="text-xl font-bold text-white mb-1">{event.title}</h3>
+                            <div className="flex items-center gap-1.5 text-white/80">
+                                <MapPin className="w-3 h-3" />
+                                <span className="text-sm truncate">{event.location_name}</span>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Ticket Details & QR Section */}
-                <div className="p-6 md:w-2/3 flex flex-col justify-between gap-6">
-                    <div className="space-y-4">
+                    {/* Perforated Divider */}
+                    <div className="relative h-6 flex items-center">
+                        <div className="absolute left-0 w-6 h-6 bg-background rounded-full -translate-x-1/2" />
+                        <div className="absolute right-0 w-6 h-6 bg-background rounded-full translate-x-1/2" />
+                        <div className="flex-1 border-b-2 border-dashed border-white/20 mx-4" />
+                    </div>
+
+                    {/* Ticket Details */}
+                    <div className="p-4 space-y-4">
+                        {/* Date & Time Row */}
                         <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <div className="text-xs text-muted-foreground uppercase tracking-wider">Date</div>
-                                <div className="flex items-center text-foreground font-medium">
-                                    <Calendar className="w-4 h-4 mr-2 text-primary" />
-                                    {format(new Date(event.date), 'MMM d, yyyy')}
+                            <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2">
+                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center">
+                                    <Calendar className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-white/40 uppercase tracking-wider">Date</div>
+                                    <div className="text-white font-medium text-sm">
+                                        {format(new Date(event.date), 'MMM d, yyyy')}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="space-y-1 text-right">
-                                <div className="text-xs text-muted-foreground uppercase tracking-wider">Time</div>
-                                <div className="flex items-center justify-end text-foreground font-medium">
-                                    <Clock className="w-4 h-4 mr-2 text-primary" />
-                                    {format(new Date(event.date), 'h:mm a')}
+                            <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2">
+                                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                                    <Clock className="h-5 w-5 text-white" />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] text-white/40 uppercase tracking-wider">Time</div>
+                                    <div className="text-white font-medium text-sm">
+                                        {format(new Date(event.date), 'h:mm a')}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="h-px w-full bg-white/10 border-t border-dashed border-white/20" />
-
-                        <div className="flex justify-between items-end">
+                        {/* Ticket ID & Status */}
+                        <div className="flex justify-between items-center bg-white/5 rounded-xl p-3">
                             <div>
-                                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Ticket ID</div>
-                                <div className="font-mono text-xs text-white/50">{ticketId.slice(0, 8)}...</div>
+                                <div className="text-[10px] text-white/40 uppercase tracking-wider mb-1">Ticket ID</div>
+                                <div className="font-mono text-xs text-white/60">{ticketId.slice(0, 12)}...</div>
                             </div>
-                            <div className="text-right">
-                                <div className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Status</div>
-                                <div className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/20">
-                                    Valid
-                                </div>
+                            <div className="bg-green-500/20 text-green-400 text-xs font-medium px-3 py-1.5 rounded-full border border-green-500/30 flex items-center gap-1.5">
+                                <div className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+                                Valid
                             </div>
                         </div>
-                    </div>
 
-                    {/* QR Code */}
-                    <div className="flex justify-center pt-2">
-                        <div className="p-3 bg-white rounded-xl shadow-lg">
-                            <QRCodeSVG
-                                value={ticketData}
-                                size={120}
-                                level="H"
-                                includeMargin={false}
-                            />
-                        </div>
+                        {/* QR Code Section - Animated Reveal */}
+                        <motion.button
+                            onClick={() => setShowQR(!showQR)}
+                            className="w-full bg-gradient-to-r from-primary/20 to-pink-500/20 rounded-2xl p-4 border border-primary/30 flex flex-col items-center gap-2"
+                            whileTap={{ scale: 0.98 }}
+                        >
+                            <AnimatePresence mode="wait">
+                                {showQR ? (
+                                    <motion.div
+                                        key="qr"
+                                        initial={{ opacity: 0, scale: 0.8, rotateX: 90 }}
+                                        animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8, rotateX: -90 }}
+                                        className="p-4 bg-white rounded-2xl shadow-2xl"
+                                    >
+                                        <QRCodeSVG
+                                            value={ticketData}
+                                            size={140}
+                                            level="H"
+                                            includeMargin={false}
+                                        />
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="prompt"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="flex flex-col items-center py-4"
+                                    >
+                                        <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-primary to-pink-500 flex items-center justify-center mb-3">
+                                            <Sparkles className="h-6 w-6 text-white" />
+                                        </div>
+                                        <span className="text-white font-medium mb-1">Tap to reveal QR Code</span>
+                                        <span className="text-white/40 text-xs">Show this at the venue entrance</span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                            <motion.div
+                                animate={{ rotate: showQR ? 180 : 0 }}
+                                className="text-white/40"
+                            >
+                                <ChevronDown className="h-5 w-5" />
+                            </motion.div>
+                        </motion.button>
                     </div>
                 </div>
             </div>
 
-            {/* Decorative Circles */}
-            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-background border border-white/10" />
-            <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-background border border-white/10" />
+            {/* CSS for shimmer animation */}
+            <style>{`
+                @keyframes shimmer {
+                    0% { transform: translateX(-100%); }
+                    100% { transform: translateX(100%); }
+                }
+                .animate-shimmer {
+                    animation: shimmer 3s infinite;
+                }
+            `}</style>
         </motion.div>
     );
 };
