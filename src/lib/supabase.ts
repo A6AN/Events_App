@@ -17,12 +17,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 export const getURL = () => {
     let url = 'http://localhost:3000/';
+
+    // Debug logging
+    console.log('🔗 getURL Debug:');
+    console.log('- window.origin:', typeof window !== 'undefined' ? window.location.origin : 'undefined');
+    console.log('- VITE_SITE_URL:', import.meta.env.VITE_SITE_URL);
+    console.log('- VITE_VERCEL_URL:', import.meta.env.VITE_VERCEL_URL);
+
     if (typeof window !== 'undefined' && window.location.origin) {
         url = window.location.origin;
+        console.log('- Using window.origin:', url);
     } else {
         url = import.meta.env.VITE_SITE_URL ??
             import.meta.env.VITE_VERCEL_URL ??
             'http://localhost:3000/';
+        console.log('- Using fallback env:', url);
     }
     // Make sure to include `https://` when not localhost.
     url = url.includes('http') ? url : `https://${url}`;
