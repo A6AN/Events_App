@@ -50,8 +50,8 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${selectedCategory === cat
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                 }`}
             >
               {cat}
@@ -69,8 +69,10 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(6, 182, 212, 0.3)' }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleTicketClick(ticket)}
-              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer hover:border-cyan-500/30 transition-all duration-500 hover:shadow-xl hover:shadow-cyan-500/5"
+              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 active:border-cyan-500/50"
             >
               {/* Image Container */}
               <div className="relative h-52 overflow-hidden">

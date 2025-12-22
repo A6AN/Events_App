@@ -58,8 +58,8 @@ export function VenuesTab({ venues }: VenuesTabProps) {
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${selectedCategory === cat
-                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/30'
-                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/30'
+                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
                 }`}
             >
               {cat !== 'All' && <span className="mr-1.5">{categoryEmoji[cat as keyof typeof categoryEmoji]}</span>}
@@ -78,8 +78,10 @@ export function VenuesTab({ venues }: VenuesTabProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
+              whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(245, 158, 11, 0.3)' }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleVenueClick(venue)}
-              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer hover:border-amber-500/30 transition-all duration-500 hover:shadow-xl hover:shadow-amber-500/5"
+              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 active:border-amber-500/50"
             >
               {/* Image with overlay */}
               <div className="relative h-48 overflow-hidden">

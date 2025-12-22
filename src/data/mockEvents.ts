@@ -3,92 +3,92 @@ import { Event } from '../types';
 export const mockEvents: Event[] = [
   {
     id: '1',
-    title: 'Rooftop Sunset Party',
-    startTime: '6:30 PM',
-    location: { lat: 28.5355, lng: 77.3910, name: 'Hauz Khas Village' },
-    imageUrl: 'https://images.unsplash.com/photo-1696863121919-cf7fa0331d31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYXV6JTIwa2hhcyUyMGRlbGhpfGVufDF8fHx8MTc2MzQ2NDcxOXww&ixlib=rb-4.1.0&q=80&w=1080',
+    title: 'Boho Fest Lucknow',
+    startTime: '5:00 PM',
+    location: { lat: 26.8467, lng: 80.9462, name: 'Ambedkar Memorial Park' },
+    imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800',
     host: {
-      name: 'Arjun Malhotra',
-      avatar: 'https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@arjunmalhotra'
+      name: 'Lucknow Events Co',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+      instagram: '@lucknoweventsco'
     },
-    attendees: 24,
+    attendees: 250,
     mood: 'Energetic',
-    description: 'Join us for an amazing rooftop party with live DJ and Delhi skyline views!'
+    description: 'The biggest bohemian music and art festival in Lucknow! Live bands, art installations, food stalls, and more.'
   },
   {
     id: '2',
-    title: 'Coffee & Conversations',
+    title: 'Lucknow Literature Festival',
     startTime: '10:00 AM',
-    location: { lat: 28.6315, lng: 77.2167, name: 'Khan Market' },
-    imageUrl: 'https://images.unsplash.com/photo-1549407978-23788293b970?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb2ZmZWUlMjBzaG9wJTIwY296eXxlbnwxfHx8fDE3NjMzNjcyNjF8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    location: { lat: 26.8500, lng: 80.9500, name: 'Bara Imambara' },
+    imageUrl: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=800',
     host: {
-      name: 'Priya Sharma',
-      avatar: 'https://images.unsplash.com/photo-1691966929688-72d734848bcd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB3b21hbiUyMHByb2ZpbGV8ZW58MXx8fHwxNzYzNDY0NzE4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@priyasharma'
+      name: 'Nawabi Books',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+      instagram: '@nawabibooks'
     },
-    attendees: 8,
-    mood: 'Chill',
-    description: 'Casual coffee meetup for entrepreneurs and creatives at Khan Market'
+    attendees: 180,
+    mood: 'Creative',
+    description: 'Annual literary festival featuring renowned authors, poetry sessions, and book launches at the historic Bara Imambara.'
   },
   {
     id: '3',
-    title: 'Art Gallery Opening',
-    startTime: '7:00 PM',
-    location: { lat: 28.6289, lng: 77.2065, name: 'Connaught Place' },
-    imageUrl: 'https://images.unsplash.com/photo-1722165923691-dc77d229a31a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjb25uYXVnaHQlMjBwbGFjZSUyMGRlbGhpfGVufDF8fHx8MTc2MzQ2NDcxOXww&ixlib=rb-4.1.0&q=80&w=1080',
+    title: 'Hazratganj Food Crawl',
+    startTime: '6:00 PM',
+    location: { lat: 26.8530, lng: 80.9450, name: 'Hazratganj' },
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800',
     host: {
-      name: 'Kavya Reddy',
-      avatar: 'https://images.unsplash.com/photo-1691966929688-72d734848bcd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB3b21hbiUyMHByb2ZpbGV8ZW58MXx8fHwxNzYzNDY0NzE4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@kavyareddy'
+      name: 'Foodies of Lucknow',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      instagram: '@foodiesofLKO'
     },
-    attendees: 32,
-    mood: 'Creative',
-    description: 'Contemporary art exhibition at CP with wine and light bites'
+    attendees: 45,
+    mood: 'Chill',
+    description: 'Explore the iconic street food of Hazratganj - from Tunday Kebabi to Royal Cafe basket chaat!'
   },
   {
     id: '4',
-    title: 'Candlelit Dinner Experience',
-    startTime: '8:00 PM',
-    location: { lat: 28.5244, lng: 77.1855, name: 'Garden of Five Senses' },
-    imageUrl: 'https://images.unsplash.com/photo-1760669348865-75d0e9733604?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdW5zZXQlMjBkaW5uZXIlMjByb21hbnRpY3xlbnwxfHx8fDE3NjM0MTI5MTB8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    title: 'Sunset Yoga at Gomti Riverfront',
+    startTime: '5:30 PM',
+    location: { lat: 26.8600, lng: 80.9300, name: 'Gomti Riverfront' },
+    imageUrl: 'https://images.unsplash.com/photo-1545205597-3d9d02c29597?w=800',
     host: {
-      name: 'Rohan Kapoor',
-      avatar: 'https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@rohankapoor'
+      name: 'Wellness Lucknow',
+      avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+      instagram: '@wellnesslko'
     },
-    attendees: 12,
-    mood: 'Romantic',
-    description: 'Intimate dinner gathering with sunset views at Garden of Five Senses'
+    attendees: 60,
+    mood: 'Chill',
+    description: 'Rejuvenate your mind and body with a sunset yoga session at the scenic Gomti Riverfront.'
   },
   {
     id: '5',
-    title: 'India Gate Morning Yoga',
-    startTime: '6:30 AM',
-    location: { lat: 28.6129, lng: 77.2295, name: 'India Gate' },
-    imageUrl: 'https://images.unsplash.com/photo-1688781298681-ae1f2d470b31?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYSUyMGdhdGUlMjBkZWxoaXxlbnwxfHx8fDE3NjM0NDY0MDd8MA&ixlib=rb-4.1.0&q=80&w=1080',
+    title: 'EDM Night at Phoenix Palassio',
+    startTime: '9:00 PM',
+    location: { lat: 26.8100, lng: 80.9800, name: 'Phoenix Palassio Mall' },
+    imageUrl: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800',
     host: {
-      name: 'Ananya Singh',
-      avatar: 'https://images.unsplash.com/photo-1691966929688-72d734848bcd?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjB3b21hbiUyMHByb2ZpbGV8ZW58MXx8fHwxNzYzNDY0NzE4fDA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@ananyasingh'
+      name: 'Club Nights LKO',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+      instagram: '@clubnightslko'
     },
-    attendees: 28,
-    mood: 'Chill',
-    description: 'Start your day with meditation and yoga at India Gate lawns'
+    attendees: 320,
+    mood: 'Energetic',
+    description: 'Get ready for the biggest EDM night in Lucknow! International DJs, laser shows, and premium vibes.'
   },
   {
     id: '6',
-    title: 'Qutub Minar Heritage Walk',
-    startTime: '5:00 PM',
-    location: { lat: 28.5244, lng: 77.1855, name: 'Qutub Minar' },
-    imageUrl: 'https://images.unsplash.com/photo-1667849521212-e9843b89f322?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxxdXR1YiUyMG1pbmFyJTIwZGVsaGl8ZW58MXx8fHwxNzYzNDYzNjcxfDA&ixlib=rb-4.1.0&q=80&w=1080',
+    title: 'Kathak Classical Evening',
+    startTime: '7:00 PM',
+    location: { lat: 26.8700, lng: 80.9100, name: 'Bhawan Bharati' },
+    imageUrl: 'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800',
     host: {
-      name: 'Vikram Mehta',
-      avatar: 'https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-      instagram: '@vikrammehta'
+      name: 'Lucknow Gharana',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
+      instagram: '@lucknowgharana'
     },
-    attendees: 16,
+    attendees: 120,
     mood: 'Creative',
-    description: 'Explore Delhi\'s heritage with a guided walk around Qutub Minar complex'
+    description: 'An evening of classical Kathak dance by artists from the legendary Lucknow Gharana tradition.'
   }
 ];
