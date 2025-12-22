@@ -29,7 +29,7 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
     <div className="h-full bg-background overflow-hidden flex flex-col">
       {/* Header - Fixed */}
       <div className="flex-shrink-0 bg-background/80 backdrop-blur-2xl border-b border-white/5 p-4 z-10">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-5">
           <div className="relative">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
               <Ticket className="h-5 w-5 text-white" />
@@ -42,16 +42,16 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
           </div>
         </div>
 
-        {/* Category Pills - Scrollable */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
+        {/* Category Pills - Seamlessly Integrated */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
             <motion.button
               key={cat}
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${selectedCategory === cat
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+              className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-medium transition-all duration-300 ${selectedCategory === cat
+                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
             >
               {cat}
@@ -69,10 +69,10 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(6, 182, 212, 0.3)' }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => handleTicketClick(ticket)}
-              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 active:border-cyan-500/50"
+              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-cyan-500/30"
             >
               {/* Image Container */}
               <div className="relative h-52 overflow-hidden">
@@ -120,17 +120,24 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
                   </div>
                 </div>
 
-                {/* Price tag */}
-                <div className="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 rounded-2xl p-4 flex items-center justify-between">
+                {/* Price + Golden Glow CTA */}
+                <motion.div
+                  whileHover={{
+                    boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)',
+                    scale: 1.02
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
+                >
                   <div>
-                    <div className="text-white/50 text-xs">From</div>
-                    <div className="text-white text-2xl font-bold">₹{ticket.price}</div>
+                    <div className="text-white/80 text-xs">From</div>
+                    <div className="text-white text-xl font-bold">₹{ticket.price}</div>
                   </div>
                   <div className="text-right">
-                    <div className="text-cyan-400 text-xs font-medium">{ticket.availableSeats} seats left</div>
-                    <div className="text-white font-medium group-hover:translate-x-1 transition-transform">Book Now →</div>
+                    <div className="text-white/80 text-xs">{ticket.availableSeats} seats left</div>
+                    <div className="text-white font-semibold">Book Now →</div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             </motion.div>
           ))}

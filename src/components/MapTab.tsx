@@ -9,6 +9,7 @@ import { MoodFilter } from './map/MoodFilter';
 import { EventDetailsSheet } from './modals/EventDetailsSheet';
 import { CreateEventWizard } from './modals/CreateEventWizard';
 import { OlaMaps } from 'olamaps-web-sdk';
+import { mockEvents } from '../data/mockEvents';
 import '../styles/leaflet-custom.css';
 
 const OLA_MAPS_API_KEY = (import.meta as any).env.VITE_OLA_MAPS_API_KEY;
@@ -38,7 +39,8 @@ export const MapTab = () => {
     const loadEvents = async () => {
       setIsLoadingEvents(true);
       const data = await fetchEvents();
-      setEvents(data);
+      // Use mock events as fallback if Supabase is empty
+      setEvents(data.length > 0 ? data : mockEvents);
       setIsLoadingEvents(false);
     };
     loadEvents();
@@ -61,7 +63,7 @@ export const MapTab = () => {
         const myMap = olaMapsRef.current.init({
           style: "https://api.olamaps.io/tiles/vector/v1/styles/default-dark-standard/style.json",
           container: mapContainerRef.current,
-          center: [77.2090, 28.6139], // New Delhi
+          center: [80.9462, 26.8467], // Lucknow
           zoom: 12,
         });
 

@@ -37,7 +37,7 @@ export function VenuesTab({ venues }: VenuesTabProps) {
     <div className="h-full bg-background overflow-hidden flex flex-col">
       {/* Header - Fixed */}
       <div className="flex-shrink-0 bg-background/80 backdrop-blur-2xl border-b border-white/5 p-4 z-10">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-5">
           <div className="relative">
             <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
               <Building2 className="h-5 w-5 text-white" />
@@ -50,19 +50,19 @@ export function VenuesTab({ venues }: VenuesTabProps) {
           </div>
         </div>
 
-        {/* Category Pills - Scrollable */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1 -mx-4 px-4">
+        {/* Category Pills - Seamlessly Integrated */}
+        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
           {categories.map((cat) => (
             <motion.button
               key={cat}
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${selectedCategory === cat
-                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-orange-500/30'
-                : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
+              className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-300 ${selectedCategory === cat
+                  ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-md'
+                  : 'text-white/60 hover:text-white hover:bg-white/5'
                 }`}
             >
-              {cat !== 'All' && <span className="mr-1.5">{categoryEmoji[cat as keyof typeof categoryEmoji]}</span>}
+              {cat !== 'All' && <span className="mr-1">{categoryEmoji[cat as keyof typeof categoryEmoji]}</span>}
               {cat}
             </motion.button>
           ))}
@@ -78,10 +78,10 @@ export function VenuesTab({ venues }: VenuesTabProps) {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, boxShadow: '0 0 30px rgba(245, 158, 11, 0.3)' }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.99 }}
               onClick={() => handleVenueClick(venue)}
-              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 active:border-amber-500/50"
+              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-amber-500/30"
             >
               {/* Image with overlay */}
               <div className="relative h-48 overflow-hidden">
@@ -156,11 +156,18 @@ export function VenuesTab({ venues }: VenuesTabProps) {
                   )}
                 </div>
 
-                {/* CTA */}
-                <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-2xl p-4 flex items-center justify-between group-hover:from-amber-500/30 group-hover:to-orange-500/30 transition-all">
-                  <span className="text-white font-medium">View Details</span>
-                  <span className="text-amber-400 group-hover:translate-x-1 transition-transform">Book Now →</span>
-                </div>
+                {/* Golden Glow CTA */}
+                <motion.div
+                  whileHover={{
+                    boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)',
+                    scale: 1.02
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                  className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 flex items-center justify-between transition-all cursor-pointer"
+                >
+                  <span className="text-white font-semibold">View Details</span>
+                  <span className="text-white/90 font-medium">Book Now →</span>
+                </motion.div>
               </div>
             </motion.div>
           ))}
