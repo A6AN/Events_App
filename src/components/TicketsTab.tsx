@@ -1,5 +1,4 @@
-import { Ticket, Calendar, MapPin, Sparkles } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { Ticket, Calendar, MapPin } from 'lucide-react';
 import { TicketEvent } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
@@ -27,124 +26,95 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
 
   return (
     <div className="h-full bg-background overflow-hidden flex flex-col">
-      {/* Header - Fixed */}
-      <div className="flex-shrink-0 bg-background/80 backdrop-blur-2xl border-b border-white/5 p-4 z-10">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="relative">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-              <Ticket className="h-5 w-5 text-white" />
-            </div>
-            <Sparkles className="h-3 w-3 text-cyan-500 absolute -top-1 -right-1" />
-          </div>
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 pb-3">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-white">Live Events</h1>
-            <p className="text-white/40 text-xs">Get your tickets now</p>
+            <p className="text-white/40 text-xs">Get your tickets</p>
+          </div>
+          <div className="h-9 w-9 rounded-full bg-cyan-500/20 flex items-center justify-center">
+            <Ticket className="h-4 w-4 text-cyan-500" />
           </div>
         </div>
 
-        {/* Category Pills - Seamlessly Integrated */}
-        <div className="bg-white/5 backdrop-blur-sm rounded-2xl p-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
+        {/* Categories - Simple chips */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
           {categories.map((cat) => (
-            <motion.button
+            <button
               key={cat}
-              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-xs font-medium transition-all duration-300 ${selectedCategory === cat
-                  ? 'bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-md'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all ${selectedCategory === cat
+                  ? 'bg-cyan-500 text-white'
+                  : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
             >
               {cat}
-            </motion.button>
+            </button>
           ))}
         </div>
       </div>
 
-      {/* Tickets Grid - Scrollable */}
-      <div className="flex-1 overflow-y-auto pb-24">
-        <div className="p-4 space-y-5">
+      {/* Tickets List */}
+      <div className="flex-1 overflow-y-auto pb-24 px-4">
+        <div className="space-y-4">
           {filteredTickets.map((ticket, index) => (
             <motion.div
               key={ticket.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+              transition={{ delay: index * 0.08 }}
               onClick={() => handleTicketClick(ticket)}
-              className="group relative bg-white/5 backdrop-blur-sm border border-white/10 rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-cyan-500/30"
+              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
             >
-              {/* Image Container */}
-              <div className="relative h-52 overflow-hidden">
+              {/* Image */}
+              <div className="relative h-44">
                 <ImageWithFallback
                   src={ticket.imageUrl}
                   alt={ticket.title}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-cover"
                 />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-                {/* Gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-
-                {/* Floating category badge */}
-                <div className="absolute top-4 right-4 bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 rounded-full text-white text-xs font-medium shadow-lg">
-                  {ticket.category}
+                {/* Category badge */}
+                <div className="absolute top-3 right-3 bg-cyan-500 px-2.5 py-1 rounded-full">
+                  <span className="text-[10px] text-white font-medium">{ticket.category}</span>
                 </div>
 
-                {/* Title overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <h3 className="text-white text-xl font-bold mb-1">{ticket.title}</h3>
-                  <p className="text-cyan-400 text-sm font-medium">{ticket.artist}</p>
+                {/* Info overlay */}
+                <div className="absolute bottom-3 left-3 right-3">
+                  <h3 className="text-white font-semibold text-lg">{ticket.title}</h3>
+                  <p className="text-cyan-400 text-sm">{ticket.artist}</p>
                 </div>
               </div>
 
-              {/* Details Section */}
-              <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
-                      <Calendar className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-white/40 uppercase tracking-wider">Date</div>
-                      <div className="text-white text-sm font-medium">{ticket.date}</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 bg-white/5 rounded-xl px-3 py-2">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                      <MapPin className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-white/40 uppercase tracking-wider">Venue</div>
-                      <div className="text-white text-sm font-medium truncate max-w-[100px]">{ticket.venue}</div>
-                    </div>
-                  </div>
+              {/* Details */}
+              <div className="p-4">
+                <div className="flex items-center gap-4 text-xs text-white/60 mb-3">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3" /> {ticket.date}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" /> {ticket.venue}
+                  </span>
                 </div>
 
-                {/* Price + Golden Glow CTA */}
-                <motion.div
-                  whileHover={{
-                    boxShadow: '0 0 25px rgba(245, 158, 11, 0.4)',
-                    scale: 1.02
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                  className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-2xl p-4 flex items-center justify-between cursor-pointer"
-                >
+                {/* Price row */}
+                <div className="flex items-center justify-between">
                   <div>
-                    <div className="text-white/80 text-xs">From</div>
-                    <div className="text-white text-xl font-bold">₹{ticket.price}</div>
+                    <span className="text-white/40 text-xs">From </span>
+                    <span className="text-white font-bold text-lg">₹{ticket.price}</span>
                   </div>
-                  <div className="text-right">
-                    <div className="text-white/80 text-xs">{ticket.availableSeats} seats left</div>
-                    <div className="text-white font-semibold">Book Now →</div>
-                  </div>
-                </motion.div>
+                  <button className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                    Book Now
+                  </button>
+                </div>
               </div>
             </motion.div>
           ))}
         </div>
       </div>
 
-      {/* Booking Dialog */}
       <TicketBookingDialog
         ticket={selectedTicket}
         open={dialogOpen}
