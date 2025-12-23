@@ -1,4 +1,4 @@
-import { Building2, MapPin, Star, Users } from 'lucide-react';
+import { Building2, MapPin, Star, Users, Sparkles } from 'lucide-react';
 import { Venue } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
@@ -39,26 +39,27 @@ export function VenuesTab({ venues }: VenuesTabProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-white">Venues</h1>
-            <p className="text-white/40 text-xs">Find the perfect spot</p>
+            <p className="text-white/50 text-xs">Find the perfect spot</p>
           </div>
-          <div className="h-9 w-9 rounded-full bg-amber-500/20 flex items-center justify-center">
-            <Building2 className="h-4 w-4 text-amber-500" />
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
+            <Building2 className="h-5 w-5 text-white" />
           </div>
         </div>
 
-        {/* Categories - Simple chips */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+        {/* Categories - Pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
           {categories.map((cat) => (
-            <button
+            <motion.button
               key={cat}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all ${selectedCategory === cat
-                  ? 'bg-amber-500 text-white'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat
+                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
-              {cat !== 'All' && categoryEmoji[cat]} {cat}
-            </button>
+              {cat !== 'All' && <span className="mr-1">{categoryEmoji[cat]}</span>} {cat}
+            </motion.button>
           ))}
         </div>
       </div>
@@ -69,49 +70,70 @@ export function VenuesTab({ venues }: VenuesTabProps) {
           {filteredVenues.map((venue, index) => (
             <motion.div
               key={venue.id}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08 }}
-              whileHover={{ scale: 1.02, y: -2 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{
+                scale: 1.02,
+                y: -4,
+                transition: { duration: 0.2 }
+              }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleVenueClick(venue)}
-              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:shadow-lg hover:shadow-amber-500/10"
+              className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-amber-500/50 transition-all duration-300"
+              style={{
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+              }}
             >
+              {/* Glow effect on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-500/0 to-orange-500/0 group-hover:from-amber-500/10 group-hover:to-orange-500/10 transition-all duration-300 rounded-2xl" />
+
               {/* Image */}
-              <div className="relative h-40 overflow-hidden">
+              <div className="relative h-44 overflow-hidden">
                 <ImageWithFallback
                   src={venue.imageUrl}
                   alt={venue.name}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
 
-                {/* Rating */}
-                <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full transition-all group-hover:bg-amber-500">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400 group-hover:fill-white group-hover:text-white" />
-                  <span className="text-xs text-white font-medium">{venue.rating}</span>
-                </div>
+                {/* Rating - Glowing badge */}
+                <motion.div
+                  className="absolute top-3 right-3 flex items-center gap-1.5 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 group-hover:bg-amber-500 group-hover:border-amber-400 transition-all duration-300"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400 group-hover:fill-white group-hover:text-white transition-colors" />
+                  <span className="text-sm text-white font-semibold">{venue.rating}</span>
+                </motion.div>
 
                 {/* Info overlay */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-semibold text-base group-hover:text-amber-200 transition-colors">{venue.name}</h3>
-                  <div className="flex items-center gap-1 text-white/70 text-xs mt-0.5">
-                    <MapPin className="h-3 w-3" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-bold text-lg group-hover:text-amber-200 transition-colors">{venue.name}</h3>
+                  <div className="flex items-center gap-1.5 text-white/70 text-sm mt-1">
+                    <MapPin className="h-3.5 w-3.5" />
                     {venue.location}
                   </div>
                 </div>
               </div>
 
               {/* Details */}
-              <div className="p-3">
+              <div className="relative p-4 bg-gradient-to-r from-transparent to-amber-500/5 group-hover:to-amber-500/10 transition-colors">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-xs text-white/60">
-                    <span className="flex items-center gap-1">
-                      <Users className="h-3 w-3" /> {venue.capacity}
+                  <div className="flex items-center gap-4 text-sm text-white/70">
+                    <span className="flex items-center gap-1.5">
+                      <Users className="h-4 w-4" /> {venue.capacity}
                     </span>
-                    <span className="text-amber-400 font-medium">₹{venue.pricePerHour.toLocaleString()}/hr</span>
+                    <span className="text-amber-400 font-bold">₹{venue.pricePerHour.toLocaleString()}/hr</span>
                   </div>
-                  <span className="text-amber-500 text-xs font-medium group-hover:translate-x-1 transition-transform">Book →</span>
+
+                  {/* Book button with glow */}
+                  <motion.span
+                    className="flex items-center gap-1 text-amber-400 font-semibold text-sm group-hover:text-amber-300"
+                    whileHover={{ x: 3 }}
+                  >
+                    <Sparkles className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    Book Now →
+                  </motion.span>
                 </div>
               </div>
             </motion.div>

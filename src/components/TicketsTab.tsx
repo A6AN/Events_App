@@ -1,4 +1,4 @@
-import { Ticket, Calendar, MapPin } from 'lucide-react';
+import { Ticket, Calendar, MapPin, Zap } from 'lucide-react';
 import { TicketEvent } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
@@ -31,26 +31,27 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-xl font-bold text-white">Live Events</h1>
-            <p className="text-white/40 text-xs">Get your tickets</p>
+            <p className="text-white/50 text-xs">Get your tickets</p>
           </div>
-          <div className="h-9 w-9 rounded-full bg-cyan-500/20 flex items-center justify-center">
-            <Ticket className="h-4 w-4 text-cyan-500" />
+          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+            <Ticket className="h-5 w-5 text-white" />
           </div>
         </div>
 
-        {/* Categories - Simple chips */}
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-1">
+        {/* Categories - Pills */}
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
           {categories.map((cat) => (
-            <button
+            <motion.button
               key={cat}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs transition-all ${selectedCategory === cat
-                  ? 'bg-cyan-500 text-white'
-                  : 'bg-white/5 text-white/60 hover:bg-white/10'
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat
+                  ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               {cat}
-            </button>
+            </motion.button>
           ))}
         </div>
       </div>
@@ -61,55 +62,83 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
           {filteredTickets.map((ticket, index) => (
             <motion.div
               key={ticket.id}
-              initial={{ opacity: 0, y: 15 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.08 }}
-              whileHover={{ scale: 1.02, y: -2 }}
+              transition={{ delay: index * 0.1 }}
+              whileHover={{
+                scale: 1.02,
+                y: -4,
+                transition: { duration: 0.2 }
+              }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleTicketClick(ticket)}
-              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:shadow-lg hover:shadow-cyan-500/10"
+              className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-cyan-500/50 transition-all duration-300"
+              style={{
+                boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+              }}
             >
+              {/* Glow effect on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/0 to-blue-500/0 group-hover:from-cyan-500/10 group-hover:to-blue-500/10 transition-all duration-300 rounded-2xl" />
+
               {/* Image */}
-              <div className="relative h-44 overflow-hidden">
+              <div className="relative h-48 overflow-hidden">
                 <ImageWithFallback
                   src={ticket.imageUrl}
                   alt={ticket.title}
                   className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
 
-                {/* Category badge */}
-                <div className="absolute top-3 right-3 bg-cyan-500 px-2.5 py-1 rounded-full transition-all group-hover:bg-white group-hover:text-cyan-600">
-                  <span className="text-[10px] font-medium">{ticket.category}</span>
-                </div>
+                {/* Category badge - Glowing */}
+                <motion.div
+                  className="absolute top-3 right-3 bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 rounded-full shadow-lg shadow-cyan-500/30 group-hover:shadow-cyan-500/50 transition-all"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <span className="text-xs text-white font-semibold">{ticket.category}</span>
+                </motion.div>
+
+                {/* Hot badge for popular events */}
+                {ticket.availableSeats < 50 && (
+                  <div className="absolute top-3 left-3 bg-red-500 px-2 py-1 rounded-full flex items-center gap-1 animate-pulse">
+                    <Zap className="h-3 w-3 text-white fill-white" />
+                    <span className="text-[10px] text-white font-bold">HOT</span>
+                  </div>
+                )}
 
                 {/* Info overlay */}
-                <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-semibold text-lg group-hover:text-cyan-200 transition-colors">{ticket.title}</h3>
-                  <p className="text-cyan-400 text-sm">{ticket.artist}</p>
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <h3 className="text-white font-bold text-xl group-hover:text-cyan-200 transition-colors">{ticket.title}</h3>
+                  <p className="text-cyan-400 text-sm font-medium mt-1">{ticket.artist}</p>
                 </div>
               </div>
 
               {/* Details */}
-              <div className="p-4">
-                <div className="flex items-center gap-4 text-xs text-white/60 mb-3">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" /> {ticket.date}
+              <div className="relative p-4 bg-gradient-to-r from-transparent to-cyan-500/5 group-hover:to-cyan-500/10 transition-colors">
+                <div className="flex items-center gap-4 text-sm text-white/60 mb-4">
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4" /> {ticket.date}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <MapPin className="h-3 w-3" /> {ticket.venue}
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="h-4 w-4" /> {ticket.venue}
                   </span>
                 </div>
 
                 {/* Price row */}
                 <div className="flex items-center justify-between">
                   <div>
-                    <span className="text-white/40 text-xs">From </span>
-                    <span className="text-white font-bold text-lg">₹{ticket.price}</span>
+                    <span className="text-white/50 text-sm">From </span>
+                    <span className="text-white font-bold text-xl">₹{ticket.price}</span>
                   </div>
-                  <button className="bg-cyan-500 hover:bg-cyan-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-all group-hover:shadow-lg group-hover:shadow-cyan-500/30">
+
+                  {/* Book Now button with strong glow */}
+                  <motion.button
+                    className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-5 py-2.5 rounded-full text-sm font-bold transition-all shadow-lg shadow-cyan-500/30 group-hover:shadow-cyan-500/50 group-hover:shadow-xl"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     Book Now
-                  </button>
+                  </motion.button>
                 </div>
               </div>
             </motion.div>
