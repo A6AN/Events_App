@@ -1,4 +1,4 @@
-import { Building2, MapPin, Star, Users, Sparkles } from 'lucide-react';
+import { Building2, MapPin, Star, Users } from 'lucide-react';
 import { Venue } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
@@ -72,27 +72,29 @@ export function VenuesTab({ venues }: VenuesTabProps) {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.08 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleVenueClick(venue)}
-              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:shadow-lg hover:shadow-amber-500/10"
             >
               {/* Image */}
-              <div className="relative h-40">
+              <div className="relative h-40 overflow-hidden">
                 <ImageWithFallback
                   src={venue.imageUrl}
                   alt={venue.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
 
                 {/* Rating */}
-                <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full">
-                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <div className="absolute top-3 right-3 flex items-center gap-1 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-full transition-all group-hover:bg-amber-500">
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-400 group-hover:fill-white group-hover:text-white" />
                   <span className="text-xs text-white font-medium">{venue.rating}</span>
                 </div>
 
                 {/* Info overlay */}
                 <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-semibold text-base">{venue.name}</h3>
+                  <h3 className="text-white font-semibold text-base group-hover:text-amber-200 transition-colors">{venue.name}</h3>
                   <div className="flex items-center gap-1 text-white/70 text-xs mt-0.5">
                     <MapPin className="h-3 w-3" />
                     {venue.location}
@@ -109,7 +111,7 @@ export function VenuesTab({ venues }: VenuesTabProps) {
                     </span>
                     <span className="text-amber-400 font-medium">₹{venue.pricePerHour.toLocaleString()}/hr</span>
                   </div>
-                  <span className="text-amber-500 text-xs font-medium">Book →</span>
+                  <span className="text-amber-500 text-xs font-medium group-hover:translate-x-1 transition-transform">Book →</span>
                 </div>
               </div>
             </motion.div>

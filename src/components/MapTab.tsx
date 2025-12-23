@@ -1,16 +1,18 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Navigation, MapPin, X, Loader2 } from 'lucide-react';
+import { Navigation, MapPin, Loader2, ListFilter } from 'lucide-react';
 import { Button } from './ui/button';
-import { Input } from './ui/input';
 import { fetchEvents } from '../lib/supabase';
 import { Event } from '../types';
 import { TorchFilter } from './map/TorchFilter';
 import { MoodFilter } from './map/MoodFilter';
+import { PremiumSearchBar } from './map/PremiumSearchBar';
+import { NearbyEventsSheet } from './map/NearbyEventsSheet';
 import { EventDetailsSheet } from './modals/EventDetailsSheet';
 import { CreateEventWizard } from './modals/CreateEventWizard';
 import { OlaMaps } from 'olamaps-web-sdk';
 import { mockEvents } from '../data/mockEvents';
 import '../styles/leaflet-custom.css';
+
 
 const OLA_MAPS_API_KEY = (import.meta as any).env.VITE_OLA_MAPS_API_KEY;
 
@@ -32,6 +34,8 @@ export const MapTab = () => {
   const [torchMode, setTorchMode] = useState(false);
   const [torchRadius, setTorchRadius] = useState(5); // km
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [isNearbySheetOpen, setIsNearbySheetOpen] = useState(false);
+  const [mapLoaded, setMapLoaded] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Fetch Events
@@ -74,7 +78,7 @@ export const MapTab = () => {
 
         // Wait for map to load before adding markers
         myMap.on('load', () => {
-          renderMarkers();
+          setMapLoaded(true);
 
           // Tone down landmarks
           try {
@@ -233,8 +237,10 @@ export const MapTab = () => {
 
   // Update markers when filters change or events load
   useEffect(() => {
-    renderMarkers();
-  }, [events, selectedMood, torchMode, torchRadius, userLocation]);
+    if (mapLoaded) {
+      renderMarkers();
+    }
+  }, [events, selectedMood, torchMode, torchRadius, userLocation, mapLoaded]);
 
   // Geocoding search with Ola Maps API
   useEffect(() => {
@@ -334,60 +340,19 @@ export const MapTab = () => {
 
       {/* Search Bar */}
       <div className="absolute top-4 left-4 right-4 z-[400]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <Input
-            type="text"
-            placeholder="Search for a location in India..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 pr-9 bg-background/80 backdrop-blur-md border-white/20 shadow-lg"
-          />
-          {searchQuery && (
-            <Button
-              onClick={() => {
-                setSearchQuery('');
-                setSearchResults([]);
-              }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
-
-        {/* Search Results Dropdown */}
-        {(isSearching || searchResults.length > 0) && (
-          <div className="absolute top-full left-0 right-0 mt-2 bg-background/90 backdrop-blur-md rounded-lg border border-white/10 shadow-xl overflow-hidden max-h-60 overflow-y-auto">
-            {isSearching ? (
-              <div className="p-4 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Searching with Ola Maps...
-              </div>
-            ) : (
-              searchResults.map((result) => (
-                <Button
-                  key={result.place_id}
-                  className="w-full text-left px-4 py-3 hover:bg-white/10 transition-colors border-b border-white/5 last:border-0"
-                  onClick={() => handleSearchResultClick(result)}
-                >
-                  <div className="flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <div className="text-sm font-medium text-foreground">{result.description}</div>
-                      {result.structured_formatting?.secondary_text && (
-                        <div className="text-xs text-muted-foreground line-clamp-1">
-                          {result.structured_formatting.secondary_text}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Button>
-              ))
-            )}
-          </div>
-        )}
+        <PremiumSearchBar
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+          searchResults={searchResults}
+          isSearching={isSearching}
+          onResultClick={handleSearchResultClick}
+          onClear={() => {
+            setSearchQuery('');
+            setSearchResults([]);
+          }}
+        />
       </div>
+
 
       {/* Filters & Controls */}
       <div className="absolute top-20 left-0 right-0 z-[400] flex flex-col gap-4 pointer-events-none px-4">
@@ -414,21 +379,32 @@ export const MapTab = () => {
         </div>
       </div>
 
-      {/* Bottom Legend */}
-      <div className="absolute bottom-24 left-4 right-4 z-[400] pointer-events-none">
-        <div className="bg-background/80 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-lg inline-flex items-center gap-3">
+      {/* Bottom Controls */}
+      <div className="absolute bottom-24 left-4 right-4 z-[400] flex items-center justify-between">
+        {/* Legend */}
+        <div className="bg-background/80 backdrop-blur-md rounded-full px-4 py-2 border border-white/10 shadow-lg flex items-center gap-3">
           <div className="flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 text-primary" />
             <span className="text-xs font-medium">{events.length} events</span>
           </div>
           <div className="w-px h-3 bg-border" />
-          <div className="text-[10px] text-muted-foreground">Powered by Ola Maps 🇮🇳</div>
+          <div className="text-[10px] text-muted-foreground">🇮🇳 Ola Maps</div>
         </div>
-      </div>
 
-      {/* Create Event FAB */}
-      <div className="absolute bottom-24 right-4 z-[400]">
-        <CreateEventWizard />
+        {/* Right side buttons */}
+        <div className="flex items-center gap-2">
+          {/* Nearby Events Button */}
+          <Button
+            onClick={() => setIsNearbySheetOpen(true)}
+            className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white rounded-full px-4 py-2 h-auto shadow-lg shadow-cyan-500/30 border-0"
+          >
+            <ListFilter className="h-4 w-4 mr-2" />
+            <span className="text-sm font-medium">Nearby</span>
+          </Button>
+
+          {/* Create Event FAB */}
+          <CreateEventWizard />
+        </div>
       </div>
 
       {/* Event Details Sheet */}
@@ -436,6 +412,18 @@ export const MapTab = () => {
         event={selectedEvent}
         open={isEventSheetOpen}
         onClose={() => setIsEventSheetOpen(false)}
+      />
+
+      {/* Nearby Events Sheet */}
+      <NearbyEventsSheet
+        isOpen={isNearbySheetOpen}
+        onClose={() => setIsNearbySheetOpen(false)}
+        events={events}
+        userLocation={userLocation}
+        onEventClick={(event) => {
+          setSelectedEvent(event);
+          setIsEventSheetOpen(true);
+        }}
       />
     </div>
   );

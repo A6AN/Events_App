@@ -2,6 +2,7 @@ export interface Event {
   id: string;
   title: string;
   startTime: string;
+  date?: string;
   location: {
     lat: number;
     lng: number;
@@ -20,6 +21,8 @@ export interface Event {
   price?: number;
   capacity?: number;
   category?: string;
+  friendsAttending?: number;
+  friendsRsvped?: number;
 }
 
 // Database types matching Supabase schema

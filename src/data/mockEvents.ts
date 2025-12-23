@@ -4,7 +4,8 @@ export const mockEvents: Event[] = [
   {
     id: '1',
     title: 'Boho Fest Lucknow',
-    startTime: '5:00 PM',
+    startTime: '4:00 PM',
+    date: '28th December',
     location: { lat: 26.8467, lng: 80.9462, name: 'Ambedkar Memorial Park' },
     imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800',
     host: {
@@ -14,7 +15,9 @@ export const mockEvents: Event[] = [
     },
     attendees: 250,
     mood: 'Energetic',
-    description: 'The biggest bohemian music and art festival in Lucknow! Live bands, art installations, food stalls, and more.'
+    description: '🔥 DIVINE is coming to Lucknow! The biggest bohemian music and art festival featuring live performances, art installations, street food, and the legendary rapper DIVINE headlining the night. Get ready for Gully Boy vibes!',
+    friendsAttending: 8,
+    friendsRsvped: 4
   },
   {
     id: '2',
@@ -66,7 +69,7 @@ export const mockEvents: Event[] = [
     title: 'EDM Night at Phoenix Palassio',
     startTime: '9:00 PM',
     location: { lat: 26.8100, lng: 80.9800, name: 'Phoenix Palassio Mall' },
-    imageUrl: 'https://images.unsplash.com/photo-1571266028243-e4733b0f0bb0?w=800',
+    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800',
     host: {
       name: 'Club Nights LKO',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',

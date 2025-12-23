@@ -64,26 +64,28 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.08 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleTicketClick(ticket)}
-              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer active:scale-[0.98] transition-transform"
+              className="bg-white/[0.03] rounded-2xl overflow-hidden cursor-pointer group transition-all hover:bg-white/[0.06] hover:shadow-lg hover:shadow-cyan-500/10"
             >
               {/* Image */}
-              <div className="relative h-44">
+              <div className="relative h-44 overflow-hidden">
                 <ImageWithFallback
                   src={ticket.imageUrl}
                   alt={ticket.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                 {/* Category badge */}
-                <div className="absolute top-3 right-3 bg-cyan-500 px-2.5 py-1 rounded-full">
-                  <span className="text-[10px] text-white font-medium">{ticket.category}</span>
+                <div className="absolute top-3 right-3 bg-cyan-500 px-2.5 py-1 rounded-full transition-all group-hover:bg-white group-hover:text-cyan-600">
+                  <span className="text-[10px] font-medium">{ticket.category}</span>
                 </div>
 
                 {/* Info overlay */}
                 <div className="absolute bottom-3 left-3 right-3">
-                  <h3 className="text-white font-semibold text-lg">{ticket.title}</h3>
+                  <h3 className="text-white font-semibold text-lg group-hover:text-cyan-200 transition-colors">{ticket.title}</h3>
                   <p className="text-cyan-400 text-sm">{ticket.artist}</p>
                 </div>
               </div>
@@ -105,7 +107,7 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
                     <span className="text-white/40 text-xs">From </span>
                     <span className="text-white font-bold text-lg">₹{ticket.price}</span>
                   </div>
-                  <button className="bg-cyan-500 hover:bg-cyan-600 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                  <button className="bg-cyan-500 hover:bg-cyan-400 text-white px-4 py-2 rounded-full text-sm font-medium transition-all group-hover:shadow-lg group-hover:shadow-cyan-500/30">
                     Book Now
                   </button>
                 </div>
