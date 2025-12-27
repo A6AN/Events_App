@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Zap, Ticket, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -25,7 +26,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
         }, 200);
     };
 
-    return (
+    return createPortal(
         <AnimatePresence>
             {open && (
                 <>
@@ -35,7 +36,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[95]"
                         onClick={onClose}
                     />
 
@@ -46,7 +47,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         exit={{ rotate: 0 }}
                         transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed bottom-[5.75rem] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[60] border-4 border-background"
+                        className="fixed bottom-[5.75rem] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[99] border-4 border-background"
                     >
                         <Plus className="h-6 w-6" />
                     </motion.button>
@@ -58,7 +59,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('casual')}
-                        className={`fixed bottom-32 left-1/2 z-[55] flex flex-col items-center gap-1.5 ${
+                        className={`fixed bottom-32 left-1/2 z-[97] flex flex-col items-center gap-1.5 ${
                             selectedType === 'casual' ? 'scale-110' : ''
                         }`}
                     >
@@ -83,7 +84,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('ticketed')}
-                        className={`fixed bottom-32 left-1/2 z-[55] flex flex-col items-center gap-1.5 ${
+                        className={`fixed bottom-32 left-1/2 z-[97] flex flex-col items-center gap-1.5 ${
                             selectedType === 'ticketed' ? 'scale-110' : ''
                         }`}
                     >
@@ -102,6 +103,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                     </motion.button>
                 </>
             )}
-        </AnimatePresence>
+        </AnimatePresence>,
+        document.body
     );
 }
