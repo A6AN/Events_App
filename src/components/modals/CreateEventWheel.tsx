@@ -46,22 +46,21 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         exit={{ rotate: 0 }}
                         transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed bottom-[6.5rem] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[60] border-4 border-background"
+                        className="fixed bottom-[5.75rem] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[60] border-4 border-background"
                     >
                         <Plus className="h-6 w-6" />
                     </motion.button>
 
                     {/* Casual Event - Left */}
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.5, x: '-50%' }}
+                        animate={{ opacity: 1, scale: 1, x: 'calc(-50% - 70px)' }}
+                        exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('casual')}
-                        className={`fixed bottom-[7.5rem] left-1/2 z-[55] flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                        className={`fixed bottom-32 left-1/2 z-[55] flex flex-col items-center gap-1.5 ${
                             selectedType === 'casual' ? 'scale-110' : ''
                         }`}
-                        style={{ transform: 'translateX(calc(-50% - 70px))' }}
                     >
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
                             selectedType === 'casual'
@@ -79,15 +78,14 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
 
                     {/* Ticketed Event - Right */}
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.5, x: '-50%' }}
+                        animate={{ opacity: 1, scale: 1, x: 'calc(-50% + 70px)' }}
+                        exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('ticketed')}
-                        className={`fixed bottom-[7.5rem] left-1/2 z-[55] flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                        className={`fixed bottom-32 left-1/2 z-[55] flex flex-col items-center gap-1.5 ${
                             selectedType === 'ticketed' ? 'scale-110' : ''
                         }`}
-                        style={{ transform: 'translateX(calc(-50% + 70px))' }}
                     >
                         <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
                             selectedType === 'ticketed'
