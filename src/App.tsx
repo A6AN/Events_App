@@ -72,7 +72,7 @@ function AppContent() {
           <AnimatePresence mode="wait">
             <TabsContent value="social" className="absolute inset-0 m-0">
               <PageTransition className="h-full">
-                <SocialTab events={mockEvents} onEventSelect={handleEventSelect} />
+                <SocialTab events={mockEvents} tickets={mockTickets} onEventSelect={handleEventSelect} />
               </PageTransition>
             </TabsContent>
 
