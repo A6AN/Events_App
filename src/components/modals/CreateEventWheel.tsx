@@ -26,6 +26,11 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
         }, 200);
     };
 
+    // Calculate position based on viewport height to sit above the nav bar
+    // Nav bar is typically ~64px + safe area, center button should be ~28px above nav center
+    const centerBottom = 'calc(32px + env(safe-area-inset-bottom, 0px) + 28px)';
+    const optionsBottom = 'calc(32px + env(safe-area-inset-bottom, 0px) + 90px)';
+
     return createPortal(
         <AnimatePresence>
             {open && (
@@ -40,26 +45,28 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                         onClick={onClose}
                     />
 
-                    {/* Center Plus Button (transforms to X) - Fixed position */}
+                    {/* Center Plus Button (transforms to X) */}
                     <motion.button
                         initial={{ rotate: 0 }}
                         animate={{ rotate: 45 }}
                         exit={{ rotate: 0 }}
                         transition={{ duration: 0.2 }}
                         onClick={onClose}
-                        className="fixed bottom-[5.75rem] left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[99] border-4 border-background"
+                        style={{ bottom: centerBottom }}
+                        className="fixed left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[99] border-4 border-background"
                     >
                         <Plus className="h-6 w-6" />
                     </motion.button>
 
                     {/* Casual Event - Left */}
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.5, x: '-50%' }}
-                        animate={{ opacity: 1, scale: 1, x: 'calc(-50% - 70px)' }}
-                        exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
+                        initial={{ opacity: 0, scale: 0.5, x: 0 }}
+                        animate={{ opacity: 1, scale: 1, x: -70 }}
+                        exit={{ opacity: 0, scale: 0.5, x: 0 }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('casual')}
-                        className={`fixed bottom-32 left-1/2 z-[97] flex flex-col items-center gap-1.5 ${
+                        style={{ bottom: optionsBottom, left: '50%', transform: 'translateX(-50%)' }}
+                        className={`fixed z-[97] flex flex-col items-center gap-1.5 ${
                             selectedType === 'casual' ? 'scale-110' : ''
                         }`}
                     >
@@ -79,12 +86,13 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
 
                     {/* Ticketed Event - Right */}
                     <motion.button
-                        initial={{ opacity: 0, scale: 0.5, x: '-50%' }}
-                        animate={{ opacity: 1, scale: 1, x: 'calc(-50% + 70px)' }}
-                        exit={{ opacity: 0, scale: 0.5, x: '-50%' }}
+                        initial={{ opacity: 0, scale: 0.5, x: 0 }}
+                        animate={{ opacity: 1, scale: 1, x: 70 }}
+                        exit={{ opacity: 0, scale: 0.5, x: 0 }}
                         transition={{ type: 'spring', damping: 20, stiffness: 300 }}
                         onClick={() => handleSelect('ticketed')}
-                        className={`fixed bottom-32 left-1/2 z-[97] flex flex-col items-center gap-1.5 ${
+                        style={{ bottom: optionsBottom, left: '50%', transform: 'translateX(-50%)' }}
+                        className={`fixed z-[97] flex flex-col items-center gap-1.5 ${
                             selectedType === 'ticketed' ? 'scale-110' : ''
                         }`}
                     >
