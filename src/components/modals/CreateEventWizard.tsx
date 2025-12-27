@@ -4,20 +4,16 @@ import {
     Plus, Loader2, MapPin, Calendar, Clock,
     Sparkles, ArrowRight, ArrowLeft, Building2,
     PartyPopper, Mic2, Music, Palette, Users,
-    CheckCircle2
+    CheckCircle2, X, Image as ImageIcon, Upload
 } from 'lucide-react';
 import { cn } from '../ui/utils';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-} from "../../components/ui/dialog";
+import { Sheet, SheetContent } from '../ui/sheet';
 import { createEvent, uploadEventImage } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { ImageUpload } from '../ui/ImageUpload';
 import { mockVenues } from '../../data/mockVenues';
 import { Venue } from '../../types';
 
@@ -46,6 +42,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
     const [currentStep, setCurrentStep] = useState(STEPS.VIBE);
     const [isLoading, setIsLoading] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -53,7 +50,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
         description: '',
         date: '',
         time: '',
-        locationType: 'custom', // 'custom' | 'venue'
+        locationType: 'custom',
         selectedVenueId: '',
         location_name: '',
         latitude: 28.6139,
@@ -84,6 +81,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 capacity: 100
             });
             setImageFile(null);
+            setImagePreview(null);
         }
     }, [open]);
 
@@ -109,10 +107,26 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
             location_name: venue.name,
             latitude: 28.6139,
             longitude: 77.2090,
-            capacity: venue.capacity,
+            capacity: parseInt(venue.capacity) || 100,
             price: venue.pricePerHour * 4
         }));
-        handleNext();
+    };
+
+    const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size should be less than 5MB');
+                return;
+            }
+            setImageFile(file);
+            setImagePreview(URL.createObjectURL(file));
+        }
+    };
+
+    const clearImage = () => {
+        setImageFile(null);
+        setImagePreview(null);
     };
 
     const handleSubmit = async () => {
@@ -152,24 +166,29 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
     };
 
     return (
-        <Dialog open={open} onOpenChange={(isOpen) => {
+        <Sheet open={open} onOpenChange={(isOpen) => {
             if (!isOpen) onClose();
         }}>
-            <DialogContent className="sm:max-w-[500px] bg-black/90 backdrop-blur-xl border-white/10 p-0 overflow-hidden gap-0">
+            <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl p-0 bg-background border-t border-border [&>button]:hidden">
                 {/* Header */}
-                <div className="p-6 border-b border-white/10 bg-white/5">
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
                     <div className="flex items-center justify-between mb-2">
-                        <h2 className="text-xl font-bold text-white">
-                            {currentStep === STEPS.VIBE && "What's the Vibe?"}
-                            {currentStep === STEPS.LOCATION && "Where's it happening?"}
-                            {currentStep === STEPS.DETAILS && "Final Details"}
-                        </h2>
-                        <span className="text-xs font-medium text-white/40">
-                            {eventType === 'casual' ? 'Casual' : 'Ticketed'} • Step {currentStep + 1} of 3
-                        </span>
+                        <div>
+                            <h2 className="text-lg font-bold text-foreground">
+                                {currentStep === STEPS.VIBE && "What's the Vibe?"}
+                                {currentStep === STEPS.LOCATION && "Where's it happening?"}
+                                {currentStep === STEPS.DETAILS && "Final Details"}
+                            </h2>
+                            <span className="text-xs text-muted-foreground">
+                                {eventType === 'casual' ? 'Casual Event' : 'Ticketed Event'} • Step {currentStep + 1}/3
+                            </span>
+                        </div>
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
+                            <X className="h-5 w-5 text-muted-foreground" />
+                        </button>
                     </div>
                     {/* Progress Bar */}
-                    <div className="h-1 w-full bg-white/10 rounded-full overflow-hidden">
+                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
                         <motion.div
                             className="h-full bg-primary"
                             initial={{ width: "33%" }}
@@ -179,7 +198,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Content */}
-                <div className="p-6 min-h-[400px] max-h-[60vh] overflow-y-auto">
+                <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
                     <AnimatePresence mode="wait">
                         {currentStep === STEPS.VIBE && (
                             <motion.div
@@ -187,38 +206,39 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                className="space-y-4"
                             >
-                                <div className="grid grid-cols-2 gap-3">
+                                <p className="text-sm text-muted-foreground">Select event type</p>
+                                <div className="grid grid-cols-3 gap-2">
                                     {EVENT_TYPES.map((type) => (
                                         <button
                                             key={type.id}
                                             onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
                                             className={cn(
-                                                "p-4 rounded-xl border transition-all duration-300 flex flex-col items-center gap-3 group",
+                                                "p-3 rounded-xl border transition-all flex flex-col items-center gap-2",
                                                 formData.category === type.label
-                                                    ? "bg-primary/20 border-primary shadow-[0_0_15px_rgba(124,58,237,0.3)]"
-                                                    : "bg-white/5 border-white/10 hover:bg-white/10"
+                                                    ? "bg-primary/20 border-primary"
+                                                    : "bg-card border-border hover:border-primary/50"
                                             )}
                                         >
                                             <div className={cn(
-                                                "p-3 rounded-full bg-white/10 group-hover:scale-110 transition-transform",
-                                                formData.category === type.label && type.color
+                                                "p-2 rounded-full",
+                                                formData.category === type.label ? type.color : "bg-muted"
                                             )}>
-                                                <type.icon className="h-6 w-6 text-white" />
+                                                <type.icon className="h-5 w-5 text-white" />
                                             </div>
-                                            <span className="font-medium text-white">{type.label}</span>
+                                            <span className="text-xs font-medium text-foreground">{type.label}</span>
                                         </button>
                                     ))}
                                 </div>
 
-                                <div className="space-y-2">
-                                    <Label>Mood</Label>
+                                <div className="space-y-2 pt-2">
+                                    <Label className="text-sm">Mood / Vibe</Label>
                                     <Input
-                                        placeholder="e.g. Chill, Rager, Networking"
+                                        placeholder="e.g. Chill, Energetic, Networking"
                                         value={formData.mood}
                                         onChange={(e) => setFormData(prev => ({ ...prev, mood: e.target.value }))}
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-card border-border h-11"
                                     />
                                 </div>
                             </motion.div>
@@ -230,82 +250,85 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-6"
+                                className="space-y-4"
                             >
                                 {/* Toggle Type */}
-                                <div className="flex p-1 bg-white/5 rounded-lg border border-white/10">
-                                    <button
-                                        onClick={() => setFormData(prev => ({ ...prev, locationType: 'venue' }))}
-                                        className={cn(
-                                            "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                                            formData.locationType === 'venue' ? "bg-primary text-white" : "text-white/60 hover:text-white"
-                                        )}
-                                    >
-                                        Book Venue
-                                    </button>
+                                <div className="flex p-1 bg-muted rounded-xl">
                                     <button
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'custom' }))}
                                         className={cn(
-                                            "flex-1 py-2 text-sm font-medium rounded-md transition-all",
-                                            formData.locationType === 'custom' ? "bg-primary text-white" : "text-white/60 hover:text-white"
+                                            "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
+                                            formData.locationType === 'custom' 
+                                                ? "bg-primary text-primary-foreground" 
+                                                : "text-muted-foreground"
                                         )}
                                     >
                                         Custom Location
                                     </button>
+                                    <button
+                                        onClick={() => setFormData(prev => ({ ...prev, locationType: 'venue' }))}
+                                        className={cn(
+                                            "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
+                                            formData.locationType === 'venue' 
+                                                ? "bg-primary text-primary-foreground" 
+                                                : "text-muted-foreground"
+                                        )}
+                                    >
+                                        Book Venue
+                                    </button>
                                 </div>
 
-                                {formData.locationType === 'venue' ? (
+                                {formData.locationType === 'custom' ? (
                                     <div className="space-y-3">
-                                        <p className="text-sm text-white/60">Select a partner venue:</p>
-                                        <div className="grid gap-3">
-                                            {mockVenues.map(venue => (
+                                        <div className="space-y-2">
+                                            <Label className="text-sm">Location Name</Label>
+                                            <Input
+                                                placeholder="e.g. My House, Central Park"
+                                                value={formData.location_name}
+                                                onChange={(e) => setFormData(prev => ({ ...prev, location_name: e.target.value }))}
+                                                className="bg-card border-border h-11"
+                                            />
+                                        </div>
+                                        <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-sm">
+                                            <p className="flex items-center gap-2 text-foreground">
+                                                <MapPin className="h-4 w-4 text-primary" />
+                                                Location will appear on the map
+                                            </p>
+                                            <p className="text-xs text-muted-foreground mt-1 ml-6">
+                                                Using current location coordinates
+                                            </p>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <p className="text-sm text-muted-foreground">Select a venue</p>
+                                        <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                                            {mockVenues.slice(0, 4).map(venue => (
                                                 <div
                                                     key={venue.id}
                                                     onClick={() => handleVenueSelect(venue)}
                                                     className={cn(
-                                                        "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all hover:scale-[1.02]",
+                                                        "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
                                                         formData.selectedVenueId === venue.id
-                                                            ? "bg-primary/20 border-primary"
-                                                            : "bg-white/5 border-white/10 hover:bg-white/10"
+                                                            ? "bg-primary/10 border-primary"
+                                                            : "bg-card border-border hover:border-primary/50"
                                                     )}
                                                 >
                                                     <img
                                                         src={venue.imageUrl}
                                                         alt={venue.name}
-                                                        className="h-16 w-16 rounded-lg object-cover"
+                                                        className="h-12 w-12 rounded-lg object-cover"
                                                     />
-                                                    <div className="flex-1">
-                                                        <h4 className="font-medium text-white">{venue.name}</h4>
-                                                        <p className="text-xs text-white/60 flex items-center gap-1">
-                                                            <MapPin className="h-3 w-3" /> {venue.location}
-                                                        </p>
-                                                        <p className="text-xs text-primary mt-1">
-                                                            Capacity: {venue.capacity} • ₹{venue.pricePerHour}/hr
-                                                        </p>
+                                                    <div className="flex-1 min-w-0">
+                                                        <h4 className="font-medium text-foreground text-sm truncate">{venue.name}</h4>
+                                                        <p className="text-xs text-muted-foreground truncate">{venue.location}</p>
+                                                        <p className="text-xs text-primary">₹{venue.pricePerHour}/hr</p>
                                                     </div>
                                                     {formData.selectedVenueId === venue.id && (
-                                                        <CheckCircle2 className="h-5 w-5 text-primary" />
+                                                        <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
                                                     )}
                                                 </div>
                                             ))}
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        <div className="space-y-2">
-                                            <Label>Location Name</Label>
-                                            <Input
-                                                placeholder="e.g. My House, Central Park"
-                                                value={formData.location_name}
-                                                onChange={(e) => setFormData(prev => ({ ...prev, location_name: e.target.value }))}
-                                                className="bg-white/5 border-white/10"
-                                            />
-                                        </div>
-                                        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-200 text-sm">
-                                            <p className="flex items-center gap-2">
-                                                <MapPin className="h-4 w-4" />
-                                                Using default coordinates (New Delhi)
-                                            </p>
                                         </div>
                                     </div>
                                 )}
@@ -320,72 +343,118 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-4"
                             >
+                                {/* Compact Image Upload */}
                                 <div className="space-y-2">
-                                    <Label>Event Image</Label>
-                                    <ImageUpload onImageSelected={setImageFile} />
+                                    <Label className="text-sm">Event Image</Label>
+                                    {imagePreview ? (
+                                        <div className="relative h-32 rounded-xl overflow-hidden border border-border">
+                                            <img
+                                                src={imagePreview}
+                                                alt="Preview"
+                                                className="w-full h-full object-cover"
+                                            />
+                                            <button
+                                                onClick={clearImage}
+                                                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
+                                            >
+                                                <X className="h-4 w-4 text-white" />
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors bg-card">
+                                            <div className="p-2 rounded-full bg-muted">
+                                                <Upload className="h-5 w-5 text-muted-foreground" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-medium text-foreground">Upload image</p>
+                                                <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                accept="image/*"
+                                                onChange={handleImageSelect}
+                                                className="hidden"
+                                            />
+                                        </label>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Event Title</Label>
+                                    <Label className="text-sm">Event Title</Label>
                                     <Input
                                         placeholder="Give it a catchy name"
                                         value={formData.title}
                                         onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-card border-border h-11"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label>Description</Label>
+                                    <Label className="text-sm">Description</Label>
                                     <Textarea
                                         placeholder="Tell people what to expect..."
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="bg-white/5 border-white/10"
+                                        className="bg-card border-border min-h-[80px] resize-none"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-3">
                                     <div className="space-y-2">
-                                        <Label>Date</Label>
+                                        <Label className="text-sm">Date</Label>
                                         <Input
                                             type="date"
                                             value={formData.date}
                                             onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                                            className="bg-white/5 border-white/10"
+                                            className="bg-card border-border h-11"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label>Time</Label>
+                                        <Label className="text-sm">Time</Label>
                                         <Input
                                             type="time"
                                             value={formData.time}
                                             onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                                            className="bg-white/5 border-white/10"
+                                            className="bg-card border-border h-11"
                                         />
                                     </div>
                                 </div>
+
+                                {eventType === 'ticketed' && (
+                                    <div className="space-y-2">
+                                        <Label className="text-sm">Ticket Price (₹)</Label>
+                                        <Input
+                                            type="number"
+                                            placeholder="0"
+                                            value={formData.price || ''}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
+                                            className="bg-card border-border h-11"
+                                        />
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
 
-                {/* Footer */}
-                <div className="p-4 border-t border-white/10 bg-white/5 flex justify-between items-center">
-                    <Button
-                        variant="ghost"
-                        onClick={handleBack}
-                        disabled={currentStep === STEPS.VIBE || isLoading}
-                        className="text-white/60 hover:text-white hover:bg-white/10"
-                    >
-                        <ArrowLeft className="h-4 w-4 mr-2" />
-                        Back
-                    </Button>
+                {/* Footer - Fixed at bottom */}
+                <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border flex gap-3">
+                    {currentStep > STEPS.VIBE && (
+                        <Button
+                            variant="outline"
+                            onClick={handleBack}
+                            disabled={isLoading}
+                            className="flex-1 h-12"
+                        >
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Back
+                        </Button>
+                    )}
 
                     <Button
                         onClick={handleNext}
                         disabled={isLoading || (currentStep === STEPS.VIBE && !formData.category)}
-                        className="bg-primary hover:bg-primary/90 text-white min-w-[120px]"
+                        className="flex-1 h-12 bg-primary hover:bg-primary/90"
                     >
                         {isLoading ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -396,7 +465,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                         )}
                     </Button>
                 </div>
-            </DialogContent>
-        </Dialog>
+            </SheetContent>
+        </Sheet>
     );
 };

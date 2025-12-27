@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Zap, Ticket, X } from 'lucide-react';
+import { Zap, Ticket, X, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CreateEventWheelProps {
@@ -22,103 +22,88 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
         setTimeout(() => {
             onSelectType(type);
             onClose();
-        }, 300);
+        }, 200);
     };
 
     return (
         <AnimatePresence>
             {open && (
                 <>
-                    {/* Backdrop */}
+                    {/* Backdrop - reduced blur for premium look */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-md z-50"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-50"
                         onClick={onClose}
                     />
 
-                    {/* Wheel Container */}
-                    <div className="fixed inset-0 z-50 flex items-end justify-center pointer-events-none pb-24">
-                        <motion.div
-                            initial={{ y: 100, opacity: 0, scale: 0.9 }}
-                            animate={{ y: 0, opacity: 1, scale: 1 }}
-                            exit={{ y: 100, opacity: 0, scale: 0.9 }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                            className="pointer-events-auto relative"
-                        >
-                            {/* Close Button */}
+                    {/* Centered Container - positioned at bottom above nav */}
+                    <div className="fixed inset-x-0 bottom-28 z-50 flex justify-center pointer-events-none">
+                        <div className="relative pointer-events-auto">
+                            {/* Center Plus Button (transforms to X) */}
                             <motion.button
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.1 }}
+                                initial={{ rotate: 0 }}
+                                animate={{ rotate: 45 }}
+                                exit={{ rotate: 0 }}
+                                transition={{ duration: 0.2 }}
                                 onClick={onClose}
-                                className="absolute -top-12 left-1/2 -translate-x-1/2 w-10 h-10 bg-card/90 backdrop-blur-xl border border-border rounded-full flex items-center justify-center hover:bg-muted transition-colors shadow-lg"
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-10 border-4 border-background"
                             >
-                                <X className="h-4 w-4 text-muted-foreground" />
+                                <Plus className="h-6 w-6" />
                             </motion.button>
 
-                            {/* Radial Options */}
-                            <div className="relative w-[260px] h-[140px]">
-                                {/* Casual Event - Left */}
-                                <motion.button
-                                    initial={{ x: 0, opacity: 0 }}
-                                    animate={{ x: -120, opacity: 1 }}
-                                    exit={{ x: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', damping: 20, stiffness: 200, delay: 0.05 }}
-                                    onClick={() => handleSelect('casual')}
-                                    className={`absolute top-1/2 left-1/2 -translate-y-1/2 w-32 h-32 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl transition-all duration-300 ${selectedType === 'casual'
-                                            ? 'bg-primary text-primary-foreground scale-110'
-                                            : 'bg-card border-2 border-border hover:border-primary/50 hover:scale-105 text-foreground'
-                                        }`}
-                                >
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${selectedType === 'casual'
-                                            ? 'bg-primary-foreground/20'
-                                            : 'bg-primary/20'
-                                        }`}>
-                                        <Zap className={`h-7 w-7 ${selectedType === 'casual'
-                                                ? 'text-primary-foreground'
-                                                : 'text-primary'
-                                            }`} />
-                                    </div>
-                                    <span className="text-sm font-medium">Casual</span>
-                                </motion.button>
+                            {/* Casual Event - Left */}
+                            <motion.button
+                                initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                                animate={{ x: -80, y: -20, opacity: 1, scale: 1 }}
+                                exit={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                                onClick={() => handleSelect('casual')}
+                                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                                    selectedType === 'casual' ? 'scale-110' : ''
+                                }`}
+                            >
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
+                                    selectedType === 'casual'
+                                        ? 'bg-primary shadow-primary/50'
+                                        : 'bg-card border border-border hover:bg-primary/20 hover:border-primary/50'
+                                }`}>
+                                    <Zap className={`h-5 w-5 ${
+                                        selectedType === 'casual' ? 'text-primary-foreground' : 'text-primary'
+                                    }`} />
+                                </div>
+                                <span className="text-xs font-medium text-foreground bg-card/90 px-2 py-0.5 rounded-full shadow-sm">
+                                    Casual
+                                </span>
+                            </motion.button>
 
-                                {/* Ticketed Event - Right */}
-                                <motion.button
-                                    initial={{ x: 0, opacity: 0 }}
-                                    animate={{ x: 120, opacity: 1 }}
-                                    exit={{ x: 0, opacity: 0 }}
-                                    transition={{ type: 'spring', damping: 20, stiffness: 200, delay: 0.05 }}
-                                    onClick={() => handleSelect('ticketed')}
-                                    className={`absolute top-1/2 left-1/2 -translate-y-1/2 w-32 h-32 rounded-3xl flex flex-col items-center justify-center gap-2 shadow-2xl transition-all duration-300 ${selectedType === 'ticketed'
-                                            ? 'bg-primary text-primary-foreground scale-110'
-                                            : 'bg-card border-2 border-border hover:border-primary/50 hover:scale-105 text-foreground'
-                                        }`}
-                                >
-                                    <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all ${selectedType === 'ticketed'
-                                            ? 'bg-primary-foreground/20'
-                                            : 'bg-primary/20'
-                                        }`}>
-                                        <Ticket className={`h-7 w-7 ${selectedType === 'ticketed'
-                                                ? 'text-primary-foreground'
-                                                : 'text-primary'
-                                            }`} />
-                                    </div>
-                                    <span className="text-sm font-medium">Ticketed</span>
-                                </motion.button>
-
-                                {/* Center Connection Line */}
-                                <motion.div
-                                    initial={{ scaleX: 0 }}
-                                    animate={{ scaleX: 1 }}
-                                    exit={{ scaleX: 0 }}
-                                    transition={{ duration: 0.3, delay: 0.1 }}
-                                    className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 w-64 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent"
-                                />
-                            </div>
-                        </motion.div>
+                            {/* Ticketed Event - Right */}
+                            <motion.button
+                                initial={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                                animate={{ x: 80, y: -20, opacity: 1, scale: 1 }}
+                                exit={{ x: 0, y: 0, opacity: 0, scale: 0.5 }}
+                                transition={{ type: 'spring', damping: 20, stiffness: 300 }}
+                                onClick={() => handleSelect('ticketed')}
+                                className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1.5 transition-all duration-200 ${
+                                    selectedType === 'ticketed' ? 'scale-110' : ''
+                                }`}
+                            >
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
+                                    selectedType === 'ticketed'
+                                        ? 'bg-primary shadow-primary/50'
+                                        : 'bg-card border border-border hover:bg-primary/20 hover:border-primary/50'
+                                }`}>
+                                    <Ticket className={`h-5 w-5 ${
+                                        selectedType === 'ticketed' ? 'text-primary-foreground' : 'text-primary'
+                                    }`} />
+                                </div>
+                                <span className="text-xs font-medium text-foreground bg-card/90 px-2 py-0.5 rounded-full shadow-sm">
+                                    Ticketed
+                                </span>
+                            </motion.button>
+                        </div>
                     </div>
                 </>
             )}
