@@ -104,6 +104,17 @@ function AppContent() {
 
         {/* Bottom Navigation */}
         <div className="relative shrink-0">
+          {/* Floating Plus Button - positioned above the nav bar */}
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20">
+            <Button
+              size="icon"
+              onClick={() => setWheelOpen(true)}
+              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 hover:scale-110 transition-all border-4 border-background"
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
+          </div>
+
           <TabsList className="w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
             <TabsTrigger
               value="social"
@@ -137,17 +148,6 @@ function AppContent() {
               <span className="text-[10px] font-medium">Profile</span>
             </TabsTrigger>
           </TabsList>
-
-          {/* Floating Plus Button */}
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10">
-            <Button
-              size="icon"
-              onClick={() => setWheelOpen(true)}
-              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 hover:scale-110 transition-all border-4 border-background"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
         </div>
       </Tabs>
 
@@ -166,9 +166,11 @@ function AppContent() {
       />
 
       {/* Create Event Wizard - opens after wheel selection */}
-      {createEventOpen && (
-        <CreateEventWizard />
-      )}
+      <CreateEventWizard
+        open={createEventOpen}
+        onClose={() => setCreateEventOpen(false)}
+        eventType={eventType}
+      />
     </div>
   );
 }

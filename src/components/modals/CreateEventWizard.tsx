@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Plus, Loader2, MapPin, Calendar, Clock,
@@ -14,7 +14,6 @@ import { Textarea } from '../ui/textarea';
 import {
     Dialog,
     DialogContent,
-    DialogTrigger,
 } from "../../components/ui/dialog";
 import { createEvent, uploadEventImage } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -36,9 +35,14 @@ const EVENT_TYPES = [
     { id: 'meetup', label: 'Meetup', icon: Users, color: 'bg-green-500' },
 ];
 
-export const CreateEventWizard = () => {
+interface CreateEventWizardProps {
+    open: boolean;
+    onClose: () => void;
+    eventType: 'casual' | 'ticketed';
+}
+
+export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizardProps) => {
     const { user } = useAuth();
-    const [isOpen, setIsOpen] = useState(false);
     const [currentStep, setCurrentStep] = useState(STEPS.VIBE);
     const [isLoading, setIsLoading] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -60,6 +64,29 @@ export const CreateEventWizard = () => {
         capacity: 100
     });
 
+    // Reset form when dialog closes
+    useEffect(() => {
+        if (!open) {
+            setCurrentStep(STEPS.VIBE);
+            setFormData({
+                title: '',
+                description: '',
+                date: '',
+                time: '',
+                locationType: 'custom',
+                selectedVenueId: '',
+                location_name: '',
+                latitude: 28.6139,
+                longitude: 77.2090,
+                price: 0,
+                category: '',
+                mood: '',
+                capacity: 100
+            });
+            setImageFile(null);
+        }
+    }, [open]);
+
     const handleNext = () => {
         if (currentStep < STEPS.DETAILS) {
             setCurrentStep(prev => prev + 1);
@@ -80,11 +107,10 @@ export const CreateEventWizard = () => {
             locationType: 'venue',
             selectedVenueId: venue.id,
             location_name: venue.name,
-            // In a real app, venues would have lat/lng
             latitude: 28.6139,
             longitude: 77.2090,
             capacity: venue.capacity,
-            price: venue.pricePerHour * 4 // Estimate 4 hour event
+            price: venue.pricePerHour * 4
         }));
         handleNext();
     };
@@ -108,7 +134,7 @@ export const CreateEventWizard = () => {
                 location_name: formData.location_name,
                 latitude: formData.latitude,
                 longitude: formData.longitude,
-                price: formData.price,
+                price: eventType === 'casual' ? 0 : formData.price,
                 capacity: formData.capacity,
                 image_url: imageUrl,
                 host_id: user.id,
@@ -116,8 +142,7 @@ export const CreateEventWizard = () => {
                 mood: formData.mood || 'Chill'
             });
 
-            setIsOpen(false);
-            resetForm();
+            onClose();
             window.location.reload();
         } catch (error) {
             console.error('Error creating event:', error);
@@ -126,39 +151,10 @@ export const CreateEventWizard = () => {
         }
     };
 
-    const resetForm = () => {
-        setCurrentStep(STEPS.VIBE);
-        setFormData({
-            title: '',
-            description: '',
-            date: '',
-            time: '',
-            locationType: 'custom',
-            selectedVenueId: '',
-            location_name: '',
-            latitude: 28.6139,
-            longitude: 77.2090,
-            price: 0,
-            category: '',
-            mood: '',
-            capacity: 100
-        });
-        setImageFile(null);
-    };
-
     return (
-        <Dialog open={isOpen} onOpenChange={(open) => {
-            setIsOpen(open);
-            if (!open) resetForm();
+        <Dialog open={open} onOpenChange={(isOpen) => {
+            if (!isOpen) onClose();
         }}>
-            <DialogTrigger asChild>
-                <Button
-                    size="icon"
-                    className="h-14 w-14 rounded-full bg-primary hover:bg-primary/90 shadow-[0_0_20px_rgba(249,115,22,0.4)] border border-white/20"
-                >
-                    <Plus className="h-6 w-6" />
-                </Button>
-            </DialogTrigger>
             <DialogContent className="sm:max-w-[500px] bg-black/90 backdrop-blur-xl border-white/10 p-0 overflow-hidden gap-0">
                 {/* Header */}
                 <div className="p-6 border-b border-white/10 bg-white/5">
@@ -169,7 +165,7 @@ export const CreateEventWizard = () => {
                             {currentStep === STEPS.DETAILS && "Final Details"}
                         </h2>
                         <span className="text-xs font-medium text-white/40">
-                            Step {currentStep + 1} of 3
+                            {eventType === 'casual' ? 'Casual' : 'Ticketed'} • Step {currentStep + 1} of 3
                         </span>
                     </div>
                     {/* Progress Bar */}
