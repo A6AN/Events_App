@@ -102,75 +102,50 @@ function AppContent() {
           </AnimatePresence>
         </div>
 
-        {/* Modern Bottom Navigation */}
+        {/* Bottom Navigation */}
         <div className="relative shrink-0">
-          {/* Navigation Bar */}
-          <TabsList className="w-full h-20 bg-card/90 backdrop-blur-2xl border-t border-border/50 grid grid-cols-4 rounded-none p-0">
-            {/* Social Tab */}
+          <TabsList className="w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
             <TabsTrigger
               value="social"
-              className="flex-col gap-1.5 text-muted-foreground rounded-none data-[state=active]:bg-transparent data-[state=active]:text-primary transition-all relative group"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl scale-0 group-data-[state=active]:scale-100 transition-transform blur-xl" />
-                <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl group-data-[state=active]:bg-primary/10 transition-all">
-                  <Users className="h-5 w-5" />
-                </div>
-              </div>
-              <span className="text-[10px]">Social</span>
+              <Users className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Social</span>
             </TabsTrigger>
 
-            {/* Map Tab */}
             <TabsTrigger
               value="map"
-              className="flex-col gap-1.5 text-muted-foreground rounded-none data-[state=active]:bg-transparent data-[state=active]:text-primary transition-all relative group"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl scale-0 group-data-[state=active]:scale-100 transition-transform blur-xl" />
-                <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl group-data-[state=active]:bg-primary/10 transition-all">
-                  <Map className="h-5 w-5" />
-                </div>
-              </div>
-              <span className="text-[10px]">Discover</span>
+              <Map className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Discover</span>
             </TabsTrigger>
 
-            {/* Venues Tab */}
             <TabsTrigger
               value="venues"
-              className="flex-col gap-1.5 text-muted-foreground rounded-none data-[state=active]:bg-transparent data-[state=active]:text-primary transition-all relative group"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl scale-0 group-data-[state=active]:scale-100 transition-transform blur-xl" />
-                <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl group-data-[state=active]:bg-primary/10 transition-all">
-                  <Building2 className="h-5 w-5" />
-                </div>
-              </div>
-              <span className="text-[10px]">Venues</span>
+              <Building2 className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Venues</span>
             </TabsTrigger>
 
-            {/* Profile Tab */}
             <TabsTrigger
               value="profile"
-              className="flex-col gap-1.5 text-muted-foreground rounded-none data-[state=active]:bg-transparent data-[state=active]:text-primary transition-all relative group"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
             >
-              <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-2xl scale-0 group-data-[state=active]:scale-100 transition-transform blur-xl" />
-                <div className="relative w-12 h-12 flex items-center justify-center rounded-2xl group-data-[state=active]:bg-primary/10 transition-all">
-                  <User className="h-5 w-5" />
-                </div>
-              </div>
-              <span className="text-[10px]">Profile</span>
+              <User className="h-5 w-5" />
+              <span className="text-[10px] font-medium">Profile</span>
             </TabsTrigger>
           </TabsList>
 
           {/* Floating Plus Button */}
-          <div className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-10">
             <Button
               size="icon"
               onClick={() => setWheelOpen(true)}
-              className="w-16 h-16 rounded-3xl bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 pointer-events-auto hover:scale-110 transition-all border-4 border-background"
+              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 hover:scale-110 transition-all border-4 border-background"
             >
-              <Plus className="h-7 w-7" />
+              <Plus className="h-6 w-6" />
             </Button>
           </div>
         </div>
