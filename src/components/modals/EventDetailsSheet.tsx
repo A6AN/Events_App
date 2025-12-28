@@ -6,6 +6,7 @@ import { Event } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { rsvpToEvent, checkRsvpStatus } from '../../lib/supabase';
 import confetti from 'canvas-confetti';
+import { ImageWithFallback } from '../figma/ImageWithFallback';
 
 interface EventDetailsSheetProps {
   event: Event | null;
@@ -59,83 +60,82 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
     }
   };
 
-  if (!event) return null;
-  if (!open) return null;
-
-  const isBohoFest = event.id === '1';
+  const isBohoFest = event?.id === '1';
 
   return createPortal(
-    <>
-      {/* Success Notification */}
-      <AnimatePresence>
-        {showNotification && (
+    <AnimatePresence>
+      {open && event && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4" style={{ isolation: 'isolate' }}>
+          {/* Success Notification */}
+          <AnimatePresence>
+            {showNotification && (
+              <motion.div
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -100, opacity: 0 }}
+                className="absolute top-4 left-1/2 -translate-x-1/2 z-[10000] w-[90%] max-w-sm pointer-events-none"
+              >
+                <div className="bg-zinc-900 rounded-2xl p-4 shadow-2xl border border-pink-500/30 flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
+                    <CheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <div className="text-white font-semibold text-sm">You're Going! 🎉</div>
+                    <div className="text-white/60 text-xs">Your friends have been notified</div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Backdrop */}
           <motion.div
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            className="fixed top-4 left-1/2 -translate-x-1/2 z-[700] w-[90%] max-w-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+          />
+
+          {/* Modal */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            transition={{ type: 'spring', duration: 0.3 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative z-10 w-full max-w-md h-[85vh] max-h-[90vh] bg-zinc-900 rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl"
           >
-            <div className="bg-zinc-900 rounded-2xl p-4 shadow-2xl border border-pink-500/30 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center">
-                <CheckCircle className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <div className="text-white font-semibold text-sm">You're Going! 🎉</div>
-                <div className="text-white/60 text-xs">Your friends have been notified</div>
+            {/* Image Header */}
+            <div className="relative h-48 shrink-0">
+              <ImageWithFallback
+                src={event.imageUrl}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-zinc-900" />
+              
+              {/* Close Button */}
+              <button
+                onClick={onClose}
+                className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Tags */}
+              <div className="absolute top-4 left-4 flex gap-2">
+                <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500 text-white">
+                  Event
+                </span>
+                <span className="px-3 py-1 rounded-full text-xs font-medium bg-black/50 text-white">
+                  {event.mood}
+                </span>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* Backdrop */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        onClick={onClose}
-        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[600]"
-      />
-
-      {/* Modal */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 50 }}
-        className="fixed inset-x-4 top-[5%] bottom-[5%] z-[601] flex items-center justify-center"
-      >
-        <div className="w-full max-w-md h-full bg-zinc-900/95 rounded-3xl border border-white/10 ring-1 ring-pink-500/30 overflow-hidden flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-          
-          {/* Image Header */}
-          <div className="relative h-48 shrink-0">
-            <img
-              src={event.imageUrl}
-              alt={event.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-zinc-900" />
-            
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            {/* Tags */}
-            <div className="absolute top-4 left-4 flex gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500 text-white">
-                Event
-              </span>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-black/50 text-white">
-                {event.mood}
-              </span>
-            </div>
-          </div>
-
-          {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto p-5 space-y-5">
             
             {/* Title & Host */}
             <div>
@@ -264,9 +264,10 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               </button>
             </div>
           </div>
-        </div>
-      </motion.div>
-    </>,
+        </motion.div>
+      </div>
+      )}
+    </AnimatePresence>,
     document.body
   );
 };
