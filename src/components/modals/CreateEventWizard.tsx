@@ -169,36 +169,46 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
         <Sheet open={open} onOpenChange={(isOpen) => {
             if (!isOpen) onClose();
         }}>
-            <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl p-0 bg-background border-t border-border [&>button]:hidden">
-                {/* Header */}
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
-                    <div className="flex items-center justify-between mb-2">
-                        <div>
-                            <h2 className="text-lg font-bold text-foreground">
-                                {currentStep === STEPS.VIBE && "What's the Vibe?"}
-                                {currentStep === STEPS.LOCATION && "Where's it happening?"}
-                                {currentStep === STEPS.DETAILS && "Final Details"}
-                            </h2>
-                            <span className="text-xs text-muted-foreground">
-                                {eventType === 'casual' ? 'Casual Event' : 'Ticketed Event'} • Step {currentStep + 1}/3
-                            </span>
+            <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl p-0 bg-gradient-to-b from-slate-900 to-slate-950 border-t border-white/10 [&>button]:hidden">
+                {/* Header with gradient */}
+                <div className="sticky top-0 z-10 bg-gradient-to-b from-slate-900/95 to-slate-900/80 backdrop-blur-xl border-b border-white/5 px-5 py-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                            <div className={`p-2.5 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-violet-500/20'}`}>
+                                {eventType === 'casual' ? (
+                                    <Sparkles className={`h-5 w-5 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                ) : (
+                                    <Plus className="h-5 w-5 text-violet-400" />
+                                )}
+                            </div>
+                            <div>
+                                <h2 className="text-lg font-bold text-white">
+                                    {currentStep === STEPS.VIBE && "What's the Vibe?"}
+                                    {currentStep === STEPS.LOCATION && "Where's it happening?"}
+                                    {currentStep === STEPS.DETAILS && "Final Details"}
+                                </h2>
+                                <span className={`text-xs font-medium ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>
+                                    {eventType === 'casual' ? '🎉 Casual Event' : '🎫 Ticketed Event'} • Step {currentStep + 1}/3
+                                </span>
+                            </div>
                         </div>
-                        <button onClick={onClose} className="p-2 rounded-full hover:bg-muted">
-                            <X className="h-5 w-5 text-muted-foreground" />
+                        <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 transition-colors">
+                            <X className="h-5 w-5 text-white/60" />
                         </button>
                     </div>
                     {/* Progress Bar */}
-                    <div className="h-1 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                         <motion.div
-                            className="h-full bg-primary"
+                            className={`h-full rounded-full ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500'}`}
                             initial={{ width: "33%" }}
                             animate={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+                            transition={{ type: "spring", damping: 20 }}
                         />
                     </div>
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-4 py-4 pb-24">
+                <div className="flex-1 overflow-y-auto px-5 py-5 pb-28">
                     <AnimatePresence mode="wait">
                         {currentStep === STEPS.VIBE && (
                             <motion.div
@@ -206,39 +216,40 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-4"
+                                className="space-y-5"
                             >
-                                <p className="text-sm text-muted-foreground">Select event type</p>
-                                <div className="grid grid-cols-3 gap-2">
+                                <p className="text-sm text-white/50">Select event type</p>
+                                <div className="grid grid-cols-3 gap-3">
                                     {EVENT_TYPES.map((type) => (
-                                        <button
+                                        <motion.button
                                             key={type.id}
+                                            whileTap={{ scale: 0.95 }}
                                             onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
                                             className={cn(
-                                                "p-3 rounded-xl border transition-all flex flex-col items-center gap-2",
+                                                "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
                                                 formData.category === type.label
-                                                    ? "bg-primary/20 border-primary"
-                                                    : "bg-card border-border hover:border-primary/50"
+                                                    ? `bg-gradient-to-br ${type.color}/20 border-white/30 shadow-lg`
+                                                    : "bg-white/5 border-white/10 hover:border-white/20"
                                             )}
                                         >
                                             <div className={cn(
-                                                "p-2 rounded-full",
-                                                formData.category === type.label ? type.color : "bg-muted"
+                                                "p-3 rounded-xl",
+                                                formData.category === type.label ? type.color : "bg-white/10"
                                             )}>
-                                                <type.icon className="h-5 w-5 text-white" />
+                                                <type.icon className="h-6 w-6 text-white" />
                                             </div>
-                                            <span className="text-xs font-medium text-foreground">{type.label}</span>
-                                        </button>
+                                            <span className="text-xs font-medium text-white">{type.label}</span>
+                                        </motion.button>
                                     ))}
                                 </div>
 
-                                <div className="space-y-2 pt-2">
-                                    <Label className="text-sm">Mood / Vibe</Label>
+                                <div className="space-y-2 pt-3">
+                                    <Label className="text-sm text-white/70">Mood / Vibe</Label>
                                     <Input
                                         placeholder="e.g. Chill, Energetic, Networking"
                                         value={formData.mood}
                                         onChange={(e) => setFormData(prev => ({ ...prev, mood: e.target.value }))}
-                                        className="bg-card border-border h-11"
+                                        className="bg-white/5 border-white/10 h-12 rounded-xl text-white placeholder:text-white/30 focus:border-white/30"
                                     />
                                 </div>
                             </motion.div>
@@ -250,84 +261,85 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-4"
+                                className="space-y-5"
                             >
                                 {/* Toggle Type */}
-                                <div className="flex p-1 bg-muted rounded-xl">
+                                <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl">
                                     <button
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'custom' }))}
                                         className={cn(
-                                            "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
+                                            "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
                                             formData.locationType === 'custom' 
-                                                ? "bg-primary text-primary-foreground" 
-                                                : "text-muted-foreground"
+                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}` 
+                                                : "text-white/50 hover:text-white/70"
                                         )}
                                     >
-                                        Custom Location
+                                        📍 Custom Location
                                     </button>
                                     <button
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'venue' }))}
                                         className={cn(
-                                            "flex-1 py-2.5 text-sm font-medium rounded-lg transition-all",
+                                            "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
                                             formData.locationType === 'venue' 
-                                                ? "bg-primary text-primary-foreground" 
-                                                : "text-muted-foreground"
+                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}` 
+                                                : "text-white/50 hover:text-white/70"
                                         )}
                                     >
-                                        Book Venue
+                                        🏛️ Book Venue
                                     </button>
                                 </div>
 
                                 {formData.locationType === 'custom' ? (
-                                    <div className="space-y-3">
+                                    <div className="space-y-4">
                                         <div className="space-y-2">
-                                            <Label className="text-sm">Location Name</Label>
+                                            <Label className="text-sm text-white/70">Location Name</Label>
                                             <Input
                                                 placeholder="e.g. My House, Central Park"
                                                 value={formData.location_name}
                                                 onChange={(e) => setFormData(prev => ({ ...prev, location_name: e.target.value }))}
-                                                className="bg-card border-border h-11"
+                                                className="bg-white/5 border-white/10 h-12 rounded-xl text-white placeholder:text-white/30 focus:border-white/30"
                                             />
                                         </div>
-                                        <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 text-sm">
-                                            <p className="flex items-center gap-2 text-foreground">
-                                                <MapPin className="h-4 w-4 text-primary" />
+                                        <div className={`p-4 rounded-2xl border ${eventType === 'casual' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-violet-500/10 border-violet-500/20'}`}>
+                                            <p className="flex items-center gap-2 text-white">
+                                                <MapPin className={`h-4 w-4 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
                                                 Location will appear on the map
                                             </p>
-                                            <p className="text-xs text-muted-foreground mt-1 ml-6">
+                                            <p className="text-xs text-white/50 mt-1 ml-6">
                                                 Using current location coordinates
                                             </p>
                                         </div>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2">
-                                        <p className="text-sm text-muted-foreground">Select a venue</p>
-                                        <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                                    <div className="space-y-3">
+                                        <p className="text-sm text-white/50">Select a venue</p>
+                                        <div className="space-y-3 max-h-[45vh] overflow-y-auto">
                                             {mockVenues.slice(0, 4).map(venue => (
-                                                <div
+                                                <motion.div
                                                     key={venue.id}
+                                                    whileTap={{ scale: 0.98 }}
                                                     onClick={() => handleVenueSelect(venue)}
                                                     className={cn(
-                                                        "flex items-center gap-3 p-2.5 rounded-xl border cursor-pointer transition-all",
+                                                        "flex items-center gap-4 p-3 rounded-2xl border-2 cursor-pointer transition-all",
                                                         formData.selectedVenueId === venue.id
-                                                            ? "bg-primary/10 border-primary"
-                                                            : "bg-card border-border hover:border-primary/50"
+                                                            ? `bg-white/10 ${eventType === 'casual' ? 'border-emerald-500/50' : 'border-violet-500/50'}`
+                                                            : "bg-white/5 border-white/10 hover:border-white/20"
                                                     )}
                                                 >
                                                     <img
                                                         src={venue.imageUrl}
                                                         alt={venue.name}
-                                                        className="h-12 w-12 rounded-lg object-cover"
+                                                        className="h-14 w-14 rounded-xl object-cover"
                                                     />
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className="font-medium text-foreground text-sm truncate">{venue.name}</h4>
-                                                        <p className="text-xs text-muted-foreground truncate">{venue.location}</p>
-                                                        <p className="text-xs text-primary">₹{venue.pricePerHour}/hr</p>
+                                                        <h4 className="font-medium text-white truncate">{venue.name}</h4>
+                                                        <p className="text-xs text-white/50 truncate">{venue.location}</p>
+                                                        <p className={`text-xs font-medium ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>₹{venue.pricePerHour}/hr</p>
                                                     </div>
                                                     {formData.selectedVenueId === venue.id && (
-                                                        <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0" />
+                                                        <CheckCircle2 className={`h-6 w-6 flex-shrink-0 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
                                                     )}
-                                                </div>
+                                                </motion.div>
                                             ))}
                                         </div>
                                     </div>
@@ -341,13 +353,13 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="space-y-4"
+                                className="space-y-5"
                             >
                                 {/* Compact Image Upload */}
                                 <div className="space-y-2">
-                                    <Label className="text-sm">Event Image</Label>
+                                    <Label className="text-sm text-white/70">Event Image</Label>
                                     {imagePreview ? (
-                                        <div className="relative h-32 rounded-xl overflow-hidden border border-border">
+                                        <div className="relative h-36 rounded-2xl overflow-hidden border-2 border-white/10">
                                             <img
                                                 src={imagePreview}
                                                 alt="Preview"
@@ -355,19 +367,19 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                             />
                                             <button
                                                 onClick={clearImage}
-                                                className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
+                                                className="absolute top-3 right-3 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
                                             >
                                                 <X className="h-4 w-4 text-white" />
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className="flex items-center gap-3 p-3 rounded-xl border-2 border-dashed border-border hover:border-primary/50 cursor-pointer transition-colors bg-card">
-                                            <div className="p-2 rounded-full bg-muted">
-                                                <Upload className="h-5 w-5 text-muted-foreground" />
+                                        <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-colors ${eventType === 'casual' ? 'border-emerald-500/30 hover:border-emerald-500/50 bg-emerald-500/5' : 'border-violet-500/30 hover:border-violet-500/50 bg-violet-500/5'}`}>
+                                            <div className={`p-3 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-violet-500/20'}`}>
+                                                <Upload className={`h-6 w-6 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-medium text-foreground">Upload image</p>
-                                                <p className="text-xs text-muted-foreground">PNG, JPG up to 5MB</p>
+                                                <p className="text-sm font-medium text-white">Upload image</p>
+                                                <p className="text-xs text-white/50">PNG, JPG up to 5MB</p>
                                             </div>
                                             <input
                                                 type="file"
@@ -380,55 +392,55 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-sm">Event Title</Label>
+                                    <Label className="text-sm text-white/70">Event Title</Label>
                                     <Input
                                         placeholder="Give it a catchy name"
                                         value={formData.title}
                                         onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                                        className="bg-card border-border h-11"
+                                        className="bg-white/5 border-white/10 h-12 rounded-xl text-white placeholder:text-white/30 focus:border-white/30"
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label className="text-sm">Description</Label>
+                                    <Label className="text-sm text-white/70">Description</Label>
                                     <Textarea
                                         placeholder="Tell people what to expect..."
                                         value={formData.description}
                                         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                                        className="bg-card border-border min-h-[80px] resize-none"
+                                        className="bg-white/5 border-white/10 min-h-[100px] rounded-xl resize-none text-white placeholder:text-white/30 focus:border-white/30"
                                     />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label className="text-sm">Date</Label>
+                                        <Label className="text-sm text-white/70">Date</Label>
                                         <Input
                                             type="date"
                                             value={formData.date}
                                             onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                                            className="bg-card border-border h-11"
+                                            className="bg-white/5 border-white/10 h-12 rounded-xl text-white [color-scheme:dark]"
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-sm">Time</Label>
+                                        <Label className="text-sm text-white/70">Time</Label>
                                         <Input
                                             type="time"
                                             value={formData.time}
                                             onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
-                                            className="bg-card border-border h-11"
+                                            className="bg-white/5 border-white/10 h-12 rounded-xl text-white [color-scheme:dark]"
                                         />
                                     </div>
                                 </div>
 
                                 {eventType === 'ticketed' && (
                                     <div className="space-y-2">
-                                        <Label className="text-sm">Ticket Price (₹)</Label>
+                                        <Label className="text-sm text-white/70">Ticket Price (₹)</Label>
                                         <Input
                                             type="number"
                                             placeholder="0"
                                             value={formData.price || ''}
                                             onChange={(e) => setFormData(prev => ({ ...prev, price: parseInt(e.target.value) || 0 }))}
-                                            className="bg-card border-border h-11"
+                                            className="bg-white/5 border-white/10 h-12 rounded-xl text-white placeholder:text-white/30"
                                         />
                                     </div>
                                 )}
@@ -438,32 +450,34 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Footer - Fixed at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-4 bg-background/95 backdrop-blur-sm border-t border-border flex gap-3">
-                    {currentStep > STEPS.VIBE && (
-                        <Button
-                            variant="outline"
-                            onClick={handleBack}
-                            disabled={isLoading}
-                            className="flex-1 h-12"
-                        >
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Back
-                        </Button>
-                    )}
-
-                    <Button
-                        onClick={handleNext}
-                        disabled={isLoading || (currentStep === STEPS.VIBE && !formData.category)}
-                        className="flex-1 h-12 bg-primary hover:bg-primary/90"
-                    >
-                        {isLoading ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : currentStep === STEPS.DETAILS ? (
-                            <>Create Event <Sparkles className="h-4 w-4 ml-2" /></>
-                        ) : (
-                            <>Next <ArrowRight className="h-4 w-4 ml-2" /></>
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-10">
+                    <div className="flex gap-3">
+                        {currentStep > STEPS.VIBE && (
+                            <Button
+                                variant="outline"
+                                onClick={handleBack}
+                                disabled={isLoading}
+                                className="flex-1 h-14 rounded-2xl bg-white/5 border-white/10 text-white hover:bg-white/10"
+                            >
+                                <ArrowLeft className="h-5 w-5 mr-2" />
+                                Back
+                            </Button>
                         )}
-                    </Button>
+
+                        <Button
+                            onClick={handleNext}
+                            disabled={isLoading || (currentStep === STEPS.VIBE && !formData.category)}
+                            className={`flex-1 h-14 rounded-2xl font-semibold text-white shadow-lg ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/30' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 shadow-violet-500/30'}`}
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-5 w-5 animate-spin" />
+                            ) : currentStep === STEPS.DETAILS ? (
+                                <>Create Event <Sparkles className="h-5 w-5 ml-2" /></>
+                            ) : (
+                                <>Next <ArrowRight className="h-5 w-5 ml-2" /></>
+                            )}
+                        </Button>
+                    </div>
                 </div>
             </SheetContent>
         </Sheet>

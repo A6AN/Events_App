@@ -68,15 +68,15 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
           </div>
         </div>
 
-        {/* Toggle - Pill Style like VenuesTab */}
-        <div className="flex gap-2">
+        {/* Toggle - Enhanced visibility */}
+        <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('friends')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
               activeTab === 'friends'
-                ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg shadow-pink-500/30'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/5'
             }`}
           >
             <Users className="h-4 w-4" />
@@ -85,15 +85,16 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('live')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
               activeTab === 'live'
-                ? 'bg-gradient-to-r from-pink-500 to-rose-600 text-white shadow-lg shadow-pink-500/30'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/5'
             }`}
           >
             <TrendingUp className="h-4 w-4" />
             Live
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            {activeTab === 'live' && <span className="w-2 h-2 rounded-full bg-white animate-pulse" />}
+            {activeTab !== 'live' && <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />}
           </motion.button>
         </div>
       </div>
