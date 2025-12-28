@@ -94,7 +94,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="fixed inset-0 bg-black/90 z-[600]"
+        className="fixed inset-0 bg-black/80 backdrop-blur-md z-[600]"
       />
 
       {/* Modal */}
@@ -104,7 +104,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
         exit={{ opacity: 0, y: 50 }}
         className="fixed inset-x-4 top-[5%] bottom-[5%] z-[601] flex items-center justify-center"
       >
-        <div className="w-full max-w-md h-full bg-zinc-900 rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl">
+        <div className="w-full max-w-md h-full bg-zinc-900/95 rounded-3xl border border-white/10 ring-1 ring-pink-500/30 overflow-hidden flex flex-col shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
           
           {/* Image Header */}
           <div className="relative h-48 shrink-0">
@@ -193,7 +193,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                     />
                   ))}
                   <div className="w-8 h-8 rounded-full bg-pink-500 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white">
-                    +{event.attendees - 5}
+                    +{Math.max(event.attendees - 5, 0)}
                   </div>
                 </div>
                 {isBohoFest ? (
