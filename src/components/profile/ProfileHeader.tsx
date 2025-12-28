@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, LogOut, Edit2 } from 'lucide-react';
+import { MapPin, LogOut, Edit2, User } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Button } from '../ui/button';
 import { useAuth } from '../../context/AuthContext';
@@ -16,89 +16,93 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
 
     return (
         <div className="relative">
-            {/* Cover Image */}
-            <div className="h-36 w-full overflow-hidden">
-                <img
-                    src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop"
-                    alt="Cover"
-                    className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 h-36 bg-gradient-to-b from-transparent to-background" />
+            {/* Header with gradient */}
+            <div className="p-4 pb-3">
+                <div className="flex items-center justify-between mb-4">
+                    <div>
+                        <h1 className="text-xl font-bold text-white">Profile</h1>
+                        <p className="text-white/50 text-xs">Your activity & stats</p>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                        <User className="h-5 w-5 text-white" />
+                    </div>
+                </div>
             </div>
 
-            {/* Logout Button */}
-            <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => signOut()}
-                className="absolute top-3 right-3 bg-black/30 text-white hover:bg-black/50 rounded-full h-8 px-3 text-xs"
-            >
-                <LogOut className="h-3 w-3 mr-1" />
-                Logout
-            </Button>
-
-            {/* Profile Section */}
-            <div className="px-5 -mt-12 relative">
-                {/* Avatar */}
-                <div className="flex items-end gap-4">
-                    <motion.div
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        className="relative"
-                    >
-                        <div className="h-20 w-20 rounded-full ring-4 ring-background overflow-hidden">
-                            <Avatar className="h-full w-full">
-                                <AvatarImage
-                                    src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"}
-                                    alt="Profile"
-                                    className="object-cover"
-                                />
-                                <AvatarFallback className="text-xl bg-primary/20">{user?.email?.[0].toUpperCase()}</AvatarFallback>
-                            </Avatar>
-                        </div>
-                    </motion.div>
-
-                    {/* Name & Location */}
-                    <div className="flex-1 pb-1">
-                        <h1 className="text-lg font-semibold text-white">
-                            {user?.user_metadata?.full_name || 'Event Explorer'}
-                        </h1>
-                        <p className="text-white/50 text-sm flex items-center gap-1">
-                            <MapPin className="h-3 w-3" /> Lucknow
-                        </p>
-                    </div>
-
-                    {/* Edit Button */}
+            {/* Profile Card */}
+            <div className="px-4">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-5 border border-white/10"
+                >
+                    {/* Logout Button */}
                     <Button
-                        variant="outline"
                         size="sm"
-                        className="rounded-full border-white/20 text-white/80 hover:bg-white/10 text-xs h-8"
+                        variant="ghost"
+                        onClick={() => signOut()}
+                        className="absolute top-3 right-3 bg-white/10 text-white hover:bg-red-500/20 hover:text-red-400 rounded-full h-8 px-3 text-xs transition-colors"
                     >
-                        <Edit2 className="h-3 w-3 mr-1" />
-                        Edit
+                        <LogOut className="h-3 w-3 mr-1" />
+                        Logout
                     </Button>
-                </div>
 
-                {/* Bio */}
-                <p className="text-white/60 text-sm mt-3 leading-relaxed">
-                    Life is a party, dress like it. 🥂✨
-                </p>
+                    {/* Avatar & Info */}
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <div className="h-16 w-16 rounded-full ring-2 ring-violet-500/50 overflow-hidden">
+                                <Avatar className="h-full w-full">
+                                    <AvatarImage
+                                        src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"}
+                                        alt="Profile"
+                                        className="object-cover"
+                                    />
+                                    <AvatarFallback className="text-lg bg-violet-500/20 text-violet-300">{user?.email?.[0].toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
+                                <span className="text-[8px]">✓</span>
+                            </div>
+                        </div>
 
-                {/* Stats - Clean horizontal layout */}
-                <div className="flex gap-6 mt-4 pt-4 border-t border-white/10">
-                    <div className="text-center">
-                        <div className="text-xl font-bold text-white">{hostedCount}</div>
-                        <div className="text-xs text-white/50">Hosted</div>
+                        <div className="flex-1">
+                            <h2 className="text-lg font-semibold text-white">
+                                {user?.user_metadata?.full_name || 'Event Explorer'}
+                            </h2>
+                            <p className="text-white/50 text-sm flex items-center gap-1">
+                                <MapPin className="h-3 w-3" /> Lucknow
+                            </p>
+                            <p className="text-violet-400 text-xs mt-1">Life is a party 🥂</p>
+                        </div>
+
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full border-violet-500/30 text-violet-300 hover:bg-violet-500/20 hover:border-violet-500/50 text-xs h-8"
+                        >
+                            <Edit2 className="h-3 w-3 mr-1" />
+                            Edit
+                        </Button>
                     </div>
-                    <div className="text-center">
-                        <div className="text-xl font-bold text-white">{attendedCount}</div>
-                        <div className="text-xs text-white/50">Attended</div>
+
+                    {/* Stats */}
+                    <div className="flex gap-4 mt-5 pt-4 border-t border-white/10">
+                        <div className="flex-1 text-center">
+                            <div className="text-2xl font-bold text-white">{hostedCount}</div>
+                            <div className="text-xs text-white/50">Hosted</div>
+                        </div>
+                        <div className="w-px bg-white/10" />
+                        <div className="flex-1 text-center">
+                            <div className="text-2xl font-bold text-white">{attendedCount}</div>
+                            <div className="text-xs text-white/50">Attended</div>
+                        </div>
+                        <div className="w-px bg-white/10" />
+                        <div className="flex-1 text-center">
+                            <div className="text-2xl font-bold text-violet-400">{followersCount}</div>
+                            <div className="text-xs text-white/50">Rep Score</div>
+                        </div>
                     </div>
-                    <div className="text-center">
-                        <div className="text-xl font-bold text-white">{followersCount}</div>
-                        <div className="text-xs text-white/50">Rep Score</div>
-                    </div>
-                </div>
+                </motion.div>
             </div>
         </div>
     );

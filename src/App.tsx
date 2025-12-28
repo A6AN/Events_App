@@ -118,7 +118,7 @@ function AppContent() {
           <TabsList className="w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
             <TabsTrigger
               value="social"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all duration-300"
             >
               <Users className="h-5 w-5" />
               <span className="text-[10px] font-medium">Social</span>
@@ -126,7 +126,7 @@ function AppContent() {
 
             <TabsTrigger
               value="map"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
             >
               <Map className="h-5 w-5" />
               <span className="text-[10px] font-medium">Discover</span>
@@ -134,7 +134,7 @@ function AppContent() {
 
             <TabsTrigger
               value="venues"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 transition-all duration-300"
             >
               <Building2 className="h-5 w-5" />
               <span className="text-[10px] font-medium">Venues</span>
@@ -142,7 +142,7 @@ function AppContent() {
 
             <TabsTrigger
               value="profile"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-primary/20 data-[state=active]:text-primary transition-all duration-300"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-400 transition-all duration-300"
             >
               <User className="h-5 w-5" />
               <span className="text-[10px] font-medium">Profile</span>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Zap, Ticket, Plus } from 'lucide-react';
+import { Zap, Ticket, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CreateEventWheelProps {
@@ -26,90 +26,98 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
         }, 200);
     };
 
-    // Calculate position based on viewport height to sit above the nav bar
-    // Nav bar is typically ~64px + safe area, center button should be ~28px above nav center
-    const centerBottom = 'calc(32px + env(safe-area-inset-bottom, 0px) + 28px)';
-    const optionsBottom = 'calc(32px + env(safe-area-inset-bottom, 0px) + 90px)';
-
     return createPortal(
         <AnimatePresence>
             {open && (
-                <>
-                    {/* Backdrop - reduced blur for premium look */}
+                <div className="fixed inset-0 z-[100]">
+                    {/* Backdrop */}
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[95]"
+                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
                         onClick={onClose}
                     />
 
-                    {/* Center Plus Button (transforms to X) */}
-                    <motion.button
-                        initial={{ rotate: 0 }}
-                        animate={{ rotate: 45 }}
-                        exit={{ rotate: 0 }}
-                        transition={{ duration: 0.2 }}
-                        onClick={onClose}
-                        style={{ bottom: centerBottom }}
-                        className="fixed left-1/2 -translate-x-1/2 w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-2xl shadow-primary/50 flex items-center justify-center z-[99] border-4 border-background"
-                    >
-                        <Plus className="h-6 w-6" />
-                    </motion.button>
+                    {/* Centered Content Container */}
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="relative pointer-events-auto" style={{ width: '200px', height: '200px' }}>
+                            
+                            {/* Casual Event - Left */}
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                                animate={{ opacity: 1, scale: 1, x: -65, y: -30 }}
+                                exit={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                                transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.05 }}
+                                onClick={() => handleSelect('casual')}
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                            >
+                                <motion.div 
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                                        selectedType === 'casual'
+                                            ? 'bg-emerald-500 shadow-emerald-500/50'
+                                            : 'bg-emerald-500/90 hover:bg-emerald-500 shadow-emerald-500/30'
+                                    }`}
+                                >
+                                    <Zap className="h-6 w-6 text-white" />
+                                </motion.div>
+                                <span className="text-sm font-semibold text-white drop-shadow-lg">
+                                    Casual
+                                </span>
+                            </motion.button>
 
-                    {/* Casual Event - Left */}
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.5, x: 0 }}
-                        animate={{ opacity: 1, scale: 1, x: -70 }}
-                        exit={{ opacity: 0, scale: 0.5, x: 0 }}
-                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-                        onClick={() => handleSelect('casual')}
-                        style={{ bottom: optionsBottom, left: '50%', transform: 'translateX(-50%)' }}
-                        className={`fixed z-[97] flex flex-col items-center gap-1.5 ${
-                            selectedType === 'casual' ? 'scale-110' : ''
-                        }`}
-                    >
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
-                            selectedType === 'casual'
-                                ? 'bg-primary shadow-primary/50'
-                                : 'bg-card border border-border hover:bg-primary/20 hover:border-primary/50'
-                        }`}>
-                            <Zap className={`h-5 w-5 ${
-                                selectedType === 'casual' ? 'text-primary-foreground' : 'text-primary'
-                            }`} />
-                        </div>
-                        <span className="text-xs font-medium text-foreground bg-card/90 px-2 py-0.5 rounded-full shadow-sm border border-border">
-                            Casual
-                        </span>
-                    </motion.button>
+                            {/* Ticketed Event - Right */}
+                            <motion.button
+                                initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                                animate={{ opacity: 1, scale: 1, x: 65, y: -30 }}
+                                exit={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
+                                transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.1 }}
+                                onClick={() => handleSelect('ticketed')}
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
+                            >
+                                <motion.div 
+                                    whileHover={{ scale: 1.1 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
+                                        selectedType === 'ticketed'
+                                            ? 'bg-violet-500 shadow-violet-500/50'
+                                            : 'bg-violet-500/90 hover:bg-violet-500 shadow-violet-500/30'
+                                    }`}
+                                >
+                                    <Ticket className="h-6 w-6 text-white" />
+                                </motion.div>
+                                <span className="text-sm font-semibold text-white drop-shadow-lg">
+                                    Ticketed
+                                </span>
+                            </motion.button>
 
-                    {/* Ticketed Event - Right */}
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.5, x: 0 }}
-                        animate={{ opacity: 1, scale: 1, x: 70 }}
-                        exit={{ opacity: 0, scale: 0.5, x: 0 }}
-                        transition={{ type: 'spring', damping: 20, stiffness: 300 }}
-                        onClick={() => handleSelect('ticketed')}
-                        style={{ bottom: optionsBottom, left: '50%', transform: 'translateX(-50%)' }}
-                        className={`fixed z-[97] flex flex-col items-center gap-1.5 ${
-                            selectedType === 'ticketed' ? 'scale-110' : ''
-                        }`}
-                    >
-                        <div className={`w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all ${
-                            selectedType === 'ticketed'
-                                ? 'bg-primary shadow-primary/50'
-                                : 'bg-card border border-border hover:bg-primary/20 hover:border-primary/50'
-                        }`}>
-                            <Ticket className={`h-5 w-5 ${
-                                selectedType === 'ticketed' ? 'text-primary-foreground' : 'text-primary'
-                            }`} />
+                            {/* Center Close Button */}
+                            <motion.button
+                                initial={{ scale: 0, rotate: -180 }}
+                                animate={{ scale: 1, rotate: 0 }}
+                                exit={{ scale: 0, rotate: 180 }}
+                                transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+                                onClick={onClose}
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white shadow-2xl flex items-center justify-center z-10"
+                            >
+                                <X className="h-7 w-7 text-gray-800" />
+                            </motion.button>
+
+                            {/* Label */}
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 50 }}
+                                exit={{ opacity: 0, y: 20 }}
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 text-center text-white/80 text-sm font-medium whitespace-nowrap"
+                            >
+                                What type of event?
+                            </motion.p>
                         </div>
-                        <span className="text-xs font-medium text-foreground bg-card/90 px-2 py-0.5 rounded-full shadow-sm border border-border">
-                            Ticketed
-                        </span>
-                    </motion.button>
-                </>
+                    </div>
+                </div>
             )}
         </AnimatePresence>,
         document.body
