@@ -49,7 +49,7 @@ function AppContent() {
   };
 
   return (
-    <div className="h-screen w-full max-w-lg mx-auto bg-background flex flex-col overflow-hidden">
+    <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-background flex flex-col overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
       {/* Theme Toggle Button */}
       <div className="absolute top-4 right-4 z-50">
         <Button

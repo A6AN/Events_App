@@ -169,9 +169,20 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
         <Sheet open={open} onOpenChange={(isOpen) => {
             if (!isOpen) onClose();
         }}>
-            <SheetContent side="bottom" className="h-[85vh] rounded-t-3xl p-0 bg-gradient-to-b from-slate-900 to-slate-950 border-t border-white/10 [&>button]:hidden">
+            <SheetContent
+                side="bottom"
+                className={cn(
+                    "h-[90vh] rounded-t-3xl p-0 bg-zinc-950 border-t-0 [&>button]:hidden",
+                    eventType === 'casual'
+                        ? 'shadow-[0_-4px_60px_rgba(52,211,153,0.3)] border-2 border-emerald-500/50'
+                        : 'shadow-[0_-4px_60px_rgba(139,92,246,0.3)] border-2 border-violet-500/50'
+                )}
+            >
                 {/* Header with gradient */}
-                <div className="sticky top-0 z-10 bg-gradient-to-b from-slate-900/95 to-slate-900/80 backdrop-blur-xl border-b border-white/5 px-5 py-4">
+                <div className={cn(
+                    "sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-xl px-5 py-4 border-b",
+                    eventType === 'casual' ? 'border-emerald-500/30' : 'border-violet-500/30'
+                )}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
                             <div className={`p-2.5 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-violet-500/20'}`}>
@@ -269,8 +280,8 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'custom' }))}
                                         className={cn(
                                             "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
-                                            formData.locationType === 'custom' 
-                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}` 
+                                            formData.locationType === 'custom'
+                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}`
                                                 : "text-white/50 hover:text-white/70"
                                         )}
                                     >
@@ -280,8 +291,8 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'venue' }))}
                                         className={cn(
                                             "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
-                                            formData.locationType === 'venue' 
-                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}` 
+                                            formData.locationType === 'venue'
+                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}`
                                                 : "text-white/50 hover:text-white/70"
                                         )}
                                     >

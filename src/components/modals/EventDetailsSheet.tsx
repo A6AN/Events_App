@@ -402,6 +402,6 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
         </motion.div>
       </div>
     </AnimatePresence>,
-    document.body
+    document.getElementById('app-container') || document.body
   );
 };

@@ -43,7 +43,7 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                     {/* Centered Content Container */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <div className="relative pointer-events-auto" style={{ width: '200px', height: '200px' }}>
-                            
+
                             {/* Casual Event - Left */}
                             <motion.button
                                 initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
@@ -53,14 +53,13 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                 onClick={() => handleSelect('casual')}
                                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
                             >
-                                <motion.div 
+                                <motion.div
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
-                                        selectedType === 'casual'
+                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${selectedType === 'casual'
                                             ? 'bg-emerald-500 shadow-emerald-500/50'
                                             : 'bg-emerald-500/90 hover:bg-emerald-500 shadow-emerald-500/30'
-                                    }`}
+                                        }`}
                                 >
                                     <Zap className="h-6 w-6 text-white" />
                                 </motion.div>
@@ -78,14 +77,13 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                 onClick={() => handleSelect('ticketed')}
                                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
                             >
-                                <motion.div 
+                                <motion.div
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.95 }}
-                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${
-                                        selectedType === 'ticketed'
+                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${selectedType === 'ticketed'
                                             ? 'bg-violet-500 shadow-violet-500/50'
                                             : 'bg-violet-500/90 hover:bg-violet-500 shadow-violet-500/30'
-                                    }`}
+                                        }`}
                                 >
                                     <Ticket className="h-6 w-6 text-white" />
                                 </motion.div>
@@ -120,6 +118,6 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                 </div>
             )}
         </AnimatePresence>,
-        document.body
+        document.getElementById('app-container') || document.body
     );
 }
