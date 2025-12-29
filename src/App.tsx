@@ -142,7 +142,7 @@ function AppContent() {
 
             <TabsTrigger
               value="profile"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-400 transition-all duration-300"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
             >
               <User className="h-5 w-5" />
               <span className="text-[10px] font-medium">Profile</span>

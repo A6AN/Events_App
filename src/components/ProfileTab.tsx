@@ -30,7 +30,7 @@ export function ProfileTab() {
             whileHover={{ scale: 1.02 }}
             onClick={() => setActiveTab('hosted')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all backdrop-blur-md ${activeTab === 'hosted'
-              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
               : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/10'
               }`}
           >
@@ -42,7 +42,7 @@ export function ProfileTab() {
             whileHover={{ scale: 1.02 }}
             onClick={() => setActiveTab('attended')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all backdrop-blur-md ${activeTab === 'attended'
-              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
+              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30'
               : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/10'
               }`}
           >
@@ -81,7 +81,7 @@ export function ProfileTab() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
                       {/* Category Badge */}
-                      <div className="absolute top-2 right-2 bg-violet-500/90 px-2 py-0.5 rounded-full">
+                      <div className="absolute top-2 right-2 bg-emerald-500/90 px-2 py-0.5 rounded-full">
                         <span className="text-[10px] text-white font-medium">{event.category}</span>
                       </div>
 
@@ -95,7 +95,7 @@ export function ProfileTab() {
                       </div>
 
                       {/* Hover Overlay */}
-                      <div className="absolute inset-0 bg-violet-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                      <div className="absolute inset-0 bg-emerald-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                     </motion.div>
                   ))}
                 </div>
@@ -124,7 +124,7 @@ export function ProfileTab() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.1 }}
-                    className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden border border-white/10 hover:border-violet-500/50 transition-all cursor-pointer group"
+                    className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden border border-white/10 hover:border-emerald-500/50 transition-all cursor-pointer group"
                   >
                     {/* Ticket stub decoration */}
                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-3 h-6 bg-background rounded-r-full" />
@@ -140,7 +140,7 @@ export function ProfileTab() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <h3 className="text-white font-semibold text-sm truncate">{ticket.title}</h3>
-                        <p className="text-violet-400 text-xs mt-0.5">{ticket.artist}</p>
+                        <p className="text-emerald-400 text-xs mt-0.5">{ticket.artist}</p>
                         <div className="flex items-center gap-3 text-white/40 text-xs mt-1.5">
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
@@ -159,7 +159,7 @@ export function ProfileTab() {
                     </div>
 
                     {/* Hover Glow */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-500/0 to-purple-500/0 group-hover:from-violet-500/5 group-hover:to-purple-500/5 transition-all duration-300 rounded-2xl pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/0 to-teal-500/0 group-hover:from-emerald-500/5 group-hover:to-teal-500/5 transition-all duration-300 rounded-2xl pointer-events-none" />
                   </motion.div>
                 ))
               ) : (
@@ -175,6 +175,6 @@ export function ProfileTab() {
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </div >
   );
 }

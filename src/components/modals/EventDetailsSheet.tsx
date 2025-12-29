@@ -220,11 +220,11 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                 </motion.div>
                 <motion.div
                   whileHover={{ scale: 1.02, y: -3 }}
-                  className="flex-1 bg-violet-500/20 rounded-2xl p-4 border-2 border-violet-500/60 shadow-lg shadow-violet-500/25"
+                  className="flex-1 bg-teal-500/20 rounded-2xl p-4 border-2 border-teal-500/60 shadow-lg shadow-teal-500/25"
                 >
-                  <div className="flex items-center gap-2 text-violet-400 mb-1">
+                  <div className="flex items-center gap-2 text-teal-400 mb-1">
                     <Clock className="w-4 h-4" />
-                    <span className="text-xs text-violet-300 font-medium">Time</span>
+                    <span className="text-xs text-teal-300 font-medium">Time</span>
                   </div>
                   <div className="text-white font-bold text-sm">{event.startTime}</div>
                 </motion.div>

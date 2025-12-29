@@ -69,10 +69,10 @@ export function LoginPage() {
 
     return (
         <div
-            className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
+            className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-6 relative overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            style={{ background: 'linear-gradient(135deg, #020617 0%, rgba(46, 16, 101, 0.5) 50%, #020617 100%)' }}
+            style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, rgba(6, 78, 59, 0.4) 50%, #0a0a0a 100%)' }}
         >
             {/* Animated gradient orbs with inline styles */}
             <div className="absolute inset-0 overflow-hidden">
@@ -85,7 +85,7 @@ export function LoginPage() {
                     transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.4) 0%, rgba(192, 38, 211, 0.3) 100%)',
+                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(20, 184, 166, 0.3) 100%)',
                         filter: 'blur(80px)'
                     }}
                 />
@@ -98,7 +98,7 @@ export function LoginPage() {
                     transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(124, 58, 237, 0.4) 100%)',
+                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(16, 185, 129, 0.4) 100%)',
                         filter: 'blur(80px)'
                     }}
                 />
@@ -110,7 +110,7 @@ export function LoginPage() {
                     transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
                     className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 rounded-full"
                     style={{
-                        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%)',
+                        background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.3) 0%, rgba(20, 184, 166, 0.3) 100%)',
                         filter: 'blur(60px)'
                     }}
                 />
@@ -131,24 +131,24 @@ export function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 style={{ rotateX, rotateY, transformPerspective: 1000 }}
-                className="w-full max-w-md relative z-10"
+                className="w-full max-w-sm relative z-10"
             >
                 {/* Glass Card */}
                 <div
                     className="relative backdrop-blur-2xl border border-white/20 rounded-3xl p-8 overflow-hidden"
                     style={{
                         background: 'rgba(255, 255, 255, 0.08)',
-                        boxShadow: '0 8px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 100px rgba(139, 92, 246, 0.15)'
+                        boxShadow: '0 8px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 100px rgba(16, 185, 129, 0.15)'
                     }}
                 >
                     {/* Inner glow effects */}
                     <div
                         className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
-                        style={{ background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)' }}
+                        style={{ background: 'linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.6), transparent)' }}
                     />
                     <div
                         className="absolute inset-0 pointer-events-none"
-                        style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, transparent 50%)' }}
+                        style={{ background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 50%)' }}
                     />
 
                     {/* Header */}
@@ -157,7 +157,11 @@ export function LoginPage() {
                             initial={{ opacity: 0, scale: 0.5 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: 0.2, type: "spring" }}
-                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 mb-4 shadow-lg shadow-violet-500/30"
+                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg"
+                            style={{
+                                background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
+                                boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)'
+                            }}
                         >
                             <PartyPopper className="h-8 w-8 text-white" />
                         </motion.div>
@@ -169,7 +173,7 @@ export function LoginPage() {
                             <h1
                                 className="text-3xl font-bold mb-2"
                                 style={{
-                                    background: 'linear-gradient(90deg, #fff, #ddd6fe, #fff)',
+                                    background: 'linear-gradient(90deg, #fff, #6ee7b7, #fff)',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
                                     backgroundClip: 'text'
@@ -203,15 +207,15 @@ export function LoginPage() {
                         >
                             <Label htmlFor="email" className="text-white/70 ml-1 text-sm">Email</Label>
                             <div className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-violet-400 transition-colors z-10" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
                                 <Input
                                     id="email"
                                     type="email"
                                     placeholder="you@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-violet-500/50 rounded-xl transition-all relative"
+                                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
                                     required
                                 />
                             </div>
@@ -225,15 +229,15 @@ export function LoginPage() {
                         >
                             <Label htmlFor="password" className="text-white/70 ml-1 text-sm">Password</Label>
                             <div className="relative group">
-                                <div className="absolute inset-0 bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-violet-400 transition-colors z-10" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
                                 <Input
                                     id="password"
                                     type="password"
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-violet-500/50 rounded-xl transition-all relative"
+                                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
                                     required
                                 />
                             </div>
@@ -289,7 +293,7 @@ export function LoginPage() {
                             onClick={handleGoogleLogin}
                             disabled={loading}
                         >
-                            <Chrome className="mr-3 h-5 w-5 group-hover:text-violet-400 transition-colors" />
+                            <Chrome className="mr-3 h-5 w-5 group-hover:text-emerald-400 transition-colors" />
                             Continue with Google
                         </Button>
                     </motion.div>
@@ -304,7 +308,7 @@ export function LoginPage() {
                         Don't have an account?{' '}
                         <Link
                             to="/signup"
-                            className="text-violet-400 hover:text-violet-300 font-medium transition-colors inline-flex items-center gap-1"
+                            className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors inline-flex items-center gap-1"
                         >
                             Sign up <Sparkles className="h-3 w-3" />
                         </Link>

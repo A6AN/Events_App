@@ -25,7 +25,7 @@ const STEPS = {
 
 const EVENT_TYPES = [
     { id: 'party', label: 'Party', icon: PartyPopper, color: 'bg-pink-500', selectedBg: 'bg-pink-500/20', selectedBorder: 'border-pink-500' },
-    { id: 'show', label: 'Show', icon: Mic2, color: 'bg-purple-500', selectedBg: 'bg-purple-500/20', selectedBorder: 'border-purple-500' },
+    { id: 'show', label: 'Show', icon: Mic2, color: 'bg-cyan-500', selectedBg: 'bg-cyan-500/20', selectedBorder: 'border-cyan-500' },
     { id: 'music', label: 'Concert', icon: Music, color: 'bg-blue-500', selectedBg: 'bg-blue-500/20', selectedBorder: 'border-blue-500' },
     { id: 'workshop', label: 'Workshop', icon: Palette, color: 'bg-orange-500', selectedBg: 'bg-orange-500/20', selectedBorder: 'border-orange-500' },
     { id: 'meetup', label: 'Meetup', icon: Users, color: 'bg-green-500', selectedBg: 'bg-green-500/20', selectedBorder: 'border-green-500' },
@@ -175,21 +175,21 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                     "h-[90vh] rounded-t-3xl p-0 bg-zinc-950 border-t-0 [&>button]:hidden flex flex-col",
                     eventType === 'casual'
                         ? 'shadow-[0_-4px_60px_rgba(52,211,153,0.3)] border-2 border-emerald-500/50'
-                        : 'shadow-[0_-4px_60px_rgba(139,92,246,0.3)] border-2 border-violet-500/50'
+                        : 'shadow-[0_-4px_60px_rgba(20,184,166,0.3)] border-2 border-teal-500/50'
                 )}
             >
                 {/* Header - Fixed at top */}
                 <div className={cn(
                     "flex-shrink-0 bg-zinc-950 px-5 py-4 border-b",
-                    eventType === 'casual' ? 'border-emerald-500/30' : 'border-violet-500/30'
+                    eventType === 'casual' ? 'border-emerald-500/30' : 'border-teal-500/30'
                 )}>
                     <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                            <div className={`p-2.5 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-violet-500/20'}`}>
+                            <div className={`p-2.5 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-teal-500/20'}`}>
                                 {eventType === 'casual' ? (
-                                    <Sparkles className={`h-5 w-5 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                    <Sparkles className={`h-5 w-5 ${eventType === 'casual' ? 'text-emerald-400' : 'text-teal-400'}`} />
                                 ) : (
-                                    <Plus className="h-5 w-5 text-violet-400" />
+                                    <Plus className="h-5 w-5 text-teal-400" />
                                 )}
                             </div>
                             <div>
@@ -198,7 +198,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                     {currentStep === STEPS.LOCATION && "Where's it happening?"}
                                     {currentStep === STEPS.DETAILS && "Final Details"}
                                 </h2>
-                                <span className={`text-xs font-medium ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>
+                                <span className={`text-xs font-medium ${eventType === 'casual' ? 'text-emerald-400' : 'text-teal-400'}`}>
                                     {eventType === 'casual' ? '🎉 Casual Event' : '🎫 Ticketed Event'} • Step {currentStep + 1}/3
                                 </span>
                             </div>
@@ -210,7 +210,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                     {/* Progress Bar */}
                     <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
                         <motion.div
-                            className={`h-full rounded-full ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500'}`}
+                            className={`h-full rounded-full ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-teal-500 to-cyan-500'}`}
                             initial={{ width: "33%" }}
                             animate={{ width: `${((currentStep + 1) / 3) * 100}%` }}
                             transition={{ type: "spring", damping: 20 }}
@@ -237,7 +237,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                         const getSelectedStyles = () => {
                                             switch (type.id) {
                                                 case 'party': return 'bg-pink-500/20 border-pink-500 shadow-pink-500/30';
-                                                case 'show': return 'bg-purple-500/20 border-purple-500 shadow-purple-500/30';
+                                                case 'show': return 'bg-cyan-500/20 border-cyan-500 shadow-cyan-500/30';
                                                 case 'music': return 'bg-blue-500/20 border-blue-500 shadow-blue-500/30';
                                                 case 'workshop': return 'bg-orange-500/20 border-orange-500 shadow-orange-500/30';
                                                 case 'meetup': return 'bg-green-500/20 border-green-500 shadow-green-500/30';
@@ -267,7 +267,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                                         "p-3 rounded-xl transition-all",
                                                         isSelected
                                                             ? (type.id === 'party' ? 'bg-pink-500'
-                                                                : type.id === 'show' ? 'bg-purple-500'
+                                                                : type.id === 'show' ? 'bg-cyan-500'
                                                                     : type.id === 'music' ? 'bg-blue-500'
                                                                         : type.id === 'workshop' ? 'bg-orange-500'
                                                                             : type.id === 'meetup' ? 'bg-green-500'
@@ -316,14 +316,14 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                             formData.locationType === 'custom'
                                                 ? eventType === 'casual'
                                                     ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/20'
-                                                    : 'bg-violet-500/20 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                    : 'bg-teal-500/20 border-teal-500 shadow-lg shadow-teal-500/20'
                                                 : "bg-white/5 border-white/10 hover:border-white/30"
                                         )}
                                     >
                                         <div className={cn(
                                             "p-3 rounded-xl",
                                             formData.locationType === 'custom'
-                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-violet-500'
+                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-teal-500'
                                                 : 'bg-white/10'
                                         )}>
                                             <MapPin className="h-6 w-6 text-white" />
@@ -343,14 +343,14 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                             formData.locationType === 'venue'
                                                 ? eventType === 'casual'
                                                     ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/20'
-                                                    : 'bg-violet-500/20 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                    : 'bg-teal-500/20 border-teal-500 shadow-lg shadow-teal-500/20'
                                                 : "bg-white/5 border-white/10 hover:border-white/30"
                                         )}
                                     >
                                         <div className={cn(
                                             "p-3 rounded-xl",
                                             formData.locationType === 'venue'
-                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-violet-500'
+                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-teal-500'
                                                 : 'bg-white/10'
                                         )}>
                                             <Building2 className="h-6 w-6 text-white" />
@@ -373,9 +373,9 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                                 className="bg-white/5 border-white/10 h-12 rounded-xl text-white placeholder:text-white/30 focus:border-white/30"
                                             />
                                         </div>
-                                        <div className={`p-4 rounded-2xl border ${eventType === 'casual' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-violet-500/10 border-violet-500/20'}`}>
+                                        <div className={`p-4 rounded-2xl border ${eventType === 'casual' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-teal-500/10 border-teal-500/20'}`}>
                                             <p className="flex items-center gap-2 text-white">
-                                                <MapPin className={`h-4 w-4 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                                <MapPin className={`h-4 w-4 ${eventType === 'casual' ? 'text-emerald-400' : 'text-teal-400'}`} />
                                                 Location will appear on the map
                                             </p>
                                             <p className="text-xs text-white/50 mt-1 ml-6">
@@ -401,7 +401,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                                         formData.selectedVenueId === venue.id
                                                             ? eventType === 'casual'
                                                                 ? 'bg-emerald-500/15 border-emerald-500 shadow-lg shadow-emerald-500/20'
-                                                                : 'bg-violet-500/15 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                                : 'bg-teal-500/15 border-teal-500 shadow-lg shadow-teal-500/20'
                                                             : "bg-zinc-900/80 border-white/10 hover:border-white/30 hover:bg-zinc-800/80"
                                                     )}
                                                 >
@@ -464,9 +464,9 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                             </button>
                                         </div>
                                     ) : (
-                                        <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-colors ${eventType === 'casual' ? 'border-emerald-500/30 hover:border-emerald-500/50 bg-emerald-500/5' : 'border-violet-500/30 hover:border-violet-500/50 bg-violet-500/5'}`}>
-                                            <div className={`p-3 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-violet-500/20'}`}>
-                                                <Upload className={`h-6 w-6 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                        <label className={`flex items-center gap-4 p-4 rounded-2xl border-2 border-dashed cursor-pointer transition-colors ${eventType === 'casual' ? 'border-emerald-500/30 hover:border-emerald-500/50 bg-emerald-500/5' : 'border-teal-500/30 hover:border-teal-500/50 bg-teal-500/5'}`}>
+                                            <div className={`p-3 rounded-xl ${eventType === 'casual' ? 'bg-emerald-500/20' : 'bg-teal-500/20'}`}>
+                                                <Upload className={`h-6 w-6 ${eventType === 'casual' ? 'text-emerald-400' : 'text-teal-400'}`} />
                                             </div>
                                             <div>
                                                 <p className="text-sm font-medium text-white">Upload image</p>
@@ -558,7 +558,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                         <Button
                             onClick={handleNext}
                             disabled={isLoading || (currentStep === STEPS.VIBE && !formData.category)}
-                            className={`flex-1 h-14 rounded-2xl font-semibold text-white shadow-lg ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/30' : 'bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-400 hover:to-fuchsia-400 shadow-violet-500/30'}`}
+                            className={`flex-1 h-14 rounded-2xl font-semibold text-white shadow-lg ${eventType === 'casual' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-emerald-500/30' : 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 shadow-teal-500/30'}`}
                         >
                             {isLoading ? (
                                 <Loader2 className="h-5 w-5 animate-spin" />

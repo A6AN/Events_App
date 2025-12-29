@@ -87,15 +87,15 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                     whileHover={{ scale: 1.15, rotate: -5 }}
                                     whileTap={{ scale: 0.9 }}
                                     className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${selectedType === 'ticketed'
-                                        ? 'bg-violet-500 shadow-violet-500/60'
-                                        : 'bg-violet-500/90 hover:bg-violet-500 shadow-violet-500/40'
+                                        ? 'bg-teal-500 shadow-teal-500/60'
+                                        : 'bg-teal-500/90 hover:bg-teal-500 shadow-teal-500/40'
                                         }`}
                                 >
                                     {/* Pulsing ring */}
                                     <motion.div
                                         animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
                                         transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                                        className="absolute inset-0 rounded-full bg-violet-500/30"
+                                        className="absolute inset-0 rounded-full bg-teal-500/30"
                                     />
                                     <Ticket className="h-7 w-7 text-white relative z-10" />
                                 </motion.div>
