@@ -268,7 +268,6 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               </div>
             </div>
           </div>
-          </div>
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-white/10 bg-zinc-900 shrink-0">
