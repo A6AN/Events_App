@@ -34,8 +34,11 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl p-5 border border-white/10"
+                    className="relative bg-white/10 backdrop-blur-xl rounded-2xl p-5 border border-white/20 overflow-hidden"
                 >
+                    {/* Top gradient line */}
+                    <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500" />
+
                     {/* Logout Button */}
                     <Button
                         size="sm"
@@ -50,7 +53,9 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
                     {/* Avatar & Info */}
                     <div className="flex items-center gap-4">
                         <div className="relative">
-                            <div className="h-16 w-16 rounded-full ring-2 ring-violet-500/50 overflow-hidden">
+                            {/* Glow effect behind avatar */}
+                            <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-full blur-lg opacity-40 animate-pulse" />
+                            <div className="relative h-18 w-18 rounded-full ring-2 ring-violet-400 overflow-hidden shadow-lg shadow-violet-500/30">
                                 <Avatar className="h-full w-full">
                                     <AvatarImage
                                         src={user?.user_metadata?.avatar_url || "https://github.com/shadcn.png"}
@@ -60,7 +65,7 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
                                     <AvatarFallback className="text-lg bg-violet-500/20 text-violet-300">{user?.email?.[0].toUpperCase()}</AvatarFallback>
                                 </Avatar>
                             </div>
-                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-background flex items-center justify-center">
+                            <div className="absolute -bottom-1 -right-1 h-5 w-5 bg-green-500 rounded-full border-2 border-background flex items-center justify-center shadow-lg shadow-green-500/30">
                                 <span className="text-[8px]">✓</span>
                             </div>
                         </div>
@@ -86,20 +91,20 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
                     </div>
 
                     {/* Stats */}
-                    <div className="flex gap-4 mt-5 pt-4 border-t border-white/10">
-                        <div className="flex-1 text-center">
-                            <div className="text-2xl font-bold text-white">{hostedCount}</div>
+                    <div className="flex gap-3 mt-5 pt-4 border-t border-white/20">
+                        <div className="flex-1 text-center bg-white/5 rounded-xl py-2 backdrop-blur-sm">
+                            <div className="text-2xl font-bold text-white flex items-center justify-center gap-1">
+                                {hostedCount}<span className="text-green-400 text-sm">✓</span>
+                            </div>
                             <div className="text-xs text-white/50">Hosted</div>
                         </div>
-                        <div className="w-px bg-white/10" />
-                        <div className="flex-1 text-center">
+                        <div className="flex-1 text-center bg-white/5 rounded-xl py-2 backdrop-blur-sm">
                             <div className="text-2xl font-bold text-white">{attendedCount}</div>
                             <div className="text-xs text-white/50">Attended</div>
                         </div>
-                        <div className="w-px bg-white/10" />
-                        <div className="flex-1 text-center">
+                        <div className="flex-1 text-center bg-violet-500/20 rounded-xl py-2 backdrop-blur-sm border border-violet-500/30">
                             <div className="text-2xl font-bold text-violet-400">{followersCount}</div>
-                            <div className="text-xs text-white/50">Rep Score</div>
+                            <div className="text-xs text-violet-300/70">Rep Score</div>
                         </div>
                     </div>
                 </motion.div>

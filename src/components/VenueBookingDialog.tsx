@@ -123,21 +123,21 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
 
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-2">
-                    <label className="text-xs text-white/50">Date</label>
+                    <label className="text-xs text-white/70 font-medium">Date</label>
                     <input
                       type="date"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-500/50 outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-12 px-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm focus:border-amber-500 focus:bg-white/15 outline-none transition-all [color-scheme:dark]"
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs text-white/50">Time</label>
+                    <label className="text-xs text-white/70 font-medium">Time</label>
                     <input
                       type="time"
                       value={selectedTime}
                       onChange={(e) => setSelectedTime(e.target.value)}
-                      className="w-full h-12 px-4 rounded-xl bg-white/5 border border-white/10 text-white text-sm focus:border-amber-500/50 outline-none transition-colors [color-scheme:dark]"
+                      className="w-full h-12 px-4 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm focus:border-amber-500 focus:bg-white/15 outline-none transition-all [color-scheme:dark]"
                     />
                   </div>
                 </div>

@@ -69,15 +69,14 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
         </div>
 
         {/* Toggle - Enhanced visibility */}
-        <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl">
+        <div className="flex gap-2 p-1.5 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10">
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('friends')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === 'friends'
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'friends'
                 ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
                 : 'text-white/50 hover:text-white/70 hover:bg-white/5'
-            }`}
+              }`}
           >
             <Users className="h-4 w-4" />
             Friends
@@ -85,11 +84,10 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('live')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-              activeTab === 'live'
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'live'
                 ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
                 : 'text-white/50 hover:text-white/70 hover:bg-white/5'
-            }`}
+              }`}
           >
             <TrendingUp className="h-4 w-4" />
             Live
@@ -173,9 +171,8 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                       className="flex items-center gap-1.5 px-3 py-1.5 rounded-full hover:bg-white/10 transition-colors"
                     >
                       <Heart
-                        className={`h-5 w-5 transition-colors ${
-                          likedEvents[event.id] ? 'text-red-500 fill-red-500' : 'text-white/60'
-                        }`}
+                        className={`h-5 w-5 transition-colors ${likedEvents[event.id] ? 'text-red-500 fill-red-500' : 'text-white/60'
+                          }`}
                       />
                       <span className={`text-sm ${likedEvents[event.id] ? 'text-red-500' : 'text-white/60'}`}>
                         {Math.floor(Math.random() * 50) + 10}
@@ -198,7 +195,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                     </button>
                   </div>
 
-                  <motion.span 
+                  <motion.span
                     className="flex items-center gap-1 text-pink-400 font-semibold text-sm"
                     whileHover={{ x: 3 }}
                   >
@@ -273,7 +270,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-pink-400 text-xs">{ticket.availableSeats} seats</span>
-                      <motion.span 
+                      <motion.span
                         className="bg-gradient-to-r from-pink-500 to-rose-600 text-white px-4 py-2 rounded-xl text-sm font-semibold shadow-lg shadow-pink-500/30"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}

@@ -27,24 +27,24 @@ export function ProfileTab() {
         <div className="flex gap-2">
           <motion.button
             whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
             onClick={() => setActiveTab('hosted')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-              activeTab === 'hosted'
-                ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all backdrop-blur-md ${activeTab === 'hosted'
+              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
+              : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/10'
+              }`}
           >
             <Grid3X3 className="h-4 w-4" />
             Posts
           </motion.button>
           <motion.button
             whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.02 }}
             onClick={() => setActiveTab('attended')}
-            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
-              activeTab === 'attended'
-                ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
-                : 'bg-white/10 text-white/70 hover:bg-white/20'
-            }`}
+            className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all backdrop-blur-md ${activeTab === 'attended'
+              ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg shadow-violet-500/30'
+              : 'bg-white/10 text-white/70 hover:bg-white/20 border border-white/10'
+              }`}
           >
             <TicketIcon className="h-4 w-4" />
             Tickets
@@ -79,7 +79,7 @@ export function ProfileTab() {
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      
+
                       {/* Category Badge */}
                       <div className="absolute top-2 right-2 bg-violet-500/90 px-2 py-0.5 rounded-full">
                         <span className="text-[10px] text-white font-medium">{event.category}</span>
