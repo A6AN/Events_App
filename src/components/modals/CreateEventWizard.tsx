@@ -172,15 +172,15 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
             <SheetContent
                 side="bottom"
                 className={cn(
-                    "h-[90vh] rounded-t-3xl p-0 bg-zinc-950 border-t-0 [&>button]:hidden",
+                    "h-[90vh] rounded-t-3xl p-0 bg-zinc-950 border-t-0 [&>button]:hidden flex flex-col",
                     eventType === 'casual'
                         ? 'shadow-[0_-4px_60px_rgba(52,211,153,0.3)] border-2 border-emerald-500/50'
                         : 'shadow-[0_-4px_60px_rgba(139,92,246,0.3)] border-2 border-violet-500/50'
                 )}
             >
-                {/* Header with gradient */}
+                {/* Header - Fixed at top */}
                 <div className={cn(
-                    "sticky top-0 z-10 bg-zinc-950/95 backdrop-blur-xl px-5 py-4 border-b",
+                    "flex-shrink-0 bg-zinc-950 px-5 py-4 border-b",
                     eventType === 'casual' ? 'border-emerald-500/30' : 'border-violet-500/30'
                 )}>
                     <div className="flex items-center justify-between mb-3">
@@ -218,8 +218,8 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto px-5 py-5 pb-40">
+                {/* Content - Scrollable area */}
+                <div className="flex-1 overflow-y-auto px-5 py-5">
                     <AnimatePresence mode="wait">
                         {currentStep === STEPS.VIBE && (
                             <motion.div
@@ -541,7 +541,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Footer - Fixed at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 bg-zinc-950 border-t border-white/10">
+                <div className="flex-shrink-0 p-5 bg-zinc-950 border-t border-white/10">
                     <div className="flex gap-3">
                         {currentStep > STEPS.VIBE && (
                             <Button
