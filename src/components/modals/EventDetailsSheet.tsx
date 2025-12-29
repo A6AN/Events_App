@@ -1,11 +1,38 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, Share2, Heart, CheckCircle, Sparkles, Send } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Share2, Heart, CheckCircle, Sparkles, Send, Users } from 'lucide-react';
 import { Event } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { rsvpToEvent, checkRsvpStatus } from '../../lib/supabase';
 import confetti from 'canvas-confetti';
+
+// Staggered animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.2 }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { type: "spring", stiffness: 300, damping: 24 }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 25 }
+  }
+};
 
 interface EventDetailsSheetProps {
   event: Event | null;
@@ -164,118 +191,167 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              className="flex-1 overflow-y-auto p-4 space-y-4"
+            >
               
               {/* Quick Info Row */}
-              <div className="flex gap-2">
-                <div className="flex-1 bg-zinc-800/50 rounded-2xl p-3 border border-zinc-700/50">
+              <motion.div variants={itemVariants} className="flex gap-2">
+                <motion.div 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="flex-1 bg-gradient-to-br from-pink-500/10 to-rose-500/5 rounded-2xl p-3 border border-pink-500/20 backdrop-blur-sm"
+                >
                   <div className="flex items-center gap-2 text-pink-400 mb-1">
                     <Calendar className="w-4 h-4" />
                     <span className="text-xs text-zinc-400">Date</span>
                   </div>
-                  <div className="text-white font-semibold text-sm">{event.date || '28th Dec'}</div>
-                </div>
-                <div className="flex-1 bg-zinc-800/50 rounded-2xl p-3 border border-zinc-700/50">
-                  <div className="flex items-center gap-2 text-pink-400 mb-1">
+                  <div className="text-white font-semibold text-sm">{event.date || '28th December'}</div>
+                </motion.div>
+                <motion.div 
+                  whileHover={{ scale: 1.02, y: -2 }}
+                  className="flex-1 bg-gradient-to-br from-violet-500/10 to-purple-500/5 rounded-2xl p-3 border border-violet-500/20 backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2 text-violet-400 mb-1">
                     <Clock className="w-4 h-4" />
                     <span className="text-xs text-zinc-400">Time</span>
                   </div>
                   <div className="text-white font-semibold text-sm">{event.startTime}</div>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               {/* Location */}
-              <div className="bg-zinc-800/50 rounded-2xl p-3 border border-zinc-700/50">
-                <div className="flex items-center gap-2 text-pink-400 mb-1">
+              <motion.div 
+                variants={itemVariants}
+                whileHover={{ scale: 1.01, y: -2 }}
+                className="bg-gradient-to-br from-amber-500/10 to-orange-500/5 rounded-2xl p-3 border border-amber-500/20 backdrop-blur-sm"
+              >
+                <div className="flex items-center gap-2 text-amber-400 mb-1">
                   <MapPin className="w-4 h-4" />
                   <span className="text-xs text-zinc-400">Location</span>
                 </div>
                 <div className="text-white font-semibold text-sm">{event.location.name}</div>
-              </div>
+              </motion.div>
 
               {/* About */}
-              <div>
+              <motion.div variants={itemVariants}>
                 <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-2">About</h3>
                 <p className="text-zinc-300 text-sm leading-relaxed">
-                  {event.description || "Join us for an amazing event! Great vibes guaranteed 🔥"}
+                  {event.description || "🔥 DIVINE is coming to Lucknow! The biggest bohemian music and art festival featuring live performances, art installations, street food, and the legendary rapper DIVINE headlining the night. Get ready for Gully Boy vibes!"}
                 </p>
-              </div>
+              </motion.div>
 
               {/* Attendees */}
-              <div>
-                <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-3">
+              <motion.div variants={itemVariants}>
+                <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-pink-400" />
                   Who's Going • <span className="text-pink-400">{event.attendees}</span>
                 </h3>
-                <div className="flex items-center gap-3">
+                <motion.div 
+                  whileHover={{ scale: 1.01 }}
+                  className="flex items-center gap-3 bg-zinc-800/30 rounded-2xl p-3 border border-zinc-700/30"
+                >
                   <div className="flex -space-x-2">
                     {FRIEND_AVATARS.map((avatar, i) => (
-                      <img
+                      <motion.img
                         key={i}
+                        initial={{ opacity: 0, scale: 0 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.4 + i * 0.1 }}
                         src={avatar}
                         alt="Attendee"
                         className="w-9 h-9 rounded-full border-2 border-zinc-900 object-cover"
                       />
                     ))}
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white">
-                      +{Math.max(event.attendees - 5, 0)}
-                    </div>
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.9 }}
+                      className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white"
+                    >
+                      +{Math.max(event.attendees - 5, 245)}
+                    </motion.div>
                   </div>
                   <span className="text-sm text-zinc-400">
                     <span className="text-pink-400 font-semibold">8 friends</span> going
                   </span>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
               {/* Comments */}
-              <div>
+              <motion.div variants={itemVariants}>
                 <h3 className="text-zinc-400 text-xs uppercase tracking-wider font-semibold mb-3">
                   Comments • <span className="text-pink-400">{MOCK_COMMENTS.length}</span>
                 </h3>
                 <div className="space-y-3">
-                  {MOCK_COMMENTS.map((comment) => (
-                    <div key={comment.id} className="flex gap-3">
+                  {MOCK_COMMENTS.map((comment, index) => (
+                    <motion.div 
+                      key={comment.id} 
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.5 + index * 0.15 }}
+                      className="flex gap-3"
+                    >
                       <img
                         src={comment.avatar}
                         alt={comment.user}
-                        className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        className="w-8 h-8 rounded-full object-cover flex-shrink-0 ring-2 ring-pink-500/30"
                       />
-                      <div className="flex-1 bg-zinc-800/50 rounded-2xl rounded-tl-md p-3">
+                      <div className="flex-1 bg-zinc-800/50 rounded-2xl rounded-tl-md p-3 border border-zinc-700/30">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-white font-medium text-sm">{comment.user}</span>
+                          <span className="text-pink-400 font-medium text-sm">{comment.user}</span>
                           <span className="text-zinc-500 text-xs">{comment.time}</span>
                         </div>
                         <p className="text-zinc-300 text-sm">{comment.text}</p>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
 
                 {/* Comment Input */}
-                <div className="relative mt-3">
+                <motion.div 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="relative mt-3"
+                >
                   <input
                     type="text"
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add a comment..."
-                    className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-pink-500/50 transition-colors"
+                    className="w-full bg-zinc-800/50 border border-zinc-700/50 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-pink-500/50 focus:ring-2 focus:ring-pink-500/20 transition-all"
                   />
                   <button 
                     disabled={!commentText.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-pink-500 text-white disabled:opacity-30 transition-opacity"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white disabled:opacity-30 transition-all hover:scale-105 active:scale-95"
                   >
                     <Send className="w-4 h-4" />
                   </button>
-                </div>
-              </div>
-            </div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-zinc-800 bg-zinc-900/95 flex-shrink-0">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="p-4 border-t border-zinc-800 bg-zinc-900 flex-shrink-0"
+            >
               <div className="flex gap-3">
-                <button className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors">
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="w-12 h-12 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-700 transition-colors"
+                >
                   <Share2 className="w-5 h-5" />
-                </button>
-                <button 
+                </motion.button>
+                <motion.button 
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={() => setLiked(!liked)}
                   className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${
                     liked 
@@ -283,15 +359,17 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                       : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:text-pink-400'
                   }`}
                 >
-                  <Heart className={`w-5 h-5 ${liked ? 'fill-pink-400' : ''}`} />
-                </button>
-                <button
+                  <Heart className={`w-5 h-5 transition-all ${liked ? 'fill-pink-400 scale-110' : ''}`} />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleRsvp}
                   disabled={loading || isRsvped}
-                  className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
+                  className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all relative overflow-hidden ${
                     isRsvped
                       ? 'bg-green-500 text-white'
-                      : 'bg-gradient-to-r from-pink-500 to-rose-500 text-white hover:opacity-90'
+                      : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 bg-[length:200%_100%] animate-gradient text-white shadow-lg shadow-pink-500/30'
                   }`}
                 >
                   {loading ? (
@@ -307,9 +385,9 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                       RSVP Now
                     </>
                   )}
-                </button>
+                </motion.button>
               </div>
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>
