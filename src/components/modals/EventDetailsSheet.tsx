@@ -21,18 +21,31 @@ const FRIEND_AVATARS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100',
 ];
 
-const BOHO_FEST_COMMENT = {
-  user: 'Anshika',
-  avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
-  text: "Who's coming? 🙋‍♀️✨",
-  time: '2 hours ago'
-};
+const MOCK_COMMENTS = [
+  {
+    id: 1,
+    user: 'Anshika',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
+    text: "Who's coming? 🙋‍♀️✨",
+    time: '2h ago',
+    likes: 4
+  },
+  {
+    id: 2,
+    user: 'Rahul',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100',
+    text: "Can't wait for this! 🔥",
+    time: '45m ago',
+    likes: 2
+  }
+];
 
 export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetProps) => {
   const { user } = useAuth();
   const [isRsvped, setIsRsvped] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showNotification, setShowNotification] = useState(false);
+  const [commentText, setCommentText] = useState('');
 
   useEffect(() => {
     if (event && user && open) {
@@ -61,10 +74,6 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
 
   if (!event) return null;
   if (!open) return null;
-
-  console.log('EventDetailsSheet rendering', { event, open });
-
-  const isBohoFest = event.id === '1';
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center isolate">
@@ -155,20 +164,26 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
 
             {/* Date, Time, Location */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                <Calendar className="w-5 h-5 text-pink-400 mb-2" />
-                <div className="text-xs text-white/50">Date</div>
-                <div className="font-semibold text-white">{event.date || '28th December'}</div>
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="w-4 h-4 text-pink-400" />
+                  <span className="text-xs text-white/50">Date</span>
+                </div>
+                <div className="font-medium text-white text-sm">{event.date || '28th December'}</div>
               </div>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                <Clock className="w-5 h-5 text-pink-400 mb-2" />
-                <div className="text-xs text-white/50">Time</div>
-                <div className="font-semibold text-white">{event.startTime}</div>
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-2 mb-1">
+                  <Clock className="w-4 h-4 text-pink-400" />
+                  <span className="text-xs text-white/50">Time</span>
+                </div>
+                <div className="font-medium text-white text-sm">{event.startTime}</div>
               </div>
-              <div className="col-span-2 p-4 rounded-2xl bg-white/5 border border-white/10">
-                <MapPin className="w-5 h-5 text-pink-400 mb-2" />
-                <div className="text-xs text-white/50">Location</div>
-                <div className="font-semibold text-white">{event.location.name}</div>
+              <div className="col-span-2 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="w-4 h-4 text-pink-400" />
+                  <span className="text-xs text-white/50">Location</span>
+                </div>
+                <div className="font-medium text-white text-sm">{event.location.name}</div>
               </div>
             </div>
 
@@ -182,58 +197,77 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
 
             {/* Attendees */}
             <div>
-              <h3 className="font-semibold text-white mb-2">Attendees</h3>
-              <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                <div className="flex -space-x-2 mb-3">
-                  {FRIEND_AVATARS.slice(0, isBohoFest ? 5 : 3).map((avatar, i) => (
+              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
+                Going <span className="text-white/40 font-normal text-sm">{event.attendees}</span>
+              </h3>
+              <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                <div className="flex -space-x-3">
+                  {FRIEND_AVATARS.map((avatar, i) => (
                     <img
                       key={i}
                       src={avatar}
                       alt="Friend"
-                      className="w-8 h-8 rounded-full border-2 border-zinc-900 object-cover"
+                      className="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover"
                     />
                   ))}
-                  <div className="w-8 h-8 rounded-full bg-pink-500 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white">
+                  <div className="w-10 h-10 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white">
                     +{Math.max(event.attendees - 5, 0)}
                   </div>
                 </div>
-                {isBohoFest ? (
-                  <div className="text-sm text-white/60">
-                    <span className="text-pink-400 font-medium">8 friends</span> attending • <span className="text-amber-400 font-medium">4 RSVP'd</span>
-                  </div>
-                ) : (
-                  <div className="text-sm text-white/60">
-                    {event.attendees} going
-                  </div>
-                )}
+                <div className="text-sm text-white/60 pl-2 border-l border-white/10">
+                  <span className="text-pink-400 font-medium">8 friends</span> attending
+                </div>
               </div>
             </div>
 
-            {/* Comments - Boho Fest only */}
-            {isBohoFest && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-semibold text-white">Comments</h3>
-                  <span className="text-xs text-white/40">1 comment</span>
-                </div>
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
-                  <div className="flex gap-3">
-                    <img
-                      src={BOHO_FEST_COMMENT.avatar}
-                      alt={BOHO_FEST_COMMENT.user}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-pink-400 font-medium text-sm">{BOHO_FEST_COMMENT.user}</span>
-                        <span className="text-white/40 text-xs">{BOHO_FEST_COMMENT.time}</span>
-                      </div>
-                      <p className="text-white/70 text-sm mt-1">{BOHO_FEST_COMMENT.text}</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Comments Section */}
+            <div className="pt-4 border-t border-white/5">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold text-white">Comments</h3>
+                <span className="text-xs text-white/40">{MOCK_COMMENTS.length} comments</span>
               </div>
-            )}
+              
+              <div className="space-y-4 mb-4">
+                {MOCK_COMMENTS.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 group">
+                    <img
+                      src={comment.avatar}
+                      alt={comment.user}
+                      className="w-8 h-8 rounded-full object-cover ring-2 ring-transparent group-hover:ring-pink-500/30 transition-all"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-white font-medium text-sm">{comment.user}</span>
+                        <span className="text-white/30 text-xs">{comment.time}</span>
+                      </div>
+                      <p className="text-white/80 text-sm mt-0.5 leading-relaxed">{comment.text}</p>
+                      <button className="text-xs text-white/40 mt-1 hover:text-pink-400 transition-colors">Reply</button>
+                    </div>
+                    <button className="self-start text-white/20 hover:text-pink-500 transition-colors">
+                      <Heart className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Comment Input */}
+              <div className="relative">
+                <input
+                  type="text"
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  placeholder="Add a comment..."
+                  className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-12 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-pink-500/50 focus:bg-white/10 transition-all"
+                />
+                <button 
+                  disabled={!commentText.trim()}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-pink-500 text-white disabled:opacity-0 disabled:scale-75 transition-all"
+                >
+                  <Share2 className="w-3 h-3 rotate-90" />
+                </button>
+              </div>
+            </div>
+          </div>
           </div>
 
           {/* Footer Actions */}
