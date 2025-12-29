@@ -144,11 +144,12 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
           className="relative w-full max-w-md mx-4 max-h-[90vh] z-10"
         >
-          {/* Glowing border effect */}
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 rounded-3xl opacity-75 blur-sm animate-pulse" />
+          {/* Glowing border effect - double layer for stronger glow */}
+          <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 rounded-[28px] blur-md" />
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 via-rose-600 to-pink-600 rounded-3xl opacity-90" />
 
           {/* Modal content */}
-          <div className="relative w-full h-full max-h-[90vh] bg-zinc-950 rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-pink-500/20 border border-pink-500/30">
+          <div className="relative w-full h-full max-h-[90vh] bg-zinc-950 rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-pink-500/50">
 
             {/* Header Image */}
             <div className="relative h-52 flex-shrink-0">
@@ -205,25 +206,25 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-950"
             >
 
-              {/* Quick Info Row */}
+              {/* Quick Info Row - Vibrant colored cards */}
               <motion.div variants={itemVariants} className="flex gap-3">
                 <motion.div
                   whileHover={{ scale: 1.02, y: -3 }}
-                  className="flex-1 bg-gradient-to-br from-pink-500/20 to-rose-500/10 rounded-2xl p-4 border border-pink-500/30 shadow-lg shadow-pink-500/10"
+                  className="flex-1 bg-pink-500/20 rounded-2xl p-4 border-2 border-pink-500/60 shadow-lg shadow-pink-500/25"
                 >
                   <div className="flex items-center gap-2 text-pink-400 mb-1">
                     <Calendar className="w-4 h-4" />
-                    <span className="text-xs text-zinc-400 font-medium">Date</span>
+                    <span className="text-xs text-pink-300 font-medium">Date</span>
                   </div>
                   <div className="text-white font-bold text-sm">{event.date || '28th December'}</div>
                 </motion.div>
                 <motion.div
                   whileHover={{ scale: 1.02, y: -3 }}
-                  className="flex-1 bg-gradient-to-br from-violet-500/20 to-purple-500/10 rounded-2xl p-4 border border-violet-500/30 shadow-lg shadow-violet-500/10"
+                  className="flex-1 bg-violet-500/20 rounded-2xl p-4 border-2 border-violet-500/60 shadow-lg shadow-violet-500/25"
                 >
                   <div className="flex items-center gap-2 text-violet-400 mb-1">
                     <Clock className="w-4 h-4" />
-                    <span className="text-xs text-zinc-400 font-medium">Time</span>
+                    <span className="text-xs text-violet-300 font-medium">Time</span>
                   </div>
                   <div className="text-white font-bold text-sm">{event.startTime}</div>
                 </motion.div>
@@ -233,17 +234,17 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               <motion.div
                 variants={itemVariants}
                 whileHover={{ scale: 1.01, y: -2 }}
-                className="bg-gradient-to-br from-amber-500/20 to-orange-500/10 rounded-2xl p-4 border border-amber-500/30 shadow-lg shadow-amber-500/10"
+                className="bg-amber-500/20 rounded-2xl p-4 border-2 border-amber-500/50 shadow-lg shadow-amber-500/20"
               >
                 <div className="flex items-center gap-2 text-amber-400 mb-1">
                   <MapPin className="w-4 h-4" />
-                  <span className="text-xs text-zinc-400 font-medium">Location</span>
+                  <span className="text-xs text-amber-300 font-medium">Location</span>
                 </div>
                 <div className="text-white font-bold text-sm">{event.location.name}</div>
               </motion.div>
 
-              {/* About */}
-              <motion.div variants={itemVariants} className="bg-zinc-900/80 rounded-2xl p-4 border border-zinc-800">
+              {/* About - Pink themed */}
+              <motion.div variants={itemVariants} className="bg-zinc-900 rounded-2xl p-4 border-2 border-pink-500/30">
                 <h3 className="text-pink-400 text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
                   <Sparkles className="w-3 h-3" />
                   About
@@ -261,7 +262,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                 </h3>
                 <motion.div
                   whileHover={{ scale: 1.01 }}
-                  className="flex items-center gap-3 bg-zinc-900/80 rounded-2xl p-4 border border-pink-500/20 shadow-lg shadow-pink-500/5"
+                  className="flex items-center gap-3 bg-zinc-900 rounded-2xl p-4 border-2 border-pink-500/40 shadow-lg shadow-pink-500/10"
                 >
                   <div className="flex -space-x-3">
                     {FRIEND_AVATARS.map((avatar, i) => (
@@ -365,8 +366,8 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                   whileTap={{ scale: 0.95 }}
                   onClick={() => setLiked(!liked)}
                   className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${liked
-                      ? 'bg-pink-500/30 border-pink-500 text-pink-400 shadow-lg shadow-pink-500/30'
-                      : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-pink-400 hover:border-pink-500/50'
+                    ? 'bg-pink-500/30 border-pink-500 text-pink-400 shadow-lg shadow-pink-500/30'
+                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-pink-400 hover:border-pink-500/50'
                     }`}
                 >
                   <Heart className={`w-5 h-5 transition-all ${liked ? 'fill-pink-400 scale-110' : ''}`} />
@@ -377,8 +378,8 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                   onClick={handleRsvp}
                   disabled={loading || isRsvped}
                   className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all relative overflow-hidden ${isRsvped
-                      ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-green-500/40'
-                      : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 bg-[length:200%_100%] animate-gradient text-white shadow-xl shadow-pink-500/40'
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-green-500/40'
+                    : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 bg-[length:200%_100%] animate-gradient text-white shadow-xl shadow-pink-500/40'
                     }`}
                 >
                   {loading ? (
