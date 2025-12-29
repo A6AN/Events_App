@@ -24,11 +24,11 @@ const STEPS = {
 };
 
 const EVENT_TYPES = [
-    { id: 'party', label: 'Party', icon: PartyPopper, color: 'bg-pink-500' },
-    { id: 'show', label: 'Show', icon: Mic2, color: 'bg-purple-500' },
-    { id: 'music', label: 'Concert', icon: Music, color: 'bg-blue-500' },
-    { id: 'workshop', label: 'Workshop', icon: Palette, color: 'bg-orange-500' },
-    { id: 'meetup', label: 'Meetup', icon: Users, color: 'bg-green-500' },
+    { id: 'party', label: 'Party', icon: PartyPopper, color: 'bg-pink-500', selectedBg: 'bg-pink-500/20', selectedBorder: 'border-pink-500' },
+    { id: 'show', label: 'Show', icon: Mic2, color: 'bg-purple-500', selectedBg: 'bg-purple-500/20', selectedBorder: 'border-purple-500' },
+    { id: 'music', label: 'Concert', icon: Music, color: 'bg-blue-500', selectedBg: 'bg-blue-500/20', selectedBorder: 'border-blue-500' },
+    { id: 'workshop', label: 'Workshop', icon: Palette, color: 'bg-orange-500', selectedBg: 'bg-orange-500/20', selectedBorder: 'border-orange-500' },
+    { id: 'meetup', label: 'Meetup', icon: Users, color: 'bg-green-500', selectedBg: 'bg-green-500/20', selectedBorder: 'border-green-500' },
 ];
 
 interface CreateEventWizardProps {
@@ -219,7 +219,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-5 py-5 pb-28">
+                <div className="flex-1 overflow-y-auto px-5 py-5 pb-32">
                     <AnimatePresence mode="wait">
                         {currentStep === STEPS.VIBE && (
                             <motion.div
@@ -235,21 +235,25 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                         <motion.button
                                             key={type.id}
                                             whileTap={{ scale: 0.95 }}
+                                            whileHover={{ scale: 1.02 }}
                                             onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
                                             className={cn(
                                                 "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
                                                 formData.category === type.label
-                                                    ? `bg-gradient-to-br ${type.color}/20 border-white/30 shadow-lg`
+                                                    ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
                                                     : "bg-white/5 border-white/10 hover:border-white/20"
                                             )}
                                         >
                                             <div className={cn(
-                                                "p-3 rounded-xl",
+                                                "p-3 rounded-xl transition-all",
                                                 formData.category === type.label ? type.color : "bg-white/10"
                                             )}>
                                                 <type.icon className="h-6 w-6 text-white" />
                                             </div>
-                                            <span className="text-xs font-medium text-white">{type.label}</span>
+                                            <span className={cn(
+                                                "text-xs font-medium transition-all",
+                                                formData.category === type.label ? "text-white" : "text-white/70"
+                                            )}>{type.label}</span>
                                         </motion.button>
                                     ))}
                                 </div>
@@ -324,31 +328,34 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 ) : (
                                     <div className="space-y-3">
                                         <p className="text-sm text-white/50">Select a venue</p>
-                                        <div className="space-y-3 max-h-[45vh] overflow-y-auto">
+                                        <div className="space-y-3 max-h-[40vh] overflow-y-auto">
                                             {mockVenues.slice(0, 4).map(venue => (
                                                 <motion.div
                                                     key={venue.id}
                                                     whileTap={{ scale: 0.98 }}
+                                                    whileHover={{ scale: 1.01 }}
                                                     onClick={() => handleVenueSelect(venue)}
                                                     className={cn(
-                                                        "flex items-center gap-4 p-3 rounded-2xl border-2 cursor-pointer transition-all",
+                                                        "flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all",
                                                         formData.selectedVenueId === venue.id
-                                                            ? `bg-white/10 ${eventType === 'casual' ? 'border-emerald-500/50' : 'border-violet-500/50'}`
-                                                            : "bg-white/5 border-white/10 hover:border-white/20"
+                                                            ? eventType === 'casual'
+                                                                ? 'bg-emerald-500/15 border-emerald-500 shadow-lg shadow-emerald-500/20'
+                                                                : 'bg-violet-500/15 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                            : "bg-zinc-900 border-white/10 hover:border-white/30"
                                                     )}
                                                 >
                                                     <img
                                                         src={venue.imageUrl}
                                                         alt={venue.name}
-                                                        className="h-14 w-14 rounded-xl object-cover"
+                                                        className="h-16 w-16 rounded-xl object-cover flex-shrink-0"
                                                     />
                                                     <div className="flex-1 min-w-0">
-                                                        <h4 className="font-medium text-white truncate">{venue.name}</h4>
+                                                        <h4 className="font-bold text-white truncate">{venue.name}</h4>
                                                         <p className="text-xs text-white/50 truncate">{venue.location}</p>
-                                                        <p className={`text-xs font-medium ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>₹{venue.pricePerHour}/hr</p>
+                                                        <p className={`text-sm font-bold mt-1 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>₹{venue.pricePerHour}/hr</p>
                                                     </div>
                                                     {formData.selectedVenueId === venue.id && (
-                                                        <CheckCircle2 className={`h-6 w-6 flex-shrink-0 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                                        <CheckCircle2 className={`h-7 w-7 flex-shrink-0 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
                                                     )}
                                                 </motion.div>
                                             ))}
@@ -461,7 +468,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Footer - Fixed at bottom */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-slate-950 via-slate-950 to-transparent pt-10">
+                <div className="absolute bottom-0 left-0 right-0 p-5 bg-zinc-950 border-t border-white/10">
                     <div className="flex gap-3">
                         {currentStep > STEPS.VIBE && (
                             <Button
