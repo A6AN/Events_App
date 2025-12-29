@@ -14,12 +14,12 @@ export function LoginPage() {
     const [error, setError] = useState('');
     const { signIn, signInWithGoogle, user } = useAuth();
     const navigate = useNavigate();
-    
+
     // Eye-following card effect
     const cardRef = useRef<HTMLDivElement>(null);
     const mouseX = useMotionValue(0);
     const mouseY = useMotionValue(0);
-    
+
     const rotateX = useSpring(useTransform(mouseY, [-300, 300], [10, -10]), { stiffness: 100, damping: 30 });
     const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-10, 10]), { stiffness: 100, damping: 30 });
 
@@ -68,46 +68,62 @@ export function LoginPage() {
     };
 
     return (
-        <div 
+        <div
             className="min-h-screen w-full flex items-center justify-center p-4 relative overflow-hidden"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
+            style={{ background: 'linear-gradient(135deg, #020617 0%, rgba(46, 16, 101, 0.5) 50%, #020617 100%)' }}
         >
-            {/* Premium Animated Background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-violet-950/50 to-slate-950" />
-            
-            {/* Animated gradient orbs */}
+            {/* Animated gradient orbs with inline styles */}
             <div className="absolute inset-0 overflow-hidden">
-                <motion.div 
-                    animate={{ 
-                        x: [0, 100, 0], 
+                <motion.div
+                    animate={{
+                        x: [0, 100, 0],
                         y: [0, -50, 0],
                         scale: [1, 1.2, 1]
                     }}
                     transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 bg-gradient-to-br from-violet-600/30 to-fuchsia-600/20 rounded-full blur-3xl"
+                    className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.4) 0%, rgba(192, 38, 211, 0.3) 100%)',
+                        filter: 'blur(80px)'
+                    }}
                 />
-                <motion.div 
-                    animate={{ 
-                        x: [0, -80, 0], 
+                <motion.div
+                    animate={{
+                        x: [0, -80, 0],
                         y: [0, 60, 0],
                         scale: [1, 1.3, 1]
                     }}
                     transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 bg-gradient-to-br from-cyan-600/20 to-violet-600/30 rounded-full blur-3xl"
+                    className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(124, 58, 237, 0.4) 100%)',
+                        filter: 'blur(80px)'
+                    }}
                 />
-                <motion.div 
-                    animate={{ 
-                        x: [0, 50, 0], 
+                <motion.div
+                    animate={{
+                        x: [0, 50, 0],
                         y: [0, -30, 0]
                     }}
                     transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 bg-gradient-to-br from-pink-500/20 to-violet-500/20 rounded-full blur-3xl"
+                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 rounded-full"
+                    style={{
+                        background: 'linear-gradient(135deg, rgba(236, 72, 153, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%)',
+                        filter: 'blur(60px)'
+                    }}
                 />
             </div>
 
             {/* Grid pattern overlay */}
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:50px_50px]" />
+            <div
+                className="absolute inset-0"
+                style={{
+                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
+                    backgroundSize: '50px 50px'
+                }}
+            />
 
             <motion.div
                 ref={cardRef}
@@ -118,11 +134,23 @@ export function LoginPage() {
                 className="w-full max-w-md relative z-10"
             >
                 {/* Glass Card */}
-                <div className="relative bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_8px_64px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.1)] overflow-hidden">
+                <div
+                    className="relative backdrop-blur-2xl border border-white/20 rounded-3xl p-8 overflow-hidden"
+                    style={{
+                        background: 'rgba(255, 255, 255, 0.08)',
+                        boxShadow: '0 8px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 100px rgba(139, 92, 246, 0.15)'
+                    }}
+                >
                     {/* Inner glow effects */}
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
-                    <div className="absolute inset-0 bg-gradient-to-b from-violet-500/5 to-transparent pointer-events-none" />
-                    
+                    <div
+                        className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
+                        style={{ background: 'linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)' }}
+                    />
+                    <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, transparent 50%)' }}
+                    />
+
                     {/* Header */}
                     <div className="text-center mb-8 relative">
                         <motion.div
@@ -138,7 +166,15 @@ export function LoginPage() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
                         >
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-violet-200 to-white bg-clip-text text-transparent mb-2">
+                            <h1
+                                className="text-3xl font-bold mb-2"
+                                style={{
+                                    background: 'linear-gradient(90deg, #fff, #ddd6fe, #fff)',
+                                    WebkitBackgroundClip: 'text',
+                                    WebkitTextFillColor: 'transparent',
+                                    backgroundClip: 'text'
+                                }}
+                            >
                                 Welcome Back
                             </h1>
                             <p className="text-white/50">Sign in to continue the party</p>
@@ -159,7 +195,7 @@ export function LoginPage() {
 
                     {/* Email/Password Form */}
                     <form onSubmit={handleEmailLogin} className="space-y-5 mb-6">
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.4 }}
@@ -181,7 +217,7 @@ export function LoginPage() {
                             </div>
                         </motion.div>
 
-                        <motion.div 
+                        <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.5 }}
@@ -210,14 +246,18 @@ export function LoginPage() {
                         >
                             <Button
                                 type="submit"
-                                className="w-full h-12 text-base font-semibold bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white rounded-xl shadow-[0_0_30px_rgba(139,92,246,0.3)] hover:shadow-[0_0_40px_rgba(139,92,246,0.5)] transition-all duration-300 group border-0"
+                                className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 group border-0"
+                                style={{
+                                    background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
+                                    boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
+                                }}
                                 disabled={loading}
                             >
                                 {loading ? (
                                     <Loader2 className="h-5 w-5 animate-spin" />
                                 ) : (
                                     <span className="flex items-center justify-center gap-2">
-                                        Sign In 
+                                        Sign In
                                         <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                                     </span>
                                 )}
@@ -255,15 +295,15 @@ export function LoginPage() {
                     </motion.div>
 
                     {/* Sign Up Link */}
-                    <motion.p 
+                    <motion.p
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.8 }}
                         className="mt-8 text-center text-white/50"
                     >
                         Don't have an account?{' '}
-                        <Link 
-                            to="/signup" 
+                        <Link
+                            to="/signup"
                             className="text-violet-400 hover:text-violet-300 font-medium transition-colors inline-flex items-center gap-1"
                         >
                             Sign up <Sparkles className="h-3 w-3" />

@@ -92,17 +92,26 @@ export const ProfileHeader = ({ hostedCount, attendedCount, followersCount }: Pr
 
                     {/* Stats */}
                     <div className="flex gap-3 mt-5 pt-4 border-t border-white/20">
-                        <div className="flex-1 text-center bg-white/5 rounded-xl py-2 backdrop-blur-sm">
+                        <div
+                            className="flex-1 text-center rounded-xl py-2"
+                            style={{ background: 'rgba(255, 255, 255, 0.05)' }}
+                        >
                             <div className="text-2xl font-bold text-white flex items-center justify-center gap-1">
                                 {hostedCount}<span className="text-green-400 text-sm">✓</span>
                             </div>
                             <div className="text-xs text-white/50">Hosted</div>
                         </div>
-                        <div className="flex-1 text-center bg-white/5 rounded-xl py-2 backdrop-blur-sm">
+                        <div
+                            className="flex-1 text-center rounded-xl py-2"
+                            style={{ background: 'rgba(255, 255, 255, 0.05)' }}
+                        >
                             <div className="text-2xl font-bold text-white">{attendedCount}</div>
                             <div className="text-xs text-white/50">Attended</div>
                         </div>
-                        <div className="flex-1 text-center bg-violet-500/20 rounded-xl py-2 backdrop-blur-sm border border-violet-500/30">
+                        <div
+                            className="flex-1 text-center rounded-xl py-2 border border-violet-500/30"
+                            style={{ background: 'rgba(139, 92, 246, 0.15)' }}
+                        >
                             <div className="text-2xl font-bold text-violet-400">{followersCount}</div>
                             <div className="text-xs text-violet-300/70">Rep Score</div>
                         </div>
