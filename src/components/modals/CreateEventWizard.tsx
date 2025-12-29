@@ -231,31 +231,52 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                             >
                                 <p className="text-sm text-white/50">Select event type</p>
                                 <div className="grid grid-cols-3 gap-3">
-                                    {EVENT_TYPES.map((type) => (
-                                        <motion.button
-                                            key={type.id}
-                                            whileTap={{ scale: 0.95 }}
-                                            whileHover={{ scale: 1.02 }}
-                                            onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
-                                            className={cn(
-                                                "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
-                                                formData.category === type.label
-                                                    ? `${type.selectedBg} ${type.selectedBorder} shadow-lg`
-                                                    : "bg-white/5 border-white/10 hover:border-white/20"
-                                            )}
-                                        >
-                                            <div className={cn(
-                                                "p-3 rounded-xl transition-all",
-                                                formData.category === type.label ? type.color : "bg-white/10"
-                                            )}>
-                                                <type.icon className="h-6 w-6 text-white" />
-                                            </div>
-                                            <span className={cn(
-                                                "text-xs font-medium transition-all",
-                                                formData.category === type.label ? "text-white" : "text-white/70"
-                                            )}>{type.label}</span>
-                                        </motion.button>
-                                    ))}
+                                    {EVENT_TYPES.map((type) => {
+                                        const isSelected = formData.category === type.label;
+                                        // Explicit class mappings for Tailwind JIT
+                                        const getSelectedStyles = () => {
+                                            switch (type.id) {
+                                                case 'party': return 'bg-pink-500/20 border-pink-500';
+                                                case 'show': return 'bg-purple-500/20 border-purple-500';
+                                                case 'music': return 'bg-blue-500/20 border-blue-500';
+                                                case 'workshop': return 'bg-orange-500/20 border-orange-500';
+                                                case 'meetup': return 'bg-green-500/20 border-green-500';
+                                                default: return 'bg-white/10 border-white/30';
+                                            }
+                                        };
+                                        return (
+                                            <motion.button
+                                                key={type.id}
+                                                whileTap={{ scale: 0.95 }}
+                                                whileHover={{ scale: 1.02 }}
+                                                onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
+                                                className={cn(
+                                                    "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
+                                                    isSelected
+                                                        ? `${getSelectedStyles()} shadow-lg`
+                                                        : "bg-white/5 border-white/10 hover:border-white/20"
+                                                )}
+                                            >
+                                                <div className={cn(
+                                                    "p-3 rounded-xl transition-all",
+                                                    isSelected
+                                                        ? (type.id === 'party' ? 'bg-pink-500'
+                                                            : type.id === 'show' ? 'bg-purple-500'
+                                                                : type.id === 'music' ? 'bg-blue-500'
+                                                                    : type.id === 'workshop' ? 'bg-orange-500'
+                                                                        : type.id === 'meetup' ? 'bg-green-500'
+                                                                            : 'bg-white/20')
+                                                        : "bg-white/10"
+                                                )}>
+                                                    <type.icon className="h-6 w-6 text-white" />
+                                                </div>
+                                                <span className={cn(
+                                                    "text-xs font-medium transition-all",
+                                                    isSelected ? "text-white" : "text-white/70"
+                                                )}>{type.label}</span>
+                                            </motion.button>
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="space-y-2 pt-3">
