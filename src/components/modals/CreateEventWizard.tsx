@@ -219,7 +219,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto px-5 py-5 pb-32">
+                <div className="flex-1 overflow-y-auto px-5 py-5 pb-40">
                     <AnimatePresence mode="wait">
                         {currentStep === STEPS.VIBE && (
                             <motion.div
@@ -305,30 +305,61 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                 exit={{ opacity: 0, x: -20 }}
                                 className="space-y-5"
                             >
-                                {/* Toggle Type */}
-                                <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl">
-                                    <button
+                                {/* Toggle Type - Redesigned */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
+                                        whileHover={{ scale: 1.02 }}
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'custom' }))}
                                         className={cn(
-                                            "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
+                                            "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 backdrop-blur-sm",
                                             formData.locationType === 'custom'
-                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}`
-                                                : "text-white/50 hover:text-white/70"
+                                                ? eventType === 'casual'
+                                                    ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/20'
+                                                    : 'bg-violet-500/20 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                : "bg-white/5 border-white/10 hover:border-white/30"
                                         )}
                                     >
-                                        📍 Custom Location
-                                    </button>
-                                    <button
+                                        <div className={cn(
+                                            "p-3 rounded-xl",
+                                            formData.locationType === 'custom'
+                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-violet-500'
+                                                : 'bg-white/10'
+                                        )}>
+                                            <MapPin className="h-6 w-6 text-white" />
+                                        </div>
+                                        <span className={cn(
+                                            "text-sm font-semibold",
+                                            formData.locationType === 'custom' ? 'text-white' : 'text-white/60'
+                                        )}>Custom Location</span>
+                                    </motion.button>
+
+                                    <motion.button
+                                        whileTap={{ scale: 0.95 }}
+                                        whileHover={{ scale: 1.02 }}
                                         onClick={() => setFormData(prev => ({ ...prev, locationType: 'venue' }))}
                                         className={cn(
-                                            "flex-1 py-3 text-sm font-medium rounded-xl transition-all",
+                                            "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 backdrop-blur-sm",
                                             formData.locationType === 'venue'
-                                                ? `${eventType === 'casual' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-violet-500 text-white shadow-lg shadow-violet-500/30'}`
-                                                : "text-white/50 hover:text-white/70"
+                                                ? eventType === 'casual'
+                                                    ? 'bg-emerald-500/20 border-emerald-500 shadow-lg shadow-emerald-500/20'
+                                                    : 'bg-violet-500/20 border-violet-500 shadow-lg shadow-violet-500/20'
+                                                : "bg-white/5 border-white/10 hover:border-white/30"
                                         )}
                                     >
-                                        🏛️ Book Venue
-                                    </button>
+                                        <div className={cn(
+                                            "p-3 rounded-xl",
+                                            formData.locationType === 'venue'
+                                                ? eventType === 'casual' ? 'bg-emerald-500' : 'bg-violet-500'
+                                                : 'bg-white/10'
+                                        )}>
+                                            <Building2 className="h-6 w-6 text-white" />
+                                        </div>
+                                        <span className={cn(
+                                            "text-sm font-semibold",
+                                            formData.locationType === 'venue' ? 'text-white' : 'text-white/60'
+                                        )}>Book Venue</span>
+                                    </motion.button>
                                 </div>
 
                                 {formData.locationType === 'custom' ? (
