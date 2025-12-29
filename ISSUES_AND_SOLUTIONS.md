@@ -54,11 +54,12 @@
 
 ---
 
-### 4. Event Detail Modal (Friends View) - Completely Broken
+### 4. Event Detail Modal (Friends View) - Fixed ✅
 **Current State:**
-- Modal appears outside app area
-- Content floating weirdly, not contained
-- No proper backdrop or container
+- Modal now appears correctly centered with proper backdrop
+- Content is visible and scrollable
+- Added glassmorphism and animations
+- Fixed z-index and portal rendering issues
 
 **Proposed Solutions:**
 - Use proper Dialog/Sheet component with portal rendering

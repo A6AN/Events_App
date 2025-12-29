@@ -101,10 +101,11 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
 
       {/* Modal */}
       <motion.div
-        initial={{ opacity: 1, scale: 1 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="relative z-[1000] w-full max-w-md h-[85vh] bg-zinc-900 rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl mx-4"
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", duration: 0.5, bounce: 0.3 }}
+        className="relative z-[1000] w-full max-w-md max-h-[85vh] h-auto bg-zinc-900/95 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl mx-4"
       >
         {/* Image Header */}
         <div className="relative h-48 shrink-0">
