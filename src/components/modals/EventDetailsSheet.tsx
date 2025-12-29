@@ -75,6 +75,22 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
   if (!event) return null;
   if (!open) return null;
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
+
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center isolate">
       {/* Success Notification */}
@@ -117,114 +133,126 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
         className="relative z-[1000] w-full max-w-md max-h-[85vh] h-auto bg-zinc-900/95 backdrop-blur-xl rounded-3xl border border-white/10 overflow-hidden flex flex-col shadow-2xl mx-4"
       >
         {/* Image Header */}
-        <div className="relative h-48 shrink-0">
+        <div className="relative h-56 shrink-0">
             <img
               src={event.imageUrl}
               alt={event.title}
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-transparent to-zinc-900" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-zinc-900" />
             
             {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white"
+              className="absolute top-4 right-4 w-10 h-10 bg-black/40 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/10 hover:bg-black/60 transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
 
             {/* Tags */}
             <div className="absolute top-4 left-4 flex gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500 text-white">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold bg-pink-500 text-white shadow-lg shadow-pink-500/20">
                 Event
               </span>
-              <span className="px-3 py-1 rounded-full text-xs font-medium bg-black/50 text-white">
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-black/40 backdrop-blur-md text-white border border-white/10">
                 {event.mood}
               </span>
             </div>
           </div>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto p-5 space-y-5">
+          <motion.div 
+            className="flex-1 overflow-y-auto p-5 space-y-6"
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+          >
             
             {/* Title & Host */}
-            <div>
-              <h2 className="text-2xl font-bold text-white mb-2">{event.title}</h2>
-              <div className="flex items-center gap-2">
+            <motion.div variants={itemVariants}>
+              <h2 className="text-2xl font-bold text-white mb-3 leading-tight">{event.title}</h2>
+              <div className="flex items-center gap-3 p-2 rounded-xl bg-white/5 border border-white/5 w-fit pr-4">
                 <img
                   src={event.host.avatar}
                   alt={event.host.name}
-                  className="w-7 h-7 rounded-full object-cover border border-pink-500/50"
+                  className="w-8 h-8 rounded-full object-cover border border-pink-500/50"
                 />
-                <span className="text-white/60 text-sm">
-                  Hosted by <span className="text-pink-400 font-medium">{event.host.name}</span>
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-white/40 text-[10px] uppercase tracking-wider font-medium">Hosted by</span>
+                  <span className="text-pink-400 font-medium text-sm">{event.host.name}</span>
+                </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Date, Time, Location */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group">
                 <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="w-4 h-4 text-pink-400" />
+                  <div className="w-6 h-6 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                    <Calendar className="w-3.5 h-3.5 text-pink-400" />
+                  </div>
                   <span className="text-xs text-white/50">Date</span>
                 </div>
-                <div className="font-medium text-white text-sm">{event.date || '28th December'}</div>
+                <div className="font-medium text-white text-sm pl-8">{event.date || '28th December'}</div>
               </div>
-              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+              <div className="p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group">
                 <div className="flex items-center gap-2 mb-1">
-                  <Clock className="w-4 h-4 text-pink-400" />
+                  <div className="w-6 h-6 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                    <Clock className="w-3.5 h-3.5 text-pink-400" />
+                  </div>
                   <span className="text-xs text-white/50">Time</span>
                 </div>
-                <div className="font-medium text-white text-sm">{event.startTime}</div>
+                <div className="font-medium text-white text-sm pl-8">{event.startTime}</div>
               </div>
-              <div className="col-span-2 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+              <div className="col-span-2 p-3 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group">
                 <div className="flex items-center gap-2 mb-1">
-                  <MapPin className="w-4 h-4 text-pink-400" />
+                  <div className="w-6 h-6 rounded-full bg-pink-500/10 flex items-center justify-center group-hover:bg-pink-500/20 transition-colors">
+                    <MapPin className="w-3.5 h-3.5 text-pink-400" />
+                  </div>
                   <span className="text-xs text-white/50">Location</span>
                 </div>
-                <div className="font-medium text-white text-sm">{event.location.name}</div>
+                <div className="font-medium text-white text-sm pl-8">{event.location.name}</div>
               </div>
-            </div>
+            </motion.div>
 
             {/* About */}
-            <div>
-              <h3 className="font-semibold text-white mb-2">About</h3>
-              <p className="text-white/60 text-sm leading-relaxed">
+            <motion.div variants={itemVariants}>
+              <h3 className="font-semibold text-white mb-2 text-sm uppercase tracking-wider opacity-80">About Event</h3>
+              <p className="text-white/70 text-sm leading-relaxed font-light">
                 {event.description || "🔥 Join us for an amazing event! Don't miss out on the fun, good vibes, and great company."}
               </p>
-            </div>
+            </motion.div>
 
             {/* Attendees */}
-            <div>
-              <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
-                Going <span className="text-white/40 font-normal text-sm">{event.attendees}</span>
+            <motion.div variants={itemVariants}>
+              <h3 className="font-semibold text-white mb-3 flex items-center gap-2 text-sm uppercase tracking-wider opacity-80">
+                Going <span className="bg-white/10 px-2 py-0.5 rounded-full text-white font-bold text-xs">{event.attendees}</span>
               </h3>
               <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
-                <div className="flex -space-x-3">
+                <div className="flex -space-x-3 pl-1">
                   {FRIEND_AVATARS.map((avatar, i) => (
                     <img
                       key={i}
                       src={avatar}
                       alt="Friend"
-                      className="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover"
+                      className="w-10 h-10 rounded-full border-2 border-zinc-900 object-cover ring-2 ring-transparent hover:ring-pink-500/50 hover:z-10 transition-all"
                     />
                   ))}
                   <div className="w-10 h-10 rounded-full bg-zinc-800 border-2 border-zinc-900 flex items-center justify-center text-xs font-bold text-white">
                     +{Math.max(event.attendees - 5, 0)}
                   </div>
                 </div>
-                <div className="text-sm text-white/60 pl-2 border-l border-white/10">
-                  <span className="text-pink-400 font-medium">8 friends</span> attending
+                <div className="text-sm text-white/60 pl-4 border-l border-white/10">
+                  <span className="text-pink-400 font-bold">8 friends</span> attending
                 </div>
               </div>
-            </div>
+            </motion.div>
 
             {/* Comments Section */}
-            <div className="pt-4 border-t border-white/5">
+            <motion.div variants={itemVariants} className="pt-4 border-t border-white/5">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-semibold text-white">Comments</h3>
-                <span className="text-xs text-white/40">{MOCK_COMMENTS.length} comments</span>
+                <h3 className="font-semibold text-white text-sm uppercase tracking-wider opacity-80">Comments</h3>
+                <span className="text-xs text-white/40 bg-white/5 px-2 py-1 rounded-md">{MOCK_COMMENTS.length}</span>
               </div>
               
               <div className="space-y-4 mb-4">
@@ -241,17 +269,17 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                         <span className="text-white/30 text-xs">{comment.time}</span>
                       </div>
                       <p className="text-white/80 text-sm mt-0.5 leading-relaxed">{comment.text}</p>
-                      <button className="text-xs text-white/40 mt-1 hover:text-pink-400 transition-colors">Reply</button>
+                      <button className="text-xs text-white/40 mt-1 hover:text-pink-400 transition-colors font-medium">Reply</button>
                     </div>
-                    <button className="self-start text-white/20 hover:text-pink-500 transition-colors">
-                      <Heart className="w-4 h-4" />
+                    <button className="self-start text-white/20 hover:text-pink-500 transition-colors p-1 hover:bg-pink-500/10 rounded-full">
+                      <Heart className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
               </div>
 
               {/* Comment Input */}
-              <div className="relative">
+              <div className="relative group">
                 <input
                   type="text"
                   value={commentText}
@@ -261,13 +289,13 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                 />
                 <button 
                   disabled={!commentText.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-pink-500 text-white disabled:opacity-0 disabled:scale-75 transition-all"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg bg-pink-500 text-white disabled:opacity-0 disabled:scale-75 transition-all shadow-lg shadow-pink-500/20"
                 >
                   <Share2 className="w-3 h-3 rotate-90" />
                 </button>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
 
           {/* Footer Actions */}
           <div className="p-4 border-t border-white/10 bg-zinc-900 shrink-0">
