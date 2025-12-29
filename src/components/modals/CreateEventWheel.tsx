@@ -54,16 +54,22 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
                             >
                                 <motion.div
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${selectedType === 'casual'
-                                            ? 'bg-emerald-500 shadow-emerald-500/50'
-                                            : 'bg-emerald-500/90 hover:bg-emerald-500 shadow-emerald-500/30'
+                                    whileHover={{ scale: 1.15, rotate: 5 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${selectedType === 'casual'
+                                        ? 'bg-emerald-500 shadow-emerald-500/60'
+                                        : 'bg-emerald-500/90 hover:bg-emerald-500 shadow-emerald-500/40'
                                         }`}
                                 >
-                                    <Zap className="h-6 w-6 text-white" />
+                                    {/* Pulsing ring */}
+                                    <motion.div
+                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
+                                        transition={{ duration: 2, repeat: Infinity }}
+                                        className="absolute inset-0 rounded-full bg-emerald-500/30"
+                                    />
+                                    <Zap className="h-7 w-7 text-white relative z-10" />
                                 </motion.div>
-                                <span className="text-sm font-semibold text-white drop-shadow-lg">
+                                <span className="text-sm font-bold text-white drop-shadow-lg">
                                     Casual
                                 </span>
                             </motion.button>
@@ -78,16 +84,22 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
                             >
                                 <motion.div
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`w-14 h-14 rounded-full flex items-center justify-center shadow-xl transition-all ${selectedType === 'ticketed'
-                                            ? 'bg-violet-500 shadow-violet-500/50'
-                                            : 'bg-violet-500/90 hover:bg-violet-500 shadow-violet-500/30'
+                                    whileHover={{ scale: 1.15, rotate: -5 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${selectedType === 'ticketed'
+                                        ? 'bg-violet-500 shadow-violet-500/60'
+                                        : 'bg-violet-500/90 hover:bg-violet-500 shadow-violet-500/40'
                                         }`}
                                 >
-                                    <Ticket className="h-6 w-6 text-white" />
+                                    {/* Pulsing ring */}
+                                    <motion.div
+                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
+                                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                                        className="absolute inset-0 rounded-full bg-violet-500/30"
+                                    />
+                                    <Ticket className="h-7 w-7 text-white relative z-10" />
                                 </motion.div>
-                                <span className="text-sm font-semibold text-white drop-shadow-lg">
+                                <span className="text-sm font-bold text-white drop-shadow-lg">
                                     Ticketed
                                 </span>
                             </motion.button>
@@ -98,8 +110,9 @@ export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWhe
                                 animate={{ scale: 1, rotate: 0 }}
                                 exit={{ scale: 0, rotate: 180 }}
                                 transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+                                whileHover={{ scale: 1.1 }}
                                 onClick={onClose}
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white shadow-2xl flex items-center justify-center z-10"
+                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/90 backdrop-blur-lg shadow-2xl flex items-center justify-center z-10 border border-white/50"
                             >
                                 <X className="h-7 w-7 text-gray-800" />
                             </motion.button>

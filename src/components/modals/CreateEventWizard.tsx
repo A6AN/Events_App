@@ -231,45 +231,51 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                             >
                                 <p className="text-sm text-white/50">Select event type</p>
                                 <div className="grid grid-cols-3 gap-3">
-                                    {EVENT_TYPES.map((type) => {
+                                    {EVENT_TYPES.map((type, index) => {
                                         const isSelected = formData.category === type.label;
                                         // Explicit class mappings for Tailwind JIT
                                         const getSelectedStyles = () => {
                                             switch (type.id) {
-                                                case 'party': return 'bg-pink-500/20 border-pink-500';
-                                                case 'show': return 'bg-purple-500/20 border-purple-500';
-                                                case 'music': return 'bg-blue-500/20 border-blue-500';
-                                                case 'workshop': return 'bg-orange-500/20 border-orange-500';
-                                                case 'meetup': return 'bg-green-500/20 border-green-500';
+                                                case 'party': return 'bg-pink-500/20 border-pink-500 shadow-pink-500/30';
+                                                case 'show': return 'bg-purple-500/20 border-purple-500 shadow-purple-500/30';
+                                                case 'music': return 'bg-blue-500/20 border-blue-500 shadow-blue-500/30';
+                                                case 'workshop': return 'bg-orange-500/20 border-orange-500 shadow-orange-500/30';
+                                                case 'meetup': return 'bg-green-500/20 border-green-500 shadow-green-500/30';
                                                 default: return 'bg-white/10 border-white/30';
                                             }
                                         };
                                         return (
                                             <motion.button
                                                 key={type.id}
-                                                whileTap={{ scale: 0.95 }}
-                                                whileHover={{ scale: 1.02 }}
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: index * 0.08, type: "spring", stiffness: 300, damping: 24 }}
+                                                whileTap={{ scale: 0.92 }}
+                                                whileHover={{ scale: 1.05, y: -4 }}
                                                 onClick={() => setFormData(prev => ({ ...prev, category: type.label }))}
                                                 className={cn(
-                                                    "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2",
+                                                    "p-4 rounded-2xl border-2 transition-all flex flex-col items-center gap-2 backdrop-blur-sm",
                                                     isSelected
                                                         ? `${getSelectedStyles()} shadow-lg`
-                                                        : "bg-white/5 border-white/10 hover:border-white/20"
+                                                        : "bg-white/5 border-white/10 hover:border-white/30 hover:bg-white/10"
                                                 )}
                                             >
-                                                <div className={cn(
-                                                    "p-3 rounded-xl transition-all",
-                                                    isSelected
-                                                        ? (type.id === 'party' ? 'bg-pink-500'
-                                                            : type.id === 'show' ? 'bg-purple-500'
-                                                                : type.id === 'music' ? 'bg-blue-500'
-                                                                    : type.id === 'workshop' ? 'bg-orange-500'
-                                                                        : type.id === 'meetup' ? 'bg-green-500'
-                                                                            : 'bg-white/20')
-                                                        : "bg-white/10"
-                                                )}>
+                                                <motion.div
+                                                    animate={isSelected ? { scale: [1, 1.2, 1], rotate: [0, 10, -10, 0] } : {}}
+                                                    transition={{ duration: 0.4 }}
+                                                    className={cn(
+                                                        "p-3 rounded-xl transition-all",
+                                                        isSelected
+                                                            ? (type.id === 'party' ? 'bg-pink-500'
+                                                                : type.id === 'show' ? 'bg-purple-500'
+                                                                    : type.id === 'music' ? 'bg-blue-500'
+                                                                        : type.id === 'workshop' ? 'bg-orange-500'
+                                                                            : type.id === 'meetup' ? 'bg-green-500'
+                                                                                : 'bg-white/20')
+                                                            : "bg-white/10"
+                                                    )}>
                                                     <type.icon className="h-6 w-6 text-white" />
-                                                </div>
+                                                </motion.div>
                                                 <span className={cn(
                                                     "text-xs font-medium transition-all",
                                                     isSelected ? "text-white" : "text-white/70"
@@ -350,34 +356,49 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                     <div className="space-y-3">
                                         <p className="text-sm text-white/50">Select a venue</p>
                                         <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-                                            {mockVenues.slice(0, 4).map(venue => (
+                                            {mockVenues.slice(0, 4).map((venue, index) => (
                                                 <motion.div
                                                     key={venue.id}
+                                                    initial={{ opacity: 0, x: -20 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    transition={{ delay: index * 0.1, type: "spring", stiffness: 300, damping: 24 }}
                                                     whileTap={{ scale: 0.98 }}
-                                                    whileHover={{ scale: 1.01 }}
+                                                    whileHover={{ scale: 1.02, x: 8 }}
                                                     onClick={() => handleVenueSelect(venue)}
                                                     className={cn(
-                                                        "flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all",
+                                                        "flex items-center gap-4 p-4 rounded-2xl border-2 cursor-pointer transition-all backdrop-blur-sm",
                                                         formData.selectedVenueId === venue.id
                                                             ? eventType === 'casual'
                                                                 ? 'bg-emerald-500/15 border-emerald-500 shadow-lg shadow-emerald-500/20'
                                                                 : 'bg-violet-500/15 border-violet-500 shadow-lg shadow-violet-500/20'
-                                                            : "bg-zinc-900 border-white/10 hover:border-white/30"
+                                                            : "bg-zinc-900/80 border-white/10 hover:border-white/30 hover:bg-zinc-800/80"
                                                     )}
                                                 >
-                                                    <img
-                                                        src={venue.imageUrl}
-                                                        alt={venue.name}
-                                                        className="h-16 w-16 rounded-xl object-cover flex-shrink-0"
-                                                    />
+                                                    <div className="relative h-16 w-16 flex-shrink-0">
+                                                        <img
+                                                            src={venue.imageUrl}
+                                                            alt={venue.name}
+                                                            className="h-full w-full rounded-xl object-cover"
+                                                        />
+                                                        <div className="absolute inset-0 rounded-xl bg-gradient-to-t from-black/40 to-transparent" />
+                                                    </div>
                                                     <div className="flex-1 min-w-0">
                                                         <h4 className="font-bold text-white truncate">{venue.name}</h4>
                                                         <p className="text-xs text-white/50 truncate">{venue.location}</p>
                                                         <p className={`text-sm font-bold mt-1 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`}>₹{venue.pricePerHour}/hr</p>
                                                     </div>
-                                                    {formData.selectedVenueId === venue.id && (
-                                                        <CheckCircle2 className={`h-7 w-7 flex-shrink-0 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
-                                                    )}
+                                                    <AnimatePresence>
+                                                        {formData.selectedVenueId === venue.id && (
+                                                            <motion.div
+                                                                initial={{ scale: 0, rotate: -180 }}
+                                                                animate={{ scale: 1, rotate: 0 }}
+                                                                exit={{ scale: 0, rotate: 180 }}
+                                                                transition={{ type: "spring", stiffness: 400, damping: 20 }}
+                                                            >
+                                                                <CheckCircle2 className={`h-7 w-7 flex-shrink-0 ${eventType === 'casual' ? 'text-emerald-400' : 'text-violet-400'}`} />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </motion.div>
                                             ))}
                                         </div>
