@@ -46,19 +46,24 @@ export function VenuesTab({ venues }: VenuesTabProps) {
           </div>
         </div>
 
-        {/* Categories - Pills */}
+        {/* Categories - Redesigned Pills */}
         <div className="flex gap-2 overflow-x-auto scrollbar-hide -mx-4 px-4 pb-2">
-          {categories.map((cat) => (
+          {categories.map((cat, index) => (
             <motion.button
               key={cat}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.05 }}
               whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat
-                  ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow-lg shadow-amber-500/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+              className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all backdrop-blur-sm border ${selectedCategory === cat
+                ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/40 border-amber-400'
+                : 'bg-zinc-900/80 text-white/70 hover:bg-zinc-800 hover:text-white border-white/10 hover:border-amber-500/30'
                 }`}
             >
-              {cat !== 'All' && <span className="mr-1">{categoryEmoji[cat]}</span>} {cat}
+              {cat !== 'All' && <span className="mr-1.5">{categoryEmoji[cat]}</span>}
+              {cat}
             </motion.button>
           ))}
         </div>
