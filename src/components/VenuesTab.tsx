@@ -57,9 +57,9 @@ export function VenuesTab({ venues }: VenuesTabProps) {
               whileTap={{ scale: 0.95 }}
               whileHover={{ scale: 1.05, y: -2 }}
               onClick={() => setSelectedCategory(cat)}
-              className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all backdrop-blur-sm border ${selectedCategory === cat
+              className={`flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all backdrop-blur-md border ${selectedCategory === cat
                 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/40 border-amber-400'
-                : 'bg-zinc-900/80 text-white/70 hover:bg-zinc-800 hover:text-white border-white/10 hover:border-amber-500/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white border-white/20 hover:border-amber-500/30'
                 }`}
             >
               {cat !== 'All' && <span className="mr-1.5">{categoryEmoji[cat]}</span>}

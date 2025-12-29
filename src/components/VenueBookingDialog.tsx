@@ -32,7 +32,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-950 border-2 border-amber-500/50 text-white max-w-md max-h-[90vh] overflow-hidden p-0 rounded-3xl shadow-2xl shadow-amber-500/30">
+      <DialogContent className="bg-black/80 backdrop-blur-2xl border-2 border-amber-500/40 text-white max-w-md max-h-[90vh] overflow-hidden p-0 rounded-3xl shadow-2xl shadow-amber-500/20">
         {!isBooked ? (
           <div className="flex flex-col max-h-[90vh]">
             {/* Header Image */}
@@ -42,7 +42,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                 alt={venue.name}
                 className="w-full h-full object-cover"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
 
               {/* Close Button */}
               <motion.button
@@ -77,14 +77,14 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
             </div>
 
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-zinc-950">
+            <div className="flex-1 overflow-y-auto p-5 space-y-5 bg-gradient-to-b from-black/60 to-black/80">
               {/* Quick Info */}
               <div className="flex gap-3">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="flex-1 bg-zinc-900 rounded-2xl p-4 border border-amber-500/20 backdrop-blur-sm"
+                  className="flex-1 bg-white/10 rounded-2xl p-4 border border-white/20 backdrop-blur-md"
                 >
                   <Users className="h-5 w-5 text-amber-400 mb-2" />
                   <div className="text-white font-bold text-lg">{venue.capacity}</div>
@@ -94,7 +94,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="flex-1 bg-zinc-900 rounded-2xl p-4 border border-amber-500/20 backdrop-blur-sm"
+                  className="flex-1 bg-white/10 rounded-2xl p-4 border border-white/20 backdrop-blur-md"
                 >
                   <Clock className="h-5 w-5 text-amber-400 mb-2" />
                   <div className="text-white font-bold text-lg">₹{venue.pricePerHour.toLocaleString()}</div>
@@ -154,9 +154,9 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                         whileTap={{ scale: 0.95 }}
                         whileHover={{ scale: 1.05, y: -2 }}
                         onClick={() => setDuration(hours)}
-                        className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all ${duration === hours
+                        className={`flex-1 py-3 rounded-xl text-sm font-bold transition-all backdrop-blur-sm ${duration === hours
                           ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg shadow-amber-500/40'
-                          : 'bg-zinc-900 text-white/60 hover:bg-zinc-800 hover:text-white border border-white/10'
+                          : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white border border-white/20'
                           }`}
                       >
                         {hours}h
@@ -180,7 +180,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
             </div>
 
             {/* Footer */}
-            <div className="flex-shrink-0 p-5 bg-zinc-950 border-t border-white/10">
+            <div className="flex-shrink-0 p-5 bg-black/60 backdrop-blur-md border-t border-white/10">
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Button
                   onClick={handleBook}
