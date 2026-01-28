@@ -1,44 +1,91 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Clock, MapPin, Share2, Heart, CheckCircle, Sparkles, Send, Users } from 'lucide-react';
+import { X, Calendar, Clock, MapPin, Share2, Heart, CheckCircle, Sparkles, Send, Users, Star, ChevronLeft } from 'lucide-react';
 import { Event } from '../../types';
 import { useAuth } from '../../context/AuthContext';
 import { rsvpToEvent, checkRsvpStatus } from '../../lib/supabase';
 import confetti from 'canvas-confetti';
-
-// Staggered animation variants
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08, delayChildren: 0.2 }
-  }
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: "spring", stiffness: 300, damping: 24 }
-  }
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.8 },
-  visible: {
-    opacity: 1,
-    scale: 1,
-    transition: { type: "spring", stiffness: 400, damping: 25 }
-  }
-};
 
 interface EventDetailsSheetProps {
   event: Event | null;
   open: boolean;
   onClose: () => void;
 }
+
+// Extract dominant color from image using canvas
+const extractDominantColor = (imgElement: HTMLImageElement): Promise<{ r: number; g: number; b: number }> => {
+  return new Promise((resolve) => {
+    try {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        resolve({ r: 139, g: 92, b: 246 }); // Fallback violet
+        return;
+      }
+
+      // Sample at reduced size for performance
+      const sampleSize = 50;
+      canvas.width = sampleSize;
+      canvas.height = sampleSize;
+
+      ctx.drawImage(imgElement, 0, 0, sampleSize, sampleSize);
+      const imageData = ctx.getImageData(0, 0, sampleSize, sampleSize).data;
+
+      let r = 0, g = 0, b = 0, count = 0;
+
+      // Sample every 4th pixel for speed
+      for (let i = 0; i < imageData.length; i += 16) {
+        const red = imageData[i];
+        const green = imageData[i + 1];
+        const blue = imageData[i + 2];
+
+        // Skip very dark or very light pixels
+        const brightness = (red + green + blue) / 3;
+        if (brightness > 30 && brightness < 220) {
+          r += red;
+          g += green;
+          b += blue;
+          count++;
+        }
+      }
+
+      if (count > 0) {
+        r = Math.round(r / count);
+        g = Math.round(g / count);
+        b = Math.round(b / count);
+
+        // Boost saturation for more vibrant theme
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        const l = (max + min) / 2;
+
+        if (max !== min) {
+          const s = l > 127 ? (max - min) / (510 - max - min) : (max - min) / (max + min);
+          const satBoost = 1.3;
+          r = Math.min(255, Math.round(l + (r - l) * satBoost));
+          g = Math.min(255, Math.round(l + (g - l) * satBoost));
+          b = Math.min(255, Math.round(l + (b - l) * satBoost));
+        }
+
+        resolve({ r, g, b });
+      } else {
+        resolve({ r: 139, g: 92, b: 246 }); // Fallback violet
+      }
+    } catch (e) {
+      resolve({ r: 139, g: 92, b: 246 }); // Fallback violet
+    }
+  });
+};
+
+// Lighten or darken a color
+const adjustColor = (r: number, g: number, b: number, amount: number) => {
+  return {
+    r: Math.max(0, Math.min(255, r + amount)),
+    g: Math.max(0, Math.min(255, g + amount)),
+    b: Math.max(0, Math.min(255, b + amount)),
+  };
+};
 
 const FRIEND_AVATARS = [
   'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100',
@@ -72,6 +119,8 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
   const [showNotification, setShowNotification] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [liked, setLiked] = useState(false);
+  const [themeColor, setThemeColor] = useState({ r: 139, g: 92, b: 246 }); // Default violet
+  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     if (event && user && open) {
@@ -81,6 +130,18 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
       setShowNotification(false);
     }
   }, [event, user, open]);
+
+  // Extract color when image loads
+  useEffect(() => {
+    if (event?.imageUrl && open) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        extractDominantColor(img).then(setThemeColor);
+      };
+      img.src = event.imageUrl;
+    }
+  }, [event?.imageUrl, open]);
 
   const handleRsvp = async () => {
     if (!event) return;
@@ -102,16 +163,27 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
 
   if (!event || !open) return null;
 
+  // Generate color variations
+  const { r, g, b } = themeColor;
+  const primaryColor = `rgb(${r}, ${g}, ${b})`;
+  const primaryColorLight = `rgba(${r}, ${g}, ${b}, 0.4)`;
+  const primaryColorGlow = `rgba(${r}, ${g}, ${b}, 0.5)`;
+  const darkerColor = adjustColor(r, g, b, -40);
+  const gradientFrom = `rgb(${r}, ${g}, ${b})`;
+  const gradientTo = `rgb(${darkerColor.r}, ${darkerColor.g}, ${darkerColor.b})`;
+
   return createPortal(
     <AnimatePresence>
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-        {/* Backdrop with blur */}
+      <div className="fixed inset-0 z-[9999] flex flex-col">
+        {/* Full Screen Container with Dynamic Gradient Background */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          onClick={onClose}
-          className="absolute inset-0 bg-black/90 backdrop-blur-md"
+          className="absolute inset-0"
+          style={{
+            background: `linear-gradient(to bottom, rgba(${r}, ${g}, ${b}, 0.6) 0%, rgba(${darkerColor.r}, ${darkerColor.g}, ${darkerColor.b}, 0.4) 30%, rgba(0, 0, 0, 1) 100%)`
+          }}
         />
 
         {/* Success Notification */}
@@ -123,7 +195,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
               exit={{ y: -100, opacity: 0 }}
               className="absolute top-4 left-4 right-4 z-[10000]"
             >
-              <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-2xl p-4 shadow-2xl shadow-green-500/30 flex items-center gap-3 mx-auto max-w-sm border border-green-400/30">
+              <div className="bg-gradient-to-r from-emerald-500 to-green-500 rounded-2xl p-4 shadow-2xl flex items-center gap-3 mx-auto max-w-sm">
                 <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
                   <CheckCircle className="w-6 h-6 text-white" />
                 </div>
@@ -136,166 +208,198 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
           )}
         </AnimatePresence>
 
-        {/* Modal Container - Properly Centered */}
+        {/* Main Content */}
         <motion.div
-          initial={{ opacity: 0, y: 50, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 50, scale: 0.95 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 30 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="relative w-full max-w-md mx-4 max-h-[90vh] z-10"
+          className="relative flex-1 flex flex-col max-h-screen overflow-hidden"
         >
-          {/* Glowing border effect - double layer for stronger glow */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 rounded-[28px] blur-md" />
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-pink-600 via-rose-600 to-pink-600 rounded-3xl opacity-90" />
+          {/* Hero Image Section */}
+          <div className="relative h-[45vh] flex-shrink-0">
+            <img
+              ref={imgRef}
+              src={event.imageUrl}
+              alt={event.title}
+              crossOrigin="anonymous"
+              className="w-full h-full object-cover"
+            />
+            {/* Dynamic Gradient Overlay */}
+            <div
+              className="absolute inset-0"
+              style={{
+                background: `linear-gradient(to bottom, rgba(${r}, ${g}, ${b}, 0.3) 0%, transparent 40%, rgba(0, 0, 0, 0.9) 100%)`
+              }}
+            />
 
-          {/* Modal content */}
-          <div className="relative w-full h-full max-h-[90vh] bg-zinc-950 rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-pink-500/50">
-
-            {/* Header Image */}
-            <div className="relative h-52 flex-shrink-0">
-              <img
-                src={event.imageUrl}
-                alt={event.title}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-zinc-950" />
-
-              {/* Close Button */}
-              <button
+            {/* Top Navigation */}
+            <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={onClose}
-                className="absolute top-4 right-4 w-10 h-10 bg-zinc-900/80 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-pink-500/80 transition-all hover:scale-110 border border-white/10"
+                className="w-11 h-11 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <ChevronLeft className="w-5 h-5" />
+              </motion.button>
 
-              {/* Tags */}
-              <div className="absolute top-4 left-4 flex gap-2">
-                <motion.span
-                  whileHover={{ scale: 1.05 }}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-pink-500 to-rose-500 text-white flex items-center gap-1 shadow-lg shadow-pink-500/40"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  Event
-                </motion.span>
-                <span className="px-3 py-1.5 rounded-full text-xs font-medium bg-zinc-900/80 backdrop-blur-sm text-white border border-white/20">
-                  {event.mood}
-                </span>
-              </div>
-
-              {/* Title on Image */}
-              <div className="absolute bottom-4 left-4 right-4">
-                <h2 className="text-2xl font-bold text-white drop-shadow-lg">{event.title}</h2>
-                <div className="flex items-center gap-2 mt-2">
-                  <img
-                    src={event.host.avatar}
-                    alt={event.host.name}
-                    className="w-7 h-7 rounded-full object-cover ring-2 ring-pink-500 shadow-lg shadow-pink-500/30"
-                  />
-                  <span className="text-white/90 text-sm">
-                    by <span className="text-pink-400 font-semibold">{event.host.name}</span>
-                  </span>
-                </div>
-              </div>
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                className="w-11 h-11 bg-white/10 backdrop-blur-xl rounded-full flex items-center justify-center text-white border border-white/20 shadow-lg"
+              >
+                <Share2 className="w-5 h-5" />
+              </motion.button>
             </div>
 
-            {/* Content */}
+            {/* Image Dots Indicator */}
+            <div className="absolute bottom-24 left-1/2 -translate-x-1/2 flex gap-2">
+              <div className="w-2 h-2 rounded-full bg-white" />
+              <div className="w-2 h-2 rounded-full bg-white/40" />
+              <div className="w-2 h-2 rounded-full bg-white/40" />
+            </div>
+          </div>
+
+          {/* Floating Info Card - Overlaps Image with Dynamic Color */}
+          <div className="relative -mt-20 flex-1 flex flex-col">
             <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-950"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 25 }}
+              className="mx-4 mb-4 p-5 rounded-3xl backdrop-blur-2xl border border-white/20 shadow-2xl"
+              style={{
+                background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.7) 0%, rgba(${darkerColor.r}, ${darkerColor.g}, ${darkerColor.b}, 0.6) 100%)`
+              }}
             >
-
-              {/* Quick Info Row - Vibrant colored cards */}
-              <motion.div variants={itemVariants} className="flex gap-3">
-                <motion.div
-                  whileHover={{ scale: 1.02, y: -3 }}
-                  className="flex-1 bg-pink-500/20 rounded-2xl p-4 border-2 border-pink-500/60 shadow-lg shadow-pink-500/25"
-                >
-                  <div className="flex items-center gap-2 text-pink-400 mb-1">
-                    <Calendar className="w-4 h-4" />
-                    <span className="text-xs text-pink-300 font-medium">Date</span>
+              {/* Title Row */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-white leading-tight">{event.title}</h2>
+                  <div className="flex items-center gap-2 mt-2">
+                    <MapPin className="w-4 h-4 text-white/70" />
+                    <span className="text-white/70 text-sm">{event.location.name}</span>
                   </div>
-                  <div className="text-white font-bold text-sm">{event.date || '28th December'}</div>
-                </motion.div>
-                <motion.div
-                  whileHover={{ scale: 1.02, y: -3 }}
-                  className="flex-1 bg-teal-500/20 rounded-2xl p-4 border-2 border-teal-500/60 shadow-lg shadow-teal-500/25"
-                >
-                  <div className="flex items-center gap-2 text-teal-400 mb-1">
-                    <Clock className="w-4 h-4" />
-                    <span className="text-xs text-teal-300 font-medium">Time</span>
-                  </div>
-                  <div className="text-white font-bold text-sm">{event.startTime}</div>
-                </motion.div>
-              </motion.div>
-
-              {/* Location */}
-              <motion.div
-                variants={itemVariants}
-                whileHover={{ scale: 1.01, y: -2 }}
-                className="bg-amber-500/20 rounded-2xl p-4 border-2 border-amber-500/50 shadow-lg shadow-amber-500/20"
-              >
-                <div className="flex items-center gap-2 text-amber-400 mb-1">
-                  <MapPin className="w-4 h-4" />
-                  <span className="text-xs text-amber-300 font-medium">Location</span>
                 </div>
-                <div className="text-white font-bold text-sm">{event.location.name}</div>
-              </motion.div>
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-4 py-2 bg-white text-zinc-900 font-bold text-sm rounded-full shadow-lg"
+                >
+                  + Follow
+                </motion.button>
+              </div>
 
-              {/* About - Pink themed */}
-              <motion.div variants={itemVariants} className="bg-zinc-900 rounded-2xl p-4 border-2 border-pink-500/30">
-                <h3 className="text-pink-400 text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-2">
-                  <Sparkles className="w-3 h-3" />
+              {/* Rating */}
+              <div className="flex items-center gap-2 mb-4">
+                <Star className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                <span className="text-white font-semibold">4.8 / 5.0</span>
+              </div>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2">
+                <span className="px-4 py-1.5 bg-white/10 text-white text-sm font-medium rounded-full border border-white/20">
+                  #{event.mood}
+                </span>
+                <span className="px-4 py-1.5 bg-white/10 text-white text-sm font-medium rounded-full border border-white/20">
+                  #Event
+                </span>
+                <span className="px-4 py-1.5 bg-white/10 text-white text-sm font-medium rounded-full border border-white/20">
+                  #Trending
+                </span>
+              </div>
+            </motion.div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-4 pb-28">
+              {/* About Section */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="mb-5"
+              >
+                <h3 className="text-white font-bold text-lg mb-3 flex items-center gap-2">
+                  <Sparkles className="w-4 h-4" style={{ color: primaryColor }} />
                   About
                 </h3>
-                <p className="text-zinc-200 text-sm leading-relaxed">
+                <p className="text-white/70 text-sm leading-relaxed">
                   {event.description || "🔥 DIVINE is coming to Lucknow! The biggest bohemian music and art festival featuring live performances, art installations, street food, and the legendary rapper DIVINE headlining the night. Get ready for Gully Boy vibes!"}
                 </p>
               </motion.div>
 
-              {/* Attendees */}
-              <motion.div variants={itemVariants}>
-                <h3 className="text-zinc-300 text-xs uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
-                  <Users className="w-4 h-4 text-pink-400" />
-                  Who's Going • <span className="text-pink-400">{event.attendees}</span>
+              {/* Date & Time */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25 }}
+                className="flex gap-3 mb-5"
+              >
+                <div className="flex-1 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-1" style={{ color: primaryColor }}>
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-xs font-medium">Date</span>
+                  </div>
+                  <div className="text-white font-semibold">{event.date || '28th December'}</div>
+                </div>
+                <div className="flex-1 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
+                  <div className="flex items-center gap-2 mb-1" style={{ color: primaryColor }}>
+                    <Clock className="w-4 h-4" />
+                    <span className="text-xs font-medium">Time</span>
+                  </div>
+                  <div className="text-white font-semibold">{event.startTime}</div>
+                </div>
+              </motion.div>
+
+              {/* Who's Going */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="mb-5"
+              >
+                <h3 className="text-white/70 text-xs uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
+                  <Users className="w-4 h-4" style={{ color: primaryColor }} />
+                  Who's Going • <span style={{ color: primaryColor }}>{event.attendees}</span>
                 </h3>
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="flex items-center gap-3 bg-zinc-900 rounded-2xl p-4 border-2 border-pink-500/40 shadow-lg shadow-pink-500/10"
-                >
+                <div className="flex items-center gap-3 bg-white/5 backdrop-blur-sm rounded-2xl p-4 border border-white/10">
                   <div className="flex -space-x-3">
                     {FRIEND_AVATARS.map((avatar, i) => (
                       <motion.img
                         key={i}
                         initial={{ opacity: 0, scale: 0 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4 + i * 0.1 }}
+                        transition={{ delay: 0.35 + i * 0.08 }}
                         src={avatar}
                         alt="Attendee"
-                        className="w-10 h-10 rounded-full border-2 border-zinc-950 object-cover ring-2 ring-pink-500/20"
+                        className="w-10 h-10 rounded-full border-2 border-black/50 object-cover"
                       />
                     ))}
                     <motion.div
                       initial={{ opacity: 0, scale: 0 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.9 }}
-                      className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-rose-500 border-2 border-zinc-950 flex items-center justify-center text-xs font-bold text-white shadow-lg shadow-pink-500/40"
+                      transition={{ delay: 0.7 }}
+                      className="w-10 h-10 rounded-full border-2 border-black/50 flex items-center justify-center text-xs font-bold text-white"
+                      style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}
                     >
                       +{Math.max(event.attendees - 5, 245)}
                     </motion.div>
                   </div>
-                  <span className="text-sm text-zinc-300">
-                    <span className="text-pink-400 font-bold">8 friends</span> going
+                  <span className="text-sm text-white/70">
+                    <span style={{ color: primaryColor }} className="font-bold">8 friends</span> going
                   </span>
-                </motion.div>
+                </div>
               </motion.div>
 
               {/* Comments */}
-              <motion.div variants={itemVariants}>
-                <h3 className="text-zinc-300 text-xs uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
-                  <span className="text-pink-400">💬</span>
-                  Comments • <span className="text-pink-400">{MOCK_COMMENTS.length}</span>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+              >
+                <h3 className="text-white/70 text-xs uppercase tracking-wider font-bold mb-3 flex items-center gap-2">
+                  <span style={{ color: primaryColor }}>💬</span>
+                  Comments • <span style={{ color: primaryColor }}>{MOCK_COMMENTS.length}</span>
                 </h3>
                 <div className="space-y-3">
                   {MOCK_COMMENTS.map((comment, index) => (
@@ -303,20 +407,21 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                       key={comment.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.5 + index * 0.15 }}
+                      transition={{ delay: 0.4 + index * 0.1 }}
                       className="flex gap-3"
                     >
                       <img
                         src={comment.avatar}
                         alt={comment.user}
-                        className="w-9 h-9 rounded-full object-cover flex-shrink-0 ring-2 ring-pink-500/40 shadow-lg shadow-pink-500/20"
+                        className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                        style={{ boxShadow: `0 0 0 2px ${primaryColorLight}` }}
                       />
-                      <div className="flex-1 bg-zinc-900/80 rounded-2xl rounded-tl-md p-3 border border-zinc-800 hover:border-pink-500/30 transition-colors">
+                      <div className="flex-1 bg-white/5 backdrop-blur-sm rounded-2xl rounded-tl-md p-3 border border-white/10">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-pink-400 font-semibold text-sm">{comment.user}</span>
-                          <span className="text-zinc-500 text-xs">{comment.time}</span>
+                          <span className="font-semibold text-sm" style={{ color: primaryColor }}>{comment.user}</span>
+                          <span className="text-white/40 text-xs">{comment.time}</span>
                         </div>
-                        <p className="text-zinc-200 text-sm">{comment.text}</p>
+                        <p className="text-white/80 text-sm">{comment.text}</p>
                       </div>
                     </motion.div>
                   ))}
@@ -326,7 +431,7 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
+                  transition={{ delay: 0.6 }}
                   className="relative mt-4"
                 >
                   <input
@@ -334,71 +439,65 @@ export const EventDetailsSheet = ({ event, open, onClose }: EventDetailsSheetPro
                     value={commentText}
                     onChange={(e) => setCommentText(e.target.value)}
                     placeholder="Add a comment..."
-                    className="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3 pl-4 pr-14 text-sm text-white placeholder:text-zinc-500 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/30 transition-all"
+                    className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-4 pr-14 text-sm text-white placeholder:text-white/40 focus:outline-none transition-all"
+                    style={{
+                      '--tw-ring-color': primaryColor,
+                    } as React.CSSProperties}
+                    onFocus={(e) => {
+                      e.target.style.borderColor = primaryColor;
+                      e.target.style.boxShadow = `0 0 0 2px ${primaryColorLight}`;
+                    }}
+                    onBlur={(e) => {
+                      e.target.style.borderColor = 'rgba(255,255,255,0.1)';
+                      e.target.style.boxShadow = 'none';
+                    }}
                   />
                   <button
                     disabled={!commentText.trim()}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg bg-gradient-to-r from-pink-500 to-rose-500 text-white disabled:opacity-30 transition-all hover:scale-110 active:scale-95 shadow-lg shadow-pink-500/30"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2.5 rounded-lg text-white disabled:opacity-30 transition-all hover:scale-110 active:scale-95"
+                    style={{ background: `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})` }}
                   >
                     <Send className="w-4 h-4" />
                   </button>
                 </motion.div>
               </motion.div>
-            </motion.div>
-
-            {/* Footer - Premium Action Bar */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
-              className="p-4 border-t border-pink-500/20 bg-gradient-to-t from-zinc-950 to-zinc-950/95 flex-shrink-0"
-            >
-              <div className="flex gap-3">
-                <motion.button
-                  whileHover={{ scale: 1.08, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="w-12 h-12 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-pink-400 hover:border-pink-500/50 hover:bg-zinc-800 transition-all"
-                >
-                  <Share2 className="w-5 h-5" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.08, y: -2 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setLiked(!liked)}
-                  className={`w-12 h-12 rounded-xl border flex items-center justify-center transition-all ${liked
-                    ? 'bg-pink-500/30 border-pink-500 text-pink-400 shadow-lg shadow-pink-500/30'
-                    : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-pink-400 hover:border-pink-500/50'
-                    }`}
-                >
-                  <Heart className={`w-5 h-5 transition-all ${liked ? 'fill-pink-400 scale-110' : ''}`} />
-                </motion.button>
-                <motion.button
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleRsvp}
-                  disabled={loading || isRsvped}
-                  className={`flex-1 h-12 rounded-xl font-bold flex items-center justify-center gap-2 transition-all relative overflow-hidden ${isRsvped
-                    ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg shadow-green-500/40'
-                    : 'bg-gradient-to-r from-pink-500 via-rose-500 to-pink-500 bg-[length:200%_100%] animate-gradient text-white shadow-xl shadow-pink-500/40'
-                    }`}
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : isRsvped ? (
-                    <>
-                      <CheckCircle className="w-5 h-5" />
-                      You're In!
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-5 h-5" />
-                      RSVP Now
-                    </>
-                  )}
-                </motion.button>
-              </div>
-            </motion.div>
+            </div>
           </div>
+
+          {/* Fixed Bottom CTA with Dynamic Color */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black via-black/95 to-transparent pt-8"
+          >
+            <motion.button
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleRsvp}
+              disabled={loading || isRsvped}
+              className="w-full h-14 rounded-2xl font-bold text-lg flex items-center justify-center gap-2 transition-all shadow-2xl text-white"
+              style={{
+                background: isRsvped
+                  ? 'linear-gradient(135deg, rgb(16, 185, 129), rgb(34, 197, 94))'
+                  : `linear-gradient(135deg, ${gradientFrom}, ${gradientTo})`,
+                boxShadow: isRsvped
+                  ? '0 10px 40px rgba(16, 185, 129, 0.4)'
+                  : `0 10px 40px ${primaryColorGlow}`
+              }}
+            >
+              {loading ? (
+                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : isRsvped ? (
+                <>
+                  <CheckCircle className="w-5 h-5" />
+                  You're In!
+                </>
+              ) : (
+                'Book Now'
+              )}
+            </motion.button>
+          </motion.div>
         </motion.div>
       </div>
     </AnimatePresence>,
