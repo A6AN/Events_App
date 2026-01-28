@@ -53,7 +53,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
   };
 
   return (
-    <div className="h-full bg-background overflow-hidden flex flex-col">
+    <div className="h-full bg-transparent overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 p-4 pb-3">
         <div className="flex items-center justify-between mb-4">

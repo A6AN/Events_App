@@ -25,7 +25,7 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
   };
 
   return (
-    <div className="h-full bg-background overflow-hidden flex flex-col">
+    <div className="h-full bg-transparent overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex-shrink-0 p-4 pb-3">
         <div className="flex items-center justify-between mb-4">
@@ -46,8 +46,8 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               whileTap={{ scale: 0.95 }}
               onClick={() => setSelectedCategory(cat)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === cat
-                  ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
-                  : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
+                ? 'bg-gradient-to-r from-cyan-400 to-blue-500 text-white shadow-lg shadow-cyan-500/30'
+                : 'bg-white/10 text-white/70 hover:bg-white/20 hover:text-white'
                 }`}
             >
               {cat}
@@ -72,9 +72,9 @@ export function TicketsTab({ tickets }: TicketsTabProps) {
               }}
               whileTap={{ scale: 0.98 }}
               onClick={() => handleTicketClick(ticket)}
-              className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-cyan-500/50 transition-all duration-300"
+              className="relative bg-black/40 backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-cyan-500/50 transition-all duration-300"
               style={{
-                boxShadow: '0 4px 20px rgba(0,0,0,0.2)'
+                boxShadow: '0 4px 30px rgba(0,0,0,0.4)'
               }}
             >
               {/* Glow effect on hover */}

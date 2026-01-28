@@ -15,7 +15,7 @@ export function ProfileTab() {
   const attendedEvents = mockTickets.filter((_, i) => i >= 3);
 
   return (
-    <div className="h-full bg-background overflow-y-auto pb-24">
+    <div className="h-full bg-transparent overflow-y-auto pb-24">
       <ProfileHeader
         hostedCount={hostedEvents.length}
         attendedCount={attendedEvents.length}

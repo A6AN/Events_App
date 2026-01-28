@@ -119,7 +119,7 @@ function AppContent() {
             </Button>
           </div>
 
-          <TabsList className="w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
+          <TabsList className="w-full h-20 bg-black/60 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
             <TabsTrigger
               value="social"
               className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all duration-300"
