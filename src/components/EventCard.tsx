@@ -19,7 +19,7 @@ const moodColors = {
 
 export function EventCard({ event, showHost = true }: EventCardProps) {
   return (
-    <Card className="bg-white/5 backdrop-blur-md border-white/10 overflow-hidden transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] hover:shadow-[0_8px_32px_rgba(120,119,198,0.2)] cursor-pointer">
+    <Card className="bg-black/30 backdrop-blur-xl border border-white/10 overflow-hidden transition-all duration-300 hover:bg-black/40 hover:scale-[1.02] hover:shadow-[0_8px_32px_rgba(236,72,153,0.15)] hover:border-pink-500/30 cursor-pointer rounded-2xl">
       {/* Event Image */}
       <div className="relative h-40 overflow-hidden">
         <ImageWithFallback

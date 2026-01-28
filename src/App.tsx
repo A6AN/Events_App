@@ -13,6 +13,7 @@ import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
 import { CreateEventWizard } from './components/modals/CreateEventWizard';
 import { PageTransition } from './components/ui/PageTransition';
+import { LiquidBackground } from './components/ui/LiquidBackground';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -49,19 +50,22 @@ function AppContent() {
   };
 
   return (
-    <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-background flex flex-col overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
+    <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-transparent flex flex-col overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
+      {/* Animated Background */}
+      <LiquidBackground />
+
       {/* Theme Toggle Button */}
       <div className="absolute top-4 right-4 z-50">
         <Button
           size="icon"
-          variant="outline"
+          variant="glass"
           onClick={toggleTheme}
-          className="bg-card border-border hover:bg-accent"
+          className="rounded-full"
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5 text-primary" />
+            <Sun className="h-5 w-5" />
           ) : (
-            <Moon className="h-5 w-5 text-primary" />
+            <Moon className="h-5 w-5" />
           )}
         </Button>
       </div>
