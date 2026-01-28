@@ -50,9 +50,7 @@ function AppContent() {
   };
 
   return (
-    <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-transparent flex flex-col overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
-      {/* Animated Background */}
-      <LiquidBackground />
+    <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-transparent flex flex-col overflow-hidden relative">
 
       {/* Theme Toggle Button */}
       <div className="absolute top-4 right-4 z-50">
@@ -334,6 +332,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <LiquidBackground />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
