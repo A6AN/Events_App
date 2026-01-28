@@ -69,10 +69,9 @@ export function LoginPage() {
 
     return (
         <div
-            className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-6 relative overflow-hidden"
+            className="h-screen w-full max-w-lg mx-auto flex flex-col justify-center p-6 relative overflow-hidden bg-black"
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, rgba(6, 78, 59, 0.4) 50%, #0a0a0a 100%)' }}
         >
             {/* Animated gradient orbs with inline styles */}
             <div className="absolute inset-0 overflow-hidden">
@@ -131,7 +130,7 @@ export function LoginPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                 style={{ rotateX, rotateY, transformPerspective: 1000 }}
-                className="w-full max-w-sm relative z-10"
+                className="w-full relative z-10"
             >
                 {/* Glass Card */}
                 <div
@@ -252,8 +251,8 @@ export function LoginPage() {
                                 type="submit"
                                 className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 group border-0"
                                 style={{
-                                    background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
-                                    boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
+                                    background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
+                                    boxShadow: '0 0 30px rgba(16, 185, 129, 0.4)'
                                 }}
                                 disabled={loading}
                             >
