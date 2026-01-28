@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Map, Users, User, Ticket, Building2, Sun, Moon, Plus } from 'lucide-react';
+import { Sun, Moon } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
@@ -18,6 +18,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
+import { BottomNav } from './components/BottomNav';
 import { mockEvents } from './data/mockEvents';
 import { mockTickets } from './data/mockTickets';
 import { mockVenues } from './data/mockVenues';
@@ -32,6 +33,7 @@ function AppContent() {
   const [wheelOpen, setWheelOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
+  const [activeTab, setActiveTab] = useState('social');
   const { theme, toggleTheme } = useTheme();
 
   const handleEventSelect = (event: Event) => {
@@ -68,7 +70,7 @@ function AppContent() {
         </Button>
       </div>
 
-      <Tabs defaultValue="map" className="flex-1 flex flex-col h-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col h-full">
         {/* Tab Content */}
         <div className="flex-1 overflow-hidden relative">
           <AnimatePresence mode="wait">
@@ -104,53 +106,12 @@ function AppContent() {
           </AnimatePresence>
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="relative shrink-0">
-          {/* Floating Plus Button - positioned above the nav bar */}
-          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20">
-            <Button
-              size="icon"
-              onClick={() => setWheelOpen(true)}
-              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 hover:scale-110 transition-all border-4 border-background"
-            >
-              <Plus className="h-6 w-6" />
-            </Button>
-          </div>
-
-          <TabsList className="w-full h-20 bg-black/60 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_30px_rgba(0,0,0,0.5)]">
-            <TabsTrigger
-              value="social"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all duration-300"
-            >
-              <Users className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Social</span>
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="map"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
-            >
-              <Map className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Discover</span>
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="venues"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 transition-all duration-300"
-            >
-              <Building2 className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Venues</span>
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="profile"
-              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
-            >
-              <User className="h-5 w-5" />
-              <span className="text-[10px] font-medium">Profile</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
+        {/* Premium Bottom Navigation */}
+        <BottomNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          onPlusClick={() => setWheelOpen(true)}
+        />
       </Tabs>
 
       {/* Event Detail Sheet */}

@@ -2,13 +2,69 @@
 
 /* Animated gradient for buttons */
 @keyframes gradient {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-gradient {
   animation: gradient 3s ease infinite;
+}
+
+/* Shimmer animation for skeletons */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Premium Astral Gradients */
+.gradient-sunset {
+  background: linear-gradient(135deg, #FF6B35 0%, #F72585 50%, #7209B7 100%);
+}
+
+.gradient-aurora {
+  background: linear-gradient(135deg, #4CC9F0 0%, #4361EE 50%, #7209B7 100%);
+}
+
+.gradient-twilight {
+  background: linear-gradient(135deg, #FF9E00 0%, #FF0080 50%, #8B00FF 100%);
+}
+
+/* Animated astral background */
+.astral-bg {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(247, 37, 133, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(114, 9, 183, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(76, 201, 240, 0.1) 0%, transparent 60%),
+    #0A0A0F;
+}
+
+/* Glass morphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 :root {
