@@ -13,7 +13,6 @@ import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
 import { CreateEventWizard } from './components/modals/CreateEventWizard';
 import { PageTransition } from './components/ui/PageTransition';
-import { LiquidBackground } from './components/ui/LiquidBackground';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LoginPage } from './pages/LoginPage';
@@ -51,26 +50,25 @@ function AppContent() {
 
   return (
     <div id="app-container" className="h-screen w-full max-w-lg mx-auto bg-background flex flex-col overflow-hidden relative" style={{ transform: 'translateZ(0)' }}>
-      <LiquidBackground />
       {/* Theme Toggle Button */}
       <div className="absolute top-4 right-4 z-50">
         <Button
           size="icon"
-          variant="ghost"
+          variant="outline"
           onClick={toggleTheme}
-          className="rounded-full bg-black/20 backdrop-blur-md border border-white/10 hover:bg-white/10 text-white"
+          className="bg-card border-border hover:bg-accent"
         >
           {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
+            <Sun className="h-5 w-5 text-primary" />
           ) : (
-            <Moon className="h-5 w-5" />
+            <Moon className="h-5 w-5 text-primary" />
           )}
         </Button>
       </div>
 
-      <Tabs defaultValue="map" className="flex-1 flex flex-col h-full bg-transparent">
+      <Tabs defaultValue="map" className="flex-1 flex flex-col h-full">
         {/* Tab Content */}
-        <div className="flex-1 overflow-hidden relative z-10">
+        <div className="flex-1 overflow-hidden relative">
           <AnimatePresence mode="wait">
             <TabsContent value="social" className="absolute inset-0 m-0">
               <PageTransition className="h-full">
@@ -105,26 +103,22 @@ function AppContent() {
         </div>
 
         {/* Bottom Navigation */}
-        <div className="absolute bottom-6 left-4 right-4 z-50">
-          {/* Floating Plus Button - positioned absolute relative to this container */}
-          <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
-            {/* Wrapper to allow pointer events on button but not around it */}
-            <div className="pointer-events-auto">
-              <Button
-                size="icon"
-                onClick={() => setWheelOpen(true)}
-                className="w-16 h-16 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-[0_0_20px_rgba(var(--primary),0.5)] hover:scale-105 transition-all border-4 border-black/50"
-                style={{ boxShadow: '0 0 30px -5px var(--color-primary)' }}
-              >
-                <Plus className="h-7 w-7" />
-              </Button>
-            </div>
+        <div className="relative shrink-0">
+          {/* Floating Plus Button - positioned above the nav bar */}
+          <div className="absolute -top-7 left-1/2 -translate-x-1/2 z-20">
+            <Button
+              size="icon"
+              onClick={() => setWheelOpen(true)}
+              className="w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-primary/50 hover:scale-110 transition-all border-4 border-background"
+            >
+              <Plus className="h-6 w-6" />
+            </Button>
           </div>
 
-          <TabsList className="w-full h-16 bg-black/40 backdrop-blur-2xl border border-white/10 grid grid-cols-4 rounded-3xl p-1 shadow-2xl relative overflow-visible">
+          <TabsList className="w-full h-20 bg-background/80 backdrop-blur-2xl border-t border-white/10 grid grid-cols-4 rounded-none p-2 shadow-[0_-4px_24px_rgba(0,0,0,0.3)]">
             <TabsTrigger
               value="social"
-              className="h-full flex flex-col items-center justify-center gap-1 text-white/60 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:text-white transition-all duration-300 hover:text-white/80"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-pink-500/20 data-[state=active]:text-pink-400 transition-all duration-300"
             >
               <Users className="h-5 w-5" />
               <span className="text-[10px] font-medium">Social</span>
@@ -132,7 +126,7 @@ function AppContent() {
 
             <TabsTrigger
               value="map"
-              className="h-full flex flex-col items-center justify-center gap-1 text-white/60 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:text-white transition-all duration-300 hover:text-white/80 mr-8"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
             >
               <Map className="h-5 w-5" />
               <span className="text-[10px] font-medium">Discover</span>
@@ -140,7 +134,7 @@ function AppContent() {
 
             <TabsTrigger
               value="venues"
-              className="h-full flex flex-col items-center justify-center gap-1 text-white/60 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:text-white transition-all duration-300 hover:text-white/80 ml-8"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-amber-500/20 data-[state=active]:text-amber-400 transition-all duration-300"
             >
               <Building2 className="h-5 w-5" />
               <span className="text-[10px] font-medium">Venues</span>
@@ -148,7 +142,7 @@ function AppContent() {
 
             <TabsTrigger
               value="profile"
-              className="h-full flex flex-col items-center justify-center gap-1 text-white/60 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:text-white transition-all duration-300 hover:text-white/80"
+              className="flex flex-col items-center justify-center gap-1 text-muted-foreground rounded-xl data-[state=active]:bg-emerald-500/20 data-[state=active]:text-emerald-400 transition-all duration-300"
             >
               <User className="h-5 w-5" />
               <span className="text-[10px] font-medium">Profile</span>

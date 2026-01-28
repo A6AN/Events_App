@@ -74,8 +74,8 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('friends')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'friends'
-              ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
-              : 'text-white/50 hover:text-white/70 hover:bg-white/5'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/5'
               }`}
           >
             <Users className="h-4 w-4" />
@@ -85,8 +85,8 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
             whileTap={{ scale: 0.95 }}
             onClick={() => setActiveTab('live')}
             className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${activeTab === 'live'
-              ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
-              : 'text-white/50 hover:text-white/70 hover:bg-white/5'
+                ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-lg shadow-pink-500/40'
+                : 'text-white/50 hover:text-white/70 hover:bg-white/5'
               }`}
           >
             <TrendingUp className="h-4 w-4" />
@@ -109,11 +109,11 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 onClick={() => onEventSelect(event)}
-                className="relative bg-black/20 backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-pink-500/50 transition-all duration-300"
+                className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-pink-500/50 transition-all duration-300"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
               >
                 {/* Hover Glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/10 group-hover:to-rose-500/5 transition-all duration-300 rounded-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/10 group-hover:to-rose-500/10 transition-all duration-300 rounded-2xl" />
 
                 {/* User Header */}
                 <div className="relative flex items-center gap-3 p-3 border-b border-white/5">
@@ -216,11 +216,11 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: idx * 0.1 }}
                 onClick={() => handleTicketClick(ticket)}
-                className="relative bg-black/20 backdrop-blur-xl rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-pink-500/50 transition-all duration-300"
+                className="relative bg-gradient-to-br from-white/10 to-white/5 rounded-2xl overflow-hidden cursor-pointer group border border-white/10 hover:border-pink-500/50 transition-all duration-300"
                 style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}
               >
                 {/* Hover Glow */}
-                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/10 group-hover:to-rose-500/5 transition-all duration-300 rounded-2xl" />
+                <div className="absolute inset-0 bg-gradient-to-br from-pink-500/0 to-rose-500/0 group-hover:from-pink-500/10 group-hover:to-rose-500/10 transition-all duration-300 rounded-2xl" />
 
                 {/* Image */}
                 <div className="relative h-44 overflow-hidden">

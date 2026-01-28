@@ -1,5 +1,5 @@
 import { Clock, MapPin, Users } from 'lucide-react';
-import { GlassCard } from './ui/GlassCard';
+import { Card } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { Event } from '../types';
@@ -19,7 +19,7 @@ const moodColors = {
 
 export function EventCard({ event, showHost = true }: EventCardProps) {
   return (
-    <GlassCard hoverEffect={true} className="overflow-hidden p-0">
+    <Card className="bg-white/5 backdrop-blur-md border-white/10 overflow-hidden transition-all duration-300 hover:bg-white/10 hover:scale-[1.02] hover:shadow-[0_8px_32px_rgba(120,119,198,0.2)] cursor-pointer">
       {/* Event Image */}
       <div className="relative h-40 overflow-hidden">
         <ImageWithFallback
@@ -66,6 +66,6 @@ export function EventCard({ event, showHost = true }: EventCardProps) {
           </div>
         )}
       </div>
-    </GlassCard>
+    </Card>
   );
 }
