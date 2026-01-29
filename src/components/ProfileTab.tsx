@@ -175,8 +175,8 @@ export function ProfileTab() {
                 whileTap={{ scale: 0.97 }}
                 onClick={() => setActiveTab(tab)}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-full text-sm font-medium transition-all ${activeTab === tab
-                    ? 'text-white'
-                    : 'text-white/40'
+                  ? 'text-white'
+                  : 'text-white/40'
                   }`}
                 style={activeTab === tab ? {
                   background: `linear-gradient(135deg, rgba(${r}, ${g}, ${b}, 0.5), rgba(${r}, ${g}, ${b}, 0.3))`,
@@ -202,12 +202,12 @@ export function ProfileTab() {
               exit={{ opacity: 0, y: -10 }}
               className="px-4"
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {/* Add Button */}
                 <motion.div
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className="aspect-[3/4] rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
+                  className="aspect-square rounded-2xl border-2 border-dashed border-white/20 flex flex-col items-center justify-center cursor-pointer hover:border-white/40 transition-colors"
                 >
                   <div
                     className="w-12 h-12 rounded-full flex items-center justify-center mb-2"
@@ -224,7 +224,7 @@ export function ProfileTab() {
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    className="relative aspect-[3/4] rounded-2xl overflow-hidden group cursor-pointer"
+                    className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer"
                   >
                     <ImageWithFallback
                       src={event.imageUrl}
@@ -256,14 +256,14 @@ export function ProfileTab() {
               exit={{ opacity: 0, y: -10 }}
               className="px-4"
             >
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-2">
                 {savedEvents.map((event, i) => (
                   <motion.div
                     key={event.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    className="relative aspect-[3/4] rounded-2xl overflow-hidden group cursor-pointer"
+                    className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer"
                   >
                     <ImageWithFallback
                       src={event.imageUrl}

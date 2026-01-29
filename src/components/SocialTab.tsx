@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Users, Calendar, MapPin, TrendingUp } from 'lucide-react';
+import { Users, MapPin, TrendingUp, Heart, MessageCircle, Sparkles } from 'lucide-react';
 import { Event, TicketEvent } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CommentSection } from './social/CommentSection';
 import { TicketBookingDialog } from './TicketBookingDialog';
+import { Badge } from './ui/badge';
 
 interface SocialTabProps {
   events: Event[];
@@ -40,100 +41,109 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
 
   return (
     <div className="h-full bg-transparent overflow-hidden flex flex-col">
-      {/* Header - Shrinks on scroll */}
+      {/* Shrinking Glass Header */}
       <motion.div
-        className="flex-shrink-0 px-4 pt-4 pb-3"
-        animate={{
-          paddingTop: isScrolled ? '8px' : '16px',
-          paddingBottom: isScrolled ? '8px' : '12px'
+        className="flex-shrink-0 px-4"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 100%)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
         }}
-        transition={{ duration: 0.2 }}
+        animate={{
+          paddingTop: isScrolled ? '12px' : '16px',
+          paddingBottom: isScrolled ? '12px' : '0px',
+        }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
         {/* Title Section - Hides on scroll */}
-        <AnimatePresence>
-          {!isScrolled && (
-            <motion.div
-              initial={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-              className="flex items-center justify-between mb-4 overflow-hidden"
-            >
-              <div>
-                <h1 className="text-2xl font-bold text-white tracking-tight">Social</h1>
-                <p className="text-white/40 text-sm mt-0.5">
-                  {activeTab === 'friends' ? "See what friends are up to" : "Live events happening now"}
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Premium Glass Pill Toggle */}
         <motion.div
-          className="relative rounded-full overflow-hidden"
+          className="flex items-center justify-between overflow-hidden"
+          animate={{
+            height: isScrolled ? 0 : 'auto',
+            opacity: isScrolled ? 0 : 1,
+            marginBottom: isScrolled ? 0 : '16px',
+          }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+        >
+          <div>
+            <h1 className="text-white text-2xl font-bold mb-0.5">Feed</h1>
+            <p className="text-white/40 text-xs">
+              {activeTab === 'friends' ? "What's happening" : "Live around you"}
+            </p>
+          </div>
+          <motion.div
+            animate={{ rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Sparkles className="h-5 w-5 text-white/60" />
+          </motion.div>
+        </motion.div>
+
+        {/* Pill-Shaped Segmented Control */}
+        <motion.div
+          className="relative p-1.5 rounded-full flex gap-1.5"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.15)',
-            boxShadow: '0 4px 30px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255,255,255,0.1)'
+            border: '1px solid rgba(255,255,255,0.1)',
           }}
           animate={{
-            width: isScrolled ? 'auto' : '100%',
+            marginBottom: isScrolled ? '0px' : '16px',
           }}
-          layout
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
         >
-          <div className="relative p-1">
-            {/* Animated Glass Sliding Indicator */}
-            <motion.div
-              className="absolute top-1 bottom-1 rounded-full"
-              style={{
-                background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
-                backdropFilter: 'blur(10px)',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.2)'
-              }}
-              initial={false}
-              animate={{
-                left: activeTab === 'friends' ? '4px' : isScrolled ? '4px' : 'calc(50% + 2px)',
-                right: activeTab === 'friends' ? (isScrolled ? '4px' : 'calc(50% + 2px)') : '4px',
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 500,
-                damping: 35
-              }}
-            />
+          <motion.button
+            onClick={() => setActiveTab('friends')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${activeTab === 'friends' ? 'text-white' : 'text-white/40'
+              }`}
+            whileTap={{ scale: 0.97 }}
+          >
+            {activeTab === 'friends' && (
+              <motion.div
+                layoutId="activeFeedTab"
+                className="absolute inset-0 rounded-full border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                }}
+                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
+              <Users className="h-4 w-4" />
+              Friends
+            </span>
+          </motion.button>
 
-            {/* Tab Buttons */}
-            <div className="relative flex">
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setActiveTab('friends')}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 z-10 ${activeTab === 'friends' ? 'text-white' : 'text-white/40'
-                  }`}
-                animate={{ flex: isScrolled && activeTab !== 'friends' ? 0 : 1, opacity: isScrolled && activeTab !== 'friends' ? 0 : 1, width: isScrolled && activeTab !== 'friends' ? 0 : 'auto', padding: isScrolled && activeTab !== 'friends' ? 0 : undefined }}
-              >
-                <Users className="h-4 w-4" />
-                <span>Friends</span>
-              </motion.button>
-
-              <motion.button
-                whileTap={{ scale: 0.97 }}
-                onClick={() => setActiveTab('live')}
-                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 z-10 ${activeTab === 'live' ? 'text-white' : 'text-white/40'
-                  }`}
-                animate={{ flex: isScrolled && activeTab !== 'live' ? 0 : 1, opacity: isScrolled && activeTab !== 'live' ? 0 : 1, width: isScrolled && activeTab !== 'live' ? 0 : 'auto', padding: isScrolled && activeTab !== 'live' ? 0 : undefined }}
-              >
-                <TrendingUp className="h-4 w-4" />
-                <span>Live</span>
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-lg shadow-emerald-400/50" />
-              </motion.button>
-            </div>
-          </div>
+          <motion.button
+            onClick={() => setActiveTab('live')}
+            className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${activeTab === 'live' ? 'text-white' : 'text-white/40'
+              }`}
+            whileTap={{ scale: 0.97 }}
+          >
+            {activeTab === 'live' && (
+              <motion.div
+                layoutId="activeFeedTab"
+                className="absolute inset-0 rounded-full border border-white/20"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.1)',
+                }}
+                transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10 flex items-center justify-center gap-2 font-medium">
+              <Sparkles className="h-4 w-4" />
+              Live
+            </span>
+          </motion.button>
         </motion.div>
       </motion.div>
 
       {/* Feed - Scrollable */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-24 px-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto pb-24 scrollbar-hide">
         {activeTab === 'friends' ? (
           events.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-64 text-center">
@@ -144,60 +154,116 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
               <p className="text-white/40 text-sm">Events from your friends will appear here</p>
             </div>
           ) : (
-            <div className="space-y-4 pt-2">
-              {events.map((event, index) => (
+            // Friends Feed - Full Bleed Hero Cards
+            <div className="space-y-3 pt-2">
+              {events.map((event, idx) => (
                 <motion.div
                   key={event.id}
+                  onClick={() => onEventSelect(event)}
+                  className="group cursor-pointer"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.08, type: "spring", stiffness: 400, damping: 30 }}
-                  onClick={() => onEventSelect(event)}
-                  className="relative rounded-2xl overflow-hidden cursor-pointer group bg-zinc-900/80 border border-white/5"
-                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+                  transition={{ delay: idx * 0.05, duration: 0.3 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {/* Hero Image - Fixed height */}
-                  <div className="relative h-48 overflow-hidden">
-                    <ImageWithFallback
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent" />
-
-                    {/* Top badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-                      {/* Avatar + Mood */}
-                      <div className="flex items-center gap-2">
-                        <Avatar className="h-8 w-8 border-2 border-white/20">
-                          <AvatarImage src={event.host.avatar} alt={event.host.name} />
-                          <AvatarFallback className="bg-pink-500 text-white text-xs font-bold">{event.host.name[0]}</AvatarFallback>
-                        </Avatar>
-                        <span className="px-2.5 py-1 bg-black/50 backdrop-blur-sm text-white/90 text-xs font-medium rounded-full">
-                          {event.mood}
-                        </span>
+                  {/* User Header */}
+                  <div className="flex items-center gap-2.5 mb-2 px-4">
+                    <Avatar className="h-9 w-9 border-2 border-white/10">
+                      <AvatarImage src={event.host.avatar} alt={event.host.name} />
+                      <AvatarFallback className="bg-pink-500/20 text-white">
+                        {event.host.name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white text-sm font-medium">{event.host.name}</span>
+                        <span className="text-white/40 text-xs">is hosting</span>
                       </div>
+                      <span className="text-white/40 text-xs">{event.startTime}</span>
+                    </div>
+                    <Badge className="bg-white/10 backdrop-blur-xl text-white border-white/10 text-xs px-2.5 py-1">
+                      {event.mood}
+                    </Badge>
+                  </div>
 
-                      {/* Date Badge */}
-                      <div className="bg-white rounded-lg px-2.5 py-1.5 text-center min-w-[44px] shadow-lg">
-                        <div className="text-base font-bold text-zinc-900 leading-none">
-                          {event.date ? new Date(event.date).getDate() : new Date().getDate()}
+                  {/* Full-Bleed Hero Card */}
+                  <motion.div
+                    className="relative overflow-hidden"
+                    whileHover={{ scale: 1.005 }}
+                    transition={{ duration: 0.4 }}
+                  >
+                    {/* Hero Image - Taller height */}
+                    <div className="relative h-80 overflow-hidden">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-full h-full"
+                      >
+                        <ImageWithFallback
+                          src={event.imageUrl}
+                          alt={event.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </motion.div>
+
+                      {/* Multi-layer Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
+
+                      {/* Event Info Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <h3 className="text-white text-2xl font-medium mb-3 line-clamp-2 drop-shadow-lg">
+                          {event.title}
+                        </h3>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="flex items-center gap-2 text-white/90">
+                            <MapPin className="h-4 w-4" />
+                            <span className="text-sm">{event.location.name}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-white/90">
+                            <Users className="h-4 w-4" />
+                            <span className="text-sm">{event.attendees} going</span>
+                          </div>
                         </div>
-                        <div className="text-[9px] font-semibold text-zinc-500 uppercase">
-                          {event.date ? new Date(event.date).toLocaleString('en-US', { month: 'short' }) : new Date().toLocaleString('en-US', { month: 'short' })}
+
+                        {/* Interaction Bar */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-6">
+                            <motion.button
+                              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <Heart className="h-5 w-5" />
+                              <span className="text-sm">{Math.floor(Math.random() * 50) + 10}</span>
+                            </motion.button>
+                            <motion.button
+                              className="flex items-center gap-2 text-white/80 hover:text-white transition-colors"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setCommentEventId(event.id);
+                              }}
+                            >
+                              <MessageCircle className="h-5 w-5" />
+                              <span className="text-sm">{Math.floor(Math.random() * 20) + 5}</span>
+                            </motion.button>
+                          </div>
+                          <motion.div
+                            className="px-4 py-2 rounded-full text-white text-sm border border-white/20"
+                            style={{
+                              background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                              backdropFilter: 'blur(10px)',
+                            }}
+                            whileHover={{ scale: 1.05 }}
+                          >
+                            View Details →
+                          </motion.div>
                         </div>
                       </div>
                     </div>
-                  </div>
-
-                  {/* Bottom Content */}
-                  <div className="p-4">
-                    <h3 className="text-white font-bold text-lg mb-1 group-hover:text-pink-200 transition-colors">
-                      {event.title}
-                    </h3>
-                    <p className="text-white/50 text-sm">
-                      Voted <span className="text-white/70 font-medium">{event.attendees}</span> Participants
-                    </p>
-                  </div>
+                  </motion.div>
                 </motion.div>
               ))}
             </div>
@@ -212,67 +278,103 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
               <p className="text-white/40 text-sm">Live events will appear here</p>
             </div>
           ) : (
-            <div className="space-y-4 pt-2">
+            // Live Events - Full Bleed Hero Cards
+            <div className="space-y-3 pt-2">
               {tickets.map((ticket, idx) => (
                 <motion.div
                   key={ticket.id}
+                  onClick={() => handleTicketClick(ticket)}
+                  className="group cursor-pointer"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.08, type: "spring", stiffness: 400, damping: 30 }}
-                  onClick={() => handleTicketClick(ticket)}
-                  className="relative rounded-2xl overflow-hidden cursor-pointer group bg-zinc-900/80 border border-white/5"
-                  style={{ boxShadow: '0 4px 20px rgba(0,0,0,0.3)' }}
+                  transition={{ delay: idx * 0.05, duration: 0.3 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  {/* Hero Image */}
-                  <div className="relative h-48 overflow-hidden">
-                    <ImageWithFallback
-                      src={ticket.imageUrl}
-                      alt={ticket.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-zinc-900 via-transparent to-transparent" />
+                  {/* Full-Bleed Hero Card */}
+                  <div className="relative overflow-hidden">
+                    {/* Hero Image */}
+                    <div className="relative h-96 overflow-hidden">
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        transition={{ duration: 0.6 }}
+                        className="w-full h-full"
+                      >
+                        <ImageWithFallback
+                          src={ticket.imageUrl}
+                          alt={ticket.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                      </motion.div>
 
-                    {/* Top badges */}
-                    <div className="absolute top-3 left-3 right-3 flex items-start justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="bg-red-500 px-2.5 py-1 rounded-full flex items-center gap-1.5 shadow-lg">
+                      {/* Multi-layer Gradient Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/70 to-black/30" />
+
+                      {/* Category Badge */}
+                      <motion.div
+                        className="absolute top-6 right-6 px-4 py-2 rounded-full text-white text-sm border border-white/20 shadow-2xl"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                          backdropFilter: 'blur(20px)',
+                        }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: idx * 0.05 + 0.2 }}
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        {ticket.category}
+                      </motion.div>
+
+                      {/* Live Badge */}
+                      <div className="absolute top-6 left-6">
+                        <div className="bg-red-500 px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
                           <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
                           <span className="text-xs text-white font-bold uppercase">Live</span>
                         </div>
-                        <span className="px-2.5 py-1 bg-black/50 backdrop-blur-sm text-white/90 text-xs font-medium rounded-full">
-                          {ticket.category}
-                        </span>
                       </div>
 
-                      {/* Date Badge */}
-                      <div className="bg-white rounded-lg px-2.5 py-1.5 text-center min-w-[44px] shadow-lg">
-                        <div className="text-base font-bold text-zinc-900 leading-none">
-                          {new Date().getDate()}
+                      {/* Event Info Overlay */}
+                      <div className="absolute inset-x-0 bottom-0 p-6">
+                        <h3 className="text-white text-3xl font-medium mb-2 line-clamp-2 drop-shadow-lg">
+                          {ticket.title}
+                        </h3>
+                        <p className="text-white/80 text-lg mb-4 drop-shadow-md">{ticket.artist}</p>
+
+                        <div className="flex items-center gap-4 mb-6">
+                          <div className="flex items-center gap-2 text-white/90">
+                            <MapPin className="h-4 w-4" />
+                            <span className="text-sm">{ticket.venue}</span>
+                          </div>
                         </div>
-                        <div className="text-[9px] font-semibold text-zinc-500 uppercase">
-                          {new Date().toLocaleString('en-US', { month: 'short' })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
 
-                  {/* Bottom Content */}
-                  <div className="p-4">
-                    <h3 className="text-white font-bold text-lg mb-0.5 group-hover:text-pink-200 transition-colors">
-                      {ticket.title}
-                    </h3>
-                    <p className="text-pink-400 text-sm font-medium mb-2">{ticket.artist}</p>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-white/50 text-sm">
-                        <MapPin className="h-3.5 w-3.5" />
-                        <span className="truncate">{ticket.venue}</span>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-white font-bold">₹{ticket.price}</span>
-                        <span className="bg-gradient-to-r from-pink-500 to-rose-500 text-white px-4 py-1.5 rounded-lg text-sm font-bold shadow-lg">
-                          Book
-                        </span>
+                        {/* Price Card - Glass Style */}
+                        <motion.div
+                          className="rounded-3xl p-5 flex items-center justify-between border border-white/20"
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 100%)',
+                            backdropFilter: 'blur(20px)',
+                          }}
+                          whileHover={{ scale: 1.02 }}
+                        >
+                          <div>
+                            <div className="text-white/60 text-xs mb-1">Starting at</div>
+                            <div className="text-white text-3xl font-medium">₹{ticket.price}</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-white/80 text-xs mb-2">
+                              {ticket.availableSeats} seats left
+                            </div>
+                            <motion.div
+                              className="px-5 py-2.5 rounded-2xl text-white text-sm border border-white/30 font-medium"
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0.1) 100%)',
+                              }}
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              Book Now →
+                            </motion.div>
+                          </div>
+                        </motion.div>
                       </div>
                     </div>
                   </div>
