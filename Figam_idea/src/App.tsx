@@ -155,7 +155,10 @@ function AppContent() {
       <div className="relative shrink-0 pb-6">
         {/* Navigation Bar - Floating Pill */}
         <motion.div
-          className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full glass backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] grid grid-cols-4 items-center px-2"
+          className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full glass backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.6),inset_0_1px_0_rgba(255,255,255,0.1)] border border-white/10 grid grid-cols-4 items-center px-2"
+          style={{
+            background: 'rgba(10, 10, 15, 0.95)',
+          }}
           initial={{ y: 100, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{

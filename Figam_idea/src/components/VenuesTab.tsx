@@ -1,9 +1,10 @@
-import { Building2, MapPin, Star, Users, IndianRupee, Sparkles, Calendar, Search, SlidersHorizontal } from 'lucide-react';
+import { Building2, MapPin, Star, Users, IndianRupee, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Venue } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useRef, useEffect } from 'react';
 import { VenueBookingDialog } from './VenueBookingDialog';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 
 interface VenuesTabProps {
   venues: Venue[];
@@ -167,8 +168,8 @@ export function VenuesTab({ venues }: VenuesTabProps) {
         </motion.div>
 
         {/* Venues Grid */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide">
-          <div className="space-y-3 pb-24">
+        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide bg-background">
+          <div className="p-4 space-y-4 pb-24">
             <AnimatePresence mode="wait">
               {filteredVenues.length > 0 ? (
                 filteredVenues.map((venue, idx) => (
@@ -207,150 +208,90 @@ export function VenuesTab({ venues }: VenuesTabProps) {
   );
 }
 
-// Separate component for venue cards with full-bleed hero style
+// Venue card matching the reference design
 function VenueCard({ venue, index, onClick }: { venue: Venue; index: number; onClick: () => void }) {
   return (
     <motion.div
-      className="cursor-pointer"
+      className="cursor-pointer rounded-3xl overflow-hidden shadow-lg"
+      style={{
+        background: 'linear-gradient(180deg, rgba(26, 26, 36, 0.6) 0%, rgba(26, 26, 36, 0.9) 100%)',
+      }}
       initial={{ opacity: 0, y: 40 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.08, duration: 0.5, type: 'spring' }}
       onClick={onClick}
       whileTap={{ scale: 0.98 }}
     >
-      {/* Full-Bleed Hero Card */}
-      <div className="relative overflow-hidden">
-        {/* Hero Image */}
-        <div className="relative h-80 overflow-hidden">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            transition={{ duration: 0.6 }}
-          >
-            <ImageWithFallback
-              src={venue.imageUrl}
-              alt={venue.name}
-              className="w-full h-full object-cover"
+      {/* Card Image */}
+      <div className="relative h-72 overflow-hidden">
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          transition={{ duration: 0.4 }}
+        >
+          <ImageWithFallback
+            src={venue.imageUrl}
+            alt={venue.name}
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+        {/* Rating Badge - Top Left (mimicking avatar position) */}
+        <motion.div
+          className="absolute top-4 left-4 glass backdrop-blur-2xl px-3 py-2 rounded-2xl border border-white/20 shadow-2xl"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.08 + 0.2 }}
+        >
+          <div className="flex items-center gap-1.5">
+            <Star 
+              className="h-4 w-4 text-yellow-400 fill-yellow-400"
+              style={{ 
+                filter: 'drop-shadow(0 0 4px rgba(250, 204, 21, 0.6))',
+              }} 
             />
-          </motion.div>
+            <span className="text-white text-sm font-medium">{venue.rating}</span>
+          </div>
+        </motion.div>
 
-          {/* Multi-layer Gradient Overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
-          <div className="absolute inset-0 grain opacity-30" />
-
-          {/* Floating Rating Badge */}
-          <motion.div
-            className="absolute top-6 right-6 glass backdrop-blur-2xl px-3 py-2 rounded-2xl border border-white/20 shadow-2xl"
-            initial={{ opacity: 0, scale: 0.8, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ delay: index * 0.08 + 0.3 }}
-            whileHover={{ scale: 1.1 }}
-          >
-            <div className="flex items-center gap-1.5">
-              <Star 
-                className="h-4 w-4 text-yellow-400 fill-yellow-400"
-                style={{ 
-                  filter: 'drop-shadow(0 0 4px rgba(250, 204, 21, 0.6))',
-                }} 
-              />
-              <span className="text-white text-sm font-medium">{venue.rating}</span>
+        {/* Price Badge - Top Right */}
+        <motion.div
+          className="absolute top-4 right-4 bg-white rounded-2xl px-4 py-2.5 shadow-xl"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: index * 0.08 + 0.3 }}
+        >
+          <div className="text-center">
+            <div className="text-lg font-bold text-black leading-none mb-0.5">
+              ₹{(venue.pricePerHour / 1000).toFixed(0)}k
             </div>
-          </motion.div>
-
-          {/* Category Badge */}
-          <motion.div
-            className="absolute top-6 left-6 glass backdrop-blur-2xl px-4 py-2 rounded-2xl text-white text-sm border border-white/20 shadow-2xl"
-            initial={{ opacity: 0, scale: 0.8, x: -10 }}
-            animate={{ opacity: 1, scale: 1, x: 0 }}
-            transition={{ delay: index * 0.08 + 0.2 }}
-            whileHover={{ scale: 1.05 }}
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-lg">{categoryEmoji[venue.category as keyof typeof categoryEmoji]}</span>
-              <span className="font-medium">{venue.category}</span>
+            <div className="text-[10px] font-semibold text-black/60 uppercase tracking-wider">
+              /hour
             </div>
-          </motion.div>
+          </div>
+        </motion.div>
 
-          {/* Venue Info Overlay */}
-          <motion.div 
-            className="absolute inset-x-0 bottom-0 p-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.08 + 0.4 }}
-          >
-            <h3 className="text-white text-2xl font-medium mb-3 drop-shadow-lg">
-              {venue.name}
-            </h3>
-            <div className="flex items-center gap-2 text-white/90 mb-4">
+        {/* Info Overlay - Bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+          <div className="text-xs text-white/70 mb-1 uppercase tracking-wide flex items-center gap-1.5">
+            <span>{categoryEmoji[venue.category as keyof typeof categoryEmoji]}</span>
+            {venue.category}
+          </div>
+          <h3 className="text-white text-2xl font-semibold mb-2 drop-shadow-lg">
+            {venue.name}
+          </h3>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-white/80 text-sm">
               <MapPin className="h-4 w-4" />
-              <span className="text-sm drop-shadow-md">{venue.location}</span>
+              {venue.location}
             </div>
-
-            {/* Stats Grid - Glass Cards */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              <motion.div
-                className="glass backdrop-blur-2xl rounded-2xl p-4 border border-white/20"
-                whileHover={{ scale: 1.03 }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <Users className="h-4 w-4 text-white/80" />
-                  <span className="text-white/60 text-xs">Capacity</span>
-                </div>
-                <div className="text-white text-lg font-medium">{venue.capacity}</div>
-              </motion.div>
-
-              <motion.div
-                className="glass backdrop-blur-2xl rounded-2xl p-4 border border-white/20"
-                whileHover={{ scale: 1.03 }}
-              >
-                <div className="flex items-center gap-2 mb-1">
-                  <IndianRupee className="h-4 w-4 text-white/80" />
-                  <span className="text-white/60 text-xs">Per Hour</span>
-                </div>
-                <div className="text-white text-lg font-medium">
-                  ₹{venue.pricePerHour.toLocaleString()}
-                </div>
-              </motion.div>
+            <div className="flex items-center gap-2 text-white/80 text-sm">
+              <Users className="h-4 w-4" />
+              {venue.capacity}
             </div>
-
-            {/* Amenities Pills */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {venue.amenities.slice(0, 4).map((amenity, idx) => (
-                <motion.div
-                  key={idx}
-                  className="glass backdrop-blur-xl px-3 py-1.5 rounded-full text-xs border border-white/10 text-white/80"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.08 + 0.5 + idx * 0.05 }}
-                  whileHover={{ scale: 1.1, y: -2 }}
-                >
-                  {amenity}
-                </motion.div>
-              ))}
-              {venue.amenities.length > 4 && (
-                <motion.div
-                  className="glass backdrop-blur-xl px-3 py-1.5 rounded-full text-xs border border-white/10 text-white/60"
-                >
-                  +{venue.amenities.length - 4} more
-                </motion.div>
-              )}
-            </div>
-
-            {/* CTA Button */}
-            <motion.div
-              className="glass backdrop-blur-2xl rounded-2xl p-4 text-center border border-white/30 text-white font-medium"
-              whileHover={{ 
-                scale: 1.02,
-                borderColor: 'rgba(255, 255, 255, 0.5)',
-              }}
-              whileTap={{ scale: 0.98 }}
-            >
-              <div className="flex items-center justify-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>View Details & Book</span>
-                <span>→</span>
-              </div>
-            </motion.div>
-          </motion.div>
+          </div>
         </div>
       </div>
     </motion.div>

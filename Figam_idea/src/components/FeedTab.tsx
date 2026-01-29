@@ -1,19 +1,19 @@
 import { useState, useRef, useEffect } from 'react';
-import { Heart, MessageCircle, Users, Sparkles, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Heart, MessageCircle, Users, Sparkles, Calendar, MapPin, Clock } from 'lucide-react';
+import { motion, useScroll, useTransform } from 'motion/react';
 import { Event, TicketEvent } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
 import { TicketBookingDialog } from './TicketBookingDialog';
 
-interface SocialTabProps {
+interface FeedTabProps {
   events: Event[];
   tickets: TicketEvent[];
   onEventSelect: (event: Event) => void;
 }
 
-export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
+export function FeedTab({ events, tickets, onEventSelect }: FeedTabProps) {
   const [activeTab, setActiveTab] = useState<'friends' | 'live'>('friends');
   const [selectedTicket, setSelectedTicket] = useState<TicketEvent | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -22,7 +22,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
 
   // Track scroll for header shrinking
   useEffect(() => {
-    const handleScroll = (e: globalThis.Event) => {
+    const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement;
       if (target.scrollTop > 50) {
         setIsScrolled(true);
@@ -55,7 +55,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
     <div className="h-full relative">
       <div className="relative h-full flex flex-col">
         {/* Shrinking Glass Header */}
-        <motion.div
+        <motion.div 
           className="sticky top-0 z-20 glass backdrop-blur-3xl border-b border-white/10"
           animate={{
             paddingTop: isScrolled ? '12px' : '16px',
@@ -87,7 +87,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
             </motion.div>
 
             {/* Pill-Shaped Segmented Control */}
-            <motion.div
+            <motion.div 
               className="relative glass p-1.5 rounded-full flex gap-1.5"
               animate={{
                 marginBottom: isScrolled ? '0px' : '16px',
@@ -96,12 +96,13 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
             >
               <motion.button
                 onClick={() => setActiveTab('friends')}
-                className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${activeTab === 'friends' ? 'text-foreground' : 'text-muted-foreground'
-                  }`}
+                className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${
+                  activeTab === 'friends' ? 'text-foreground' : 'text-muted-foreground'
+                }`}
                 whileTap={{ scale: 0.97 }}
               >
                 {activeTab === 'friends' && (
-                  <motion.div
+                  <motion.div 
                     layoutId="activeFeedTab"
                     className="absolute inset-0 glass backdrop-blur-xl rounded-full border border-white/20"
                     style={{
@@ -117,12 +118,13 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
               </motion.button>
               <motion.button
                 onClick={() => setActiveTab('live')}
-                className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${activeTab === 'live' ? 'text-foreground' : 'text-muted-foreground'
-                  }`}
+                className={`flex-1 py-2 px-4 rounded-full text-sm transition-all duration-300 relative overflow-hidden ${
+                  activeTab === 'live' ? 'text-foreground' : 'text-muted-foreground'
+                }`}
                 whileTap={{ scale: 0.97 }}
               >
                 {activeTab === 'live' && (
-                  <motion.div
+                  <motion.div 
                     layoutId="activeFeedTab"
                     className="absolute inset-0 glass backdrop-blur-xl rounded-full border border-white/20"
                     style={{
@@ -148,7 +150,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
               {events.map((event, idx) => {
                 const dateBadge = getDateBadge(event.startTime);
                 return (
-                  <motion.div
+                  <motion.div 
                     key={event.id}
                     onClick={() => onEventSelect(event)}
                     className="group cursor-pointer rounded-3xl overflow-hidden shadow-lg"
@@ -172,7 +174,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                           className="w-full h-full object-cover"
                         />
                       </motion.div>
-
+                      
                       {/* Gradient Overlay at bottom */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
@@ -229,8 +231,8 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
               {tickets.map((ticket, idx) => {
                 const dateBadge = getDateBadge(ticket.date);
                 return (
-                  <motion.div
-                    key={ticket.id}
+                  <motion.div 
+                    key={ticket.id} 
                     onClick={() => handleTicketClick(ticket)}
                     className="group cursor-pointer rounded-3xl overflow-hidden shadow-lg"
                     style={{
@@ -253,7 +255,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
                           className="w-full h-full object-cover"
                         />
                       </motion.div>
-
+                      
                       {/* Gradient Overlay */}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
 
@@ -308,7 +310,7 @@ export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
       </div>
 
       {/* Booking Dialog */}
-      <TicketBookingDialog
+      <TicketBookingDialog 
         ticket={selectedTicket}
         open={dialogOpen}
         onClose={() => setDialogOpen(false)}
