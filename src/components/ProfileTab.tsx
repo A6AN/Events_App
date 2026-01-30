@@ -66,7 +66,7 @@ export function ProfileTab() {
   // Safe display values
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User';
   const username = profile?.username || user?.email?.split('@')[0] || 'username';
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || undefined;
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   // Helper to map DbEvent to card UI (simplified inline card for hosted events)
@@ -102,13 +102,7 @@ export function ProfileTab() {
 
   return (
     <div className="h-full relative bg-[#0a0a0f]">
-      {/* Grain Overlay */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 mix-blend-overlay"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
+
 
       <ScrollArea className="h-full relative z-10">
         <div className="pb-24">

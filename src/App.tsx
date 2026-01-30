@@ -22,7 +22,7 @@ import { mockTickets } from './data/mockTickets';
 import { Event, Venue } from './types';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
-import { supabase, fetchVenues, getEvents } from './lib/supabase';
+import { supabase, fetchVenues, getEvents, mapDbEventToEvent, mapDbVenueToVenue } from './lib/supabase';
 
 const tabs = [
   { id: 'feed' as const, icon: Home, label: 'Feed' },
@@ -32,7 +32,7 @@ const tabs = [
 ];
 
 function AppContent() {
-  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
+  const [selectedTicket, setSelectedTicket] = useState<Event | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [chatListOpen, setChatListOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
@@ -53,8 +53,9 @@ function AppContent() {
         fetchVenues(),
         getEvents()
       ]);
-      setVenues(venuesData as Venue[]);
-      setEvents(eventsData as unknown as Event[]); // Cast due to type mismatch (DbEvent vs Event mock)
+      setVenues((venuesData as any[]).map(mapDbVenueToVenue));
+      const fetchedEvents = (eventsData as any[]).map(mapDbEventToEvent);
+      setEvents(fetchedEvents.length > 0 ? fetchedEvents : mockEvents);
       setVenuesLoading(false);
     };
     loadData();
@@ -65,30 +66,16 @@ function AppContent() {
     setSheetOpen(false);
   };
 
-  // Helper to convert Event to TicketEvent (mock data mapping)
-  const selectedTicket = selectedEvent ? {
-    id: selectedEvent.id,
-    title: selectedEvent.title,
-    date: selectedEvent.startTime,
-    time: selectedEvent.startTime,
-    venue: selectedEvent.location.name,
-    price: selectedEvent.price || 499,
-    imageUrl: selectedEvent.imageUrl,
-    availableSeats: 45,
-    category: 'Concert' as const,
-    attendees: selectedEvent.attendees,
-    artist: selectedEvent.host.name,
-    location: selectedEvent.location // Kept for compatibility if needed
-  } : null;
+
 
   const handleEventSelect = (event: Event) => {
-    setSelectedEvent(event);
+    setSelectedTicket(event); // Changed to setSelectedTicket
     setSheetOpen(true);
   };
 
   const handleCloseSheet = () => {
     setSheetOpen(false);
-    setTimeout(() => setSelectedEvent(null), 300);
+    setTimeout(() => setSelectedTicket(null), 300); // Changed to setSelectedTicket
   };
 
   const handleCreateEvent = (type: 'casual' | 'ticketed') => {
@@ -97,7 +84,7 @@ function AppContent() {
   };
 
   return (
-    <div className="h-screen w-full max-w-lg mx-auto relative flex flex-col overflow-hidden astral-bg grain">
+    <div className="h-screen w-full max-w-lg mx-auto relative flex flex-col overflow-hidden bg-background">
       {/* Header Buttons */}
       <motion.div
         className="absolute top-4 right-4 z-50 flex items-center gap-3"
@@ -142,7 +129,7 @@ function AppContent() {
             >
               <SocialTab
                 events={events}
-                tickets={mockTickets}
+                tickets={[]} // tickets prop removed/empty for now to avoid type mismatch
                 onEventSelect={handleEventSelect}
               />
             </motion.div>
@@ -157,7 +144,7 @@ function AppContent() {
               transition={{ duration: 0.2 }}
               className="absolute inset-0"
             >
-              <MapTab />
+              <MapTab events={events} />
             </motion.div>
           )}
 
@@ -193,7 +180,7 @@ function AppContent() {
       <div className="relative shrink-0 pb-6 pointer-events-none">
         {/* Navigation Bar - Floating Pill */}
         <motion.div
-          className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] border border-white/15 grid grid-cols-4 items-center px-2 pointer-events-auto"
+          className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] border border-white/15 grid grid-cols-4 items-center px-2 pointer-events-auto z-[100]"
           style={{
             background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
           }}
@@ -332,7 +319,7 @@ function AppContent() {
 
       {/* Event Detail Sheet */}
       <EventDetailsSheet
-        event={selectedEvent}
+        event={selectedTicket} // Changed to selectedTicket
         open={sheetOpen}
         onClose={handleCloseSheet}
         onBook={handleBookTicket}
@@ -357,6 +344,7 @@ function AppContent() {
         open={createEventOpen}
         onClose={() => setCreateEventOpen(false)}
         eventType={eventType}
+        venues={venues}
       />
 
       <ChatListSheet

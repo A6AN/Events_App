@@ -14,7 +14,6 @@ import { Textarea } from '../ui/textarea';
 import { Sheet, SheetContent } from '../ui/sheet';
 import { createEvent, uploadEventImage } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import { mockVenues } from '../../data/mockVenues';
 import { Venue } from '../../types';
 
 const STEPS = {
@@ -35,9 +34,10 @@ interface CreateEventWizardProps {
     open: boolean;
     onClose: () => void;
     eventType: 'casual' | 'ticketed';
+    venues: Venue[]; // Added venues prop
 }
 
-export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizardProps) => {
+export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onClose, eventType, venues }) => {
     const { user } = useAuth();
     const [currentStep, setCurrentStep] = useState(STEPS.VIBE);
     const [isLoading, setIsLoading] = useState(false);
@@ -166,7 +166,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
     };
 
     return (
-        <Sheet open={open} onOpenChange={(isOpen) => {
+        <Sheet open={open} onOpenChange={(isOpen: boolean) => {
             if (!isOpen) onClose();
         }}>
             <SheetContent
@@ -387,7 +387,7 @@ export const CreateEventWizard = ({ open, onClose, eventType }: CreateEventWizar
                                     <div className="space-y-3">
                                         <p className="text-sm text-white/50">Select a venue</p>
                                         <div className="space-y-3 max-h-[40vh] overflow-y-auto">
-                                            {mockVenues.slice(0, 4).map((venue, index) => (
+                                            {venues.slice(0, 50).map((venue, index) => (
                                                 <motion.div
                                                     key={venue.id}
                                                     initial={{ opacity: 0, x: -20 }}

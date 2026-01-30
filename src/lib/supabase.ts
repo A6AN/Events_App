@@ -1,5 +1,49 @@
 import { createClient } from '@supabase/supabase-js';
-import { DbEvent, DbProfile, Event, DbTicket } from '../types';
+import { DbTicket, DbEvent, DbProfile, Event, Venue } from '../types';
+
+export const mapDbEventToEvent = (dbEvent: any): Event => {
+    return {
+        id: dbEvent.id,
+        title: dbEvent.title,
+        startTime: new Date(dbEvent.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        date: dbEvent.date,
+        location: {
+            lat: dbEvent.latitude || 0,
+            lng: dbEvent.longitude || 0,
+            name: dbEvent.location_name,
+            address: dbEvent.location_name
+        },
+        imageUrl: dbEvent.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30',
+        host: {
+            id: dbEvent.host?.id,
+            name: dbEvent.host?.full_name || 'Unknown Host',
+            avatar: dbEvent.host?.avatar_url || 'https://github.com/shadcn.png',
+            instagram: dbEvent.host?.username ? `@${dbEvent.host.username}` : undefined
+        },
+        attendees: Math.floor(Math.random() * 100) + 10, // Mock attendees count for now
+        mood: (dbEvent.mood as any) || 'Chill',
+        description: dbEvent.description || '',
+        price: dbEvent.price || 0,
+        capacity: dbEvent.capacity || 100,
+        category: dbEvent.category || 'Event',
+        friendsAttending: 0,
+        friendsRsvped: 0
+    };
+};
+
+export const mapDbVenueToVenue = (dbVenue: any): Venue => {
+    return {
+        id: dbVenue.id,
+        name: dbVenue.name,
+        location: dbVenue.location,
+        rating: dbVenue.rating || 4.5,
+        imageUrl: dbVenue.image_url || 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3',
+        capacity: dbVenue.capacity || '100',
+        pricePerHour: dbVenue.price_per_hour || 5000,
+        amenities: dbVenue.amenities || [],
+        category: dbVenue.category || 'Banquet Hall'
+    };
+};
 
 import { Capacitor } from '@capacitor/core';
 

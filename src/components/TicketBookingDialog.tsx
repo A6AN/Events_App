@@ -1,5 +1,5 @@
 import { Calendar, X, Download, QrCode, Check, Loader2 } from 'lucide-react';
-import { TicketEvent } from '../types';
+import { Event } from '../types';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust path if needed
@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { createTicket } from '../lib/supabase';
 
 interface TicketBookingDialogProps {
-  ticket: TicketEvent | null; // Or generic Event
+  ticket: Event | null;
   open: boolean;
   onClose: () => void;
 }
@@ -34,7 +34,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
         event_id: ticket.id,
         user_id: user.id,
         quantity: selectedSeats,
-        total_price: ticket.price * selectedSeats,
+        total_price: (ticket.price || 0) * selectedSeats,
         status: 'confirmed',
         qr_code: qrCode
       });
@@ -87,7 +87,6 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
 
                   {/* Gradient Overlays */}
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                  <div className="absolute inset-0 grain opacity-30" />
 
                   {/* Header Controls */}
                   <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
@@ -118,7 +117,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                           {ticket.title}
                         </h1>
                         <p className="text-white/80 text-sm">
-                          {ticket.category}: {ticket.venue}
+                          {ticket.category || 'Event'}: {ticket.location.name}
                         </p>
                       </div>
                       <motion.div
@@ -144,7 +143,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         <div className="h-12 w-px bg-border" />
                         <div>
                           <div className="text-lg font-semibold text-foreground">Tuesday</div>
-                          <div className="text-sm text-muted-foreground">{ticket.time} - End</div>
+                          <div className="text-sm text-muted-foreground">{ticket.startTime} - End</div>
                         </div>
                       </div>
                     </div>
@@ -160,7 +159,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <div>
                     <h3 className="text-foreground text-lg font-semibold mb-3">About this event :</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Experience {ticket.title} live at {ticket.venue}.
+                      Experience {ticket.title} live at {ticket.location.name}.
                       An unforgettable evening of entertainment and connection.
                     </p>
                   </div>
@@ -184,7 +183,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                           <Check className="h-3.5 w-3.5 text-foreground" />
                         </div>
                         <p className="text-muted-foreground text-sm flex-1">
-                          {ticket.title} performance at {ticket.time}
+                          {ticket.title} performance at {ticket.startTime}
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
@@ -202,7 +201,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-foreground text-sm font-medium">Number of tickets</span>
-                      <span className="text-muted-foreground text-xs">{ticket.availableSeats} available</span>
+                      <span className="text-muted-foreground text-xs">{ticket.capacity || 100} available</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <motion.button
@@ -316,7 +315,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         {ticket.title}
                       </h3>
                       <p className="text-black/60 text-sm text-center mb-6">
-                        {ticket.venue}
+                        {ticket.location.name}
                       </p>
 
                       {/* Date & Time */}
@@ -327,7 +326,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Time</div>
-                          <div className="text-black font-semibold">{ticket.time}</div>
+                          <div className="text-black font-semibold">{ticket.startTime}</div>
                         </div>
                       </div>
 
@@ -335,7 +334,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Location</div>
-                          <div className="text-black font-semibold truncate">{ticket.venue}</div>
+                          <div className="text-black font-semibold truncate">{ticket.location.name}</div>
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Quantity</div>

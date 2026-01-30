@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigation, MapPin, Loader2, ListFilter } from 'lucide-react';
 import { Button } from './ui/button';
-import { getEvents } from '../lib/supabase';
 import { Event } from '../types';
 import { TorchFilter } from './map/TorchFilter';
 import { MoodFilter } from './map/MoodFilter';
@@ -16,15 +15,18 @@ import '../styles/leaflet-custom.css';
 
 const OLA_MAPS_API_KEY = (import.meta as any).env.VITE_OLA_MAPS_API_KEY;
 
-export const MapTab = () => {
+interface MapTabProps {
+  events: Event[];
+}
+
+export const MapTab = ({ events }: MapTabProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const olaMapsRef = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
   const userMarkerRef = useRef<any>(null);
 
-  const [events, setEvents] = useState<Event[]>([]);
-  const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -38,17 +40,8 @@ export const MapTab = () => {
   const [mapLoaded, setMapLoaded] = useState(false);
   const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Fetch Events
-  useEffect(() => {
-    const loadEvents = async () => {
-      setIsLoadingEvents(true);
-      const data = await getEvents();
-      // Use mock events as fallback if Supabase is empty
-      setEvents(data.length > 0 ? data : mockEvents);
-      setIsLoadingEvents(false);
-    };
-    loadEvents();
-  }, []);
+  // Fetch Events logic removed, using props.
+
 
   // Initialize Ola Maps
   useEffect(() => {
