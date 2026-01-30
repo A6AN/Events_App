@@ -18,11 +18,10 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { mockEvents } from './data/mockEvents';
 import { mockTickets } from './data/mockTickets';
-import { mockVenues } from './data/mockVenues';
-import { Event } from './types';
+import { Event, Venue } from './types';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
-import { supabase } from './lib/supabase';
+import { supabase, fetchVenues } from './lib/supabase';
 
 const tabs = [
   { id: 'feed' as const, icon: Home, label: 'Feed' },
@@ -39,7 +38,20 @@ function AppContent() {
   const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
   const [activeTab, setActiveTab] = useState<'feed' | 'map' | 'venues' | 'profile'>('feed');
   const [ticketBookingOpen, setTicketBookingOpen] = useState(false);
+  const [venues, setVenues] = useState<Venue[]>([]);
+  const [venuesLoading, setVenuesLoading] = useState(true);
   const { theme, toggleTheme } = useTheme();
+
+  // Fetch venues from Supabase
+  useEffect(() => {
+    const loadVenues = async () => {
+      setVenuesLoading(true);
+      const data = await fetchVenues();
+      setVenues(data as Venue[]);
+      setVenuesLoading(false);
+    };
+    loadVenues();
+  }, []);
 
   const handleBookTicket = () => {
     setTicketBookingOpen(true);
@@ -142,7 +154,7 @@ function AppContent() {
               transition={{ duration: 0.2 }}
               className="absolute inset-0"
             >
-              <VenuesTab venues={mockVenues} />
+              <VenuesTab venues={venues} />
             </motion.div>
           )}
 
