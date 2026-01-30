@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Sun, Moon, Map, User, Building2, Plus, Home } from 'lucide-react';
+import { Sun, Moon, Map, User, Building2, Plus, Home, MessageCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './components/ui/button';
 import { MapTab } from './components/MapTab';
@@ -11,6 +11,7 @@ import { TicketBookingDialog } from './components/TicketBookingDialog';
 import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
 import { CreateEventWizard } from './components/modals/CreateEventWizard';
+import { ChatListSheet } from './components/modals/ChatListSheet';
 import { LiquidBackground } from './components/ui/LiquidBackground';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -33,6 +34,7 @@ const tabs = [
 function AppContent() {
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [chatListOpen, setChatListOpen] = useState(false);
   const [wheelOpen, setWheelOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
@@ -91,13 +93,22 @@ function AppContent() {
 
   return (
     <div className="h-screen w-full max-w-lg mx-auto relative flex flex-col overflow-hidden astral-bg grain">
-      {/* Theme Toggle Button */}
+      {/* Header Buttons */}
       <motion.div
-        className="absolute top-4 right-4 z-50"
+        className="absolute top-4 right-4 z-50 flex items-center gap-3"
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
       >
+        <Button
+          size="icon"
+          variant="ghost"
+          onClick={() => setChatListOpen(true)}
+          className="glass glass-hover rounded-2xl shadow-lg w-10 h-10 btn-press"
+        >
+          <MessageCircle className="h-5 w-5 text-emerald-400" />
+        </Button>
+
         <Button
           size="icon"
           variant="ghost"
@@ -341,6 +352,11 @@ function AppContent() {
         open={createEventOpen}
         onClose={() => setCreateEventOpen(false)}
         eventType={eventType}
+      />
+
+      <ChatListSheet
+        open={chatListOpen}
+        onClose={() => setChatListOpen(false)}
       />
     </div>
   );
