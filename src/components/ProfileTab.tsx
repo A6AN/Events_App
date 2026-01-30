@@ -68,12 +68,19 @@ export function ProfileTab({ events = [] }: ProfileTabProps) {
     setIsUploading(true);
     try {
       const newUrl = await uploadAvatar(user.id, file);
-      setAvatarUrl(newUrl);
-      await updateProfile(user.id, { avatar_url: newUrl });
+      if (newUrl) {
+        setAvatarUrl(newUrl);
+        await updateProfile(user.id, { avatar_url: newUrl });
+      }
     } catch (error) {
       console.error('Error uploading avatar:', error);
+      // Don't break the UI - just log the error
     } finally {
       setIsUploading(false);
+      // Reset the file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -82,11 +89,11 @@ export function ProfileTab({ events = [] }: ProfileTabProps) {
 
   return (
     <div className="h-full relative bg-[#0a0a0f]">
-      {/* Grain overlay */}
+      {/* Subtle grain overlay - very light */}
       <div
-        className="fixed inset-0 pointer-events-none opacity-30 z-0"
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 mix-blend-overlay"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         }}
       />
 
