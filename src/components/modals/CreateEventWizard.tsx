@@ -12,7 +12,7 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Sheet, SheetContent } from '../ui/sheet';
-import { createEvent, uploadEventImage } from '../../lib/supabase';
+import { createEvent, uploadEventImage, createVenueBooking } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { Venue } from '../../types';
 
@@ -137,6 +137,27 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
             let imageUrl = null;
             if (imageFile) {
                 imageUrl = await uploadEventImage(imageFile);
+            }
+
+            // Create Venue Booking if venue selected
+            if (formData.locationType === 'venue' && formData.selectedVenueId) {
+                const venue = venues.find(v => v.id === formData.selectedVenueId);
+                if (venue) {
+                    const [hours, minutes] = formData.time.split(':').map(Number);
+                    const endDate = new Date();
+                    endDate.setHours(hours + 3, minutes); // Default 3 hours
+                    const endTime = endDate.toTimeString().slice(0, 5);
+
+                    await createVenueBooking({
+                        venue_id: venue.id,
+                        user_id: user.id,
+                        booking_date: formData.date,
+                        start_time: formData.time,
+                        end_time: endTime,
+                        total_price: (venue.pricePerHour || 1000) * 3,
+                        notes: `Event: ${formData.title}`
+                    });
+                }
             }
 
             const eventDate = new Date(`${formData.date}T${formData.time}`);

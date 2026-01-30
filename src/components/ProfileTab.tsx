@@ -6,16 +6,17 @@ import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile } from '../lib/supabase';
+import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile, getUserVenueBookings } from '../lib/supabase';
 import { TicketCard } from './tickets/TicketCard';
 import { DbEvent, DbTicket } from '../types';
 
 export function ProfileTab() {
   const { user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<'hosted' | 'tickets' | 'about'>('hosted');
+  const [activeTab, setActiveTab] = useState<'hosted' | 'tickets' | 'venues' | 'about'>('hosted');
   const [stats, setStats] = useState({ followers: 0, following: 0, eventsHosted: 0 });
   const [hostedEvents, setHostedEvents] = useState<DbEvent[]>([]);
   const [tickets, setTickets] = useState<(DbTicket & { event: DbEvent })[]>([]);
+  const [venueBookings, setVenueBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
@@ -29,11 +30,13 @@ export function ProfileTab() {
         getProfileStats(user.id),
         getUserHostedEvents(user.id),
         getUserTickets(user.id),
+        getUserVenueBookings(user.id),
         getProfile(user.id)
-      ]).then(([statsData, eventsData, ticketsData, profileData]) => {
+      ]).then(([statsData, eventsData, ticketsData, bookingsData, profileData]) => {
         setStats(statsData);
         setHostedEvents(eventsData || []);
         setTickets(ticketsData || []);
+        setVenueBookings(bookingsData || []);
         setProfile(profileData);
         setLoading(false);
       });
@@ -77,7 +80,7 @@ export function ProfileTab() {
       className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 mb-3"
     >
       <div className="h-20 w-20 rounded-xl overflow-hidden flex-shrink-0 relative">
-        <ImageWithFallback src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+        <ImageWithFallback src={event.image_url || undefined} alt={event.title} className="w-full h-full object-cover" />
         <div className="absolute inset-0 bg-black/20" />
       </div>
       <div className="flex-1 min-w-0 py-1">
@@ -177,6 +180,7 @@ export function ProfileTab() {
               {[
                 { id: 'hosted', label: 'My Events' },
                 { id: 'tickets', label: 'My Tickets' },
+                { id: 'venues', label: 'Venue Bookings' },
                 { id: 'about', label: 'About' },
               ].map((tab) => (
                 <button

@@ -639,3 +639,5 @@ export const uploadAvatar = async (userId: string, file: File) => {
 
     return data.publicUrl;
 };
+
+
