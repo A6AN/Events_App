@@ -99,6 +99,17 @@ export interface DbVenue {
   owner_id: string | null;
 }
 
+export interface DbTicket {
+  id: string;
+  created_at: string;
+  event_id: string;
+  user_id: string;
+  quantity: number;
+  total_price: number;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  qr_code: string | null;
+}
+
 export interface DbVenueBooking {
   id: string;
   created_at: string;
@@ -112,16 +123,7 @@ export interface DbVenueBooking {
   notes: string | null;
 }
 
-export interface DbTicket {
-  id: string;
-  created_at: string;
-  event_id: string;
-  user_id: string;
-  quantity: number;
-  total_price: number | null;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  qr_code: string | null;
-}
+
 
 export interface DbEventLike {
   id: string;

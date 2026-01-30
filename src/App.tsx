@@ -22,7 +22,7 @@ import { mockTickets } from './data/mockTickets';
 import { Event, Venue } from './types';
 import { App as CapApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
-import { supabase, fetchVenues } from './lib/supabase';
+import { supabase, fetchVenues, getEvents } from './lib/supabase';
 
 const tabs = [
   { id: 'feed' as const, icon: Home, label: 'Feed' },
@@ -41,18 +41,23 @@ function AppContent() {
   const [activeTab, setActiveTab] = useState<'feed' | 'map' | 'venues' | 'profile'>('feed');
   const [ticketBookingOpen, setTicketBookingOpen] = useState(false);
   const [venues, setVenues] = useState<Venue[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [venuesLoading, setVenuesLoading] = useState(true);
   const { theme, toggleTheme } = useTheme();
 
   // Fetch venues from Supabase
   useEffect(() => {
-    const loadVenues = async () => {
+    const loadData = async () => {
       setVenuesLoading(true);
-      const data = await fetchVenues();
-      setVenues(data as Venue[]);
+      const [venuesData, eventsData] = await Promise.all([
+        fetchVenues(),
+        getEvents()
+      ]);
+      setVenues(venuesData as Venue[]);
+      setEvents(eventsData as unknown as Event[]); // Cast due to type mismatch (DbEvent vs Event mock)
       setVenuesLoading(false);
     };
-    loadVenues();
+    loadData();
   }, []);
 
   const handleBookTicket = () => {
@@ -136,7 +141,7 @@ function AppContent() {
               className="absolute inset-0"
             >
               <SocialTab
-                events={mockEvents}
+                events={events}
                 tickets={mockTickets}
                 onEventSelect={handleEventSelect}
               />
@@ -178,7 +183,7 @@ function AppContent() {
               transition={{ duration: 0.2 }}
               className="absolute inset-0"
             >
-              <ProfileTab events={mockEvents} />
+              <ProfileTab />
             </motion.div>
           )}
         </AnimatePresence>

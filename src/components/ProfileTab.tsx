@@ -1,343 +1,309 @@
-import { Share2, Settings, Grid3X3, Heart, Sparkles, MapPin } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Share2, Settings, Camera, Ticket, Sparkles, MapPin, Calendar, LogOut, Edit2, ChevronRight, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
-import { Event } from '../types';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getProfileStats } from '../lib/supabase';
+import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile } from '../lib/supabase';
+import { TicketCard } from './tickets/TicketCard';
+import { DbEvent, DbTicket } from '../types';
 
-interface ProfileTabProps {
-  events?: Event[];
-}
-
-export function ProfileTab({ events = [] }: ProfileTabProps) {
-  const [activeTab, setActiveTab] = useState<'liked' | 'saved' | 'about'>('liked');
-  const { user } = useAuth();
+export function ProfileTab() {
+  const { user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState<'hosted' | 'tickets' | 'about'>('hosted');
   const [stats, setStats] = useState({ followers: 0, following: 0, eventsHosted: 0 });
+  const [hostedEvents, setHostedEvents] = useState<DbEvent[]>([]);
+  const [tickets, setTickets] = useState<(DbTicket & { event: DbEvent })[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch real profile stats
+  // Fetch real profile data
   useEffect(() => {
     if (user?.id) {
-      getProfileStats(user.id).then(setStats);
+      setLoading(true);
+      Promise.all([
+        getProfileStats(user.id),
+        getUserHostedEvents(user.id),
+        getUserTickets(user.id),
+        getProfile(user.id)
+      ]).then(([statsData, eventsData, ticketsData, profileData]) => {
+        setStats(statsData);
+        setHostedEvents(eventsData || []);
+        setTickets(ticketsData || []);
+        setProfile(profileData);
+        setLoading(false);
+      });
     }
   }, [user?.id]);
 
-  // Split events into hosted and attended
-  const likedEvents = events.slice(0, 6);
-  const savedEvents = events.slice(3, 9);
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
 
-  // Get user display name and avatar from user metadata
-  const metadata = user?.user_metadata || {};
-  const displayName = metadata.full_name || metadata.name || user?.email?.split('@')[0] || 'User';
-  const avatarUrl = metadata.avatar_url || metadata.picture || 'https://github.com/shadcn.png';
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || !e.target.files[0] || !user) return;
+
+    const file = e.target.files[0];
+    setUploading(true);
+    try {
+      const publicUrl = await uploadAvatar(user.id, file);
+      // Update profile in DB
+      await updateProfile(user.id, { avatar_url: publicUrl });
+      // Update local state
+      setProfile((prev: any) => ({ ...prev, avatar_url: publicUrl }));
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+      alert('Failed to upload avatar');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  // Safe display values
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User';
+  const username = profile?.username || user?.email?.split('@')[0] || 'username';
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url;
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
+  // Helper to map DbEvent to card UI (simplified inline card for hosted events)
+  const EventListItem = ({ event }: { event: DbEvent }) => (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 mb-3"
+    >
+      <div className="h-20 w-20 rounded-xl overflow-hidden flex-shrink-0 relative">
+        <ImageWithFallback src={event.image_url} alt={event.title} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
+      <div className="flex-1 min-w-0 py-1">
+        <h3 className="text-white font-semibold truncate">{event.title}</h3>
+        <div className="flex items-center gap-2 text-white/50 text-xs mt-1">
+          <Calendar className="h-3 w-3" />
+          <span>{new Date(event.date).toLocaleDateString()}</span>
+        </div>
+        <div className="flex items-center gap-2 text-white/50 text-xs mt-1">
+          <MapPin className="h-3 w-3" />
+          <span className="truncate">{event.location_name}</span>
+        </div>
+      </div>
+      <div className="flex flex-col justify-between items-end py-1">
+        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${new Date(event.date) < new Date() ? 'bg-white/10 text-white/50' : 'bg-emerald-500/20 text-emerald-400'}`}>
+          {new Date(event.date) < new Date() ? 'Past' : 'Upcoming'}
+        </span>
+        <ChevronRight className="h-4 w-4 text-white/30" />
+      </div>
+    </motion.div>
+  );
+
   return (
-    <div className="h-full relative">
-      <ScrollArea className="h-full">
+    <div className="h-full relative bg-[#0a0a0f]">
+      {/* Grain Overlay */}
+      <div
+        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 mix-blend-overlay"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      <ScrollArea className="h-full relative z-10">
         <div className="pb-24">
-          {/* Full-Bleed Hero Section */}
-          <div className="relative h-[50vh] overflow-hidden">
-            {/* Hero Background Image */}
-            <motion.div
-              className="absolute inset-0"
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <ImageWithFallback
-                src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&h=800&fit=crop"
-                alt="Profile Hero"
-                className="w-full h-full object-cover"
-              />
-              {/* Gradient Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
-              <div
-                className="absolute inset-0"
-                style={{
-                  background: 'radial-gradient(ellipse at 50% 80%, rgba(247, 37, 133, 0.2) 0%, transparent 60%)',
-                }}
-              />
-            </motion.div>
-
-            {/* Floating Header Bar */}
-            <motion.div
-              className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between glass backdrop-blur-2xl border-b border-white/10"
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.2 }}
-            >
-              <Button
-                size="icon"
-                variant="ghost"
-                className="glass-hover rounded-2xl w-10 h-10 btn-press"
-              >
-                <Share2 className="h-4 w-4" />
-              </Button>
-              <h2 className="gradient-text">Profile</h2>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="glass-hover rounded-2xl w-10 h-10 btn-press"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </motion.div>
-
-            {/* Profile Info - Bottom of Hero */}
-            <motion.div
-              className="absolute bottom-0 left-0 right-0 p-6"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <div className="flex items-end gap-4 mb-4">
-                {/* Avatar with ring */}
-                <div className="relative">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="relative"
-                  >
-                    <Avatar className="h-24 w-24 border-4 border-white/20 shadow-2xl">
-                      <AvatarImage
-                        src={avatarUrl}
-                        alt="Profile"
-                      />
-                      <AvatarFallback>{initials}</AvatarFallback>
-                    </Avatar>
-                    <motion.div
-                      className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg"
-                      style={{
-                        background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
-                      }}
-                      animate={{
-                        scale: [1, 1.1, 1],
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: 'easeInOut',
-                      }}
-                    >
-                      <Sparkles className="h-3.5 w-3.5 text-white" />
-                    </motion.div>
-                  </motion.div>
-                </div>
-
-                {/* Stats */}
-                <div className="flex-1 grid grid-cols-3 gap-3">
-                  {[
-                    { label: 'Events', value: stats.eventsHosted },
-                    { label: 'Followers', value: stats.followers },
-                    { label: 'Following', value: stats.following },
-                  ].map((stat, idx) => (
-                    <motion.div
-                      key={stat.label}
-                      className="text-center glass backdrop-blur-xl rounded-2xl p-2.5"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.4 + idx * 0.1 }}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <div className="text-white text-lg mb-0.5">{stat.value}</div>
-                      <div className="text-white/60 text-[10px]">{stat.label}</div>
-                    </motion.div>
-                  ))}
-                </div>
+          {/* Profile Header */}
+          <div className="pt-24 px-6 pb-6">
+            <div className="flex items-start justify-between mb-6">
+              <div className="relative">
+                <motion.div whileHover={{ scale: 1.05 }} className="relative group cursor-pointer" onClick={handleAvatarClick}>
+                  <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl">
+                    <AvatarImage src={avatarUrl} className="object-cover" />
+                    <AvatarFallback className="bg-white/10 text-white text-2xl">{initials}</AvatarFallback>
+                  </Avatar>
+                  {/* Camera Overlay */}
+                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                    <Camera className="h-8 w-8 text-white" />
+                  </div>
+                  {uploading && (
+                    <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
+                      <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+                    </div>
+                  )}
+                  <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center border-4 border-[#0a0a0f]">
+                    <Edit2 className="h-3.5 w-3.5 text-white" />
+                  </div>
+                </motion.div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
               </div>
 
-              {/* Name and Location */}
-              <div>
-                <h1 className="text-white mb-1">{displayName}</h1>
-                <div className="flex items-center gap-2 text-white/80 text-sm mb-3">
-                  <MapPin className="h-3.5 w-3.5" style={{ color: '#F72585' }} />
-                  <span>Delhi • Event Enthusiast</span>
-                </div>
+              <div className="flex gap-2">
+                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/5">
+                  <Share2 className="h-5 w-5 text-white" />
+                </Button>
+                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/5">
+                  <Settings className="h-5 w-5 text-white" />
+                </Button>
               </div>
-            </motion.div>
-          </div>
+            </div>
 
-          {/* Segmented Control - Sticky */}
-          <div className="sticky top-0 z-20 glass backdrop-blur-2xl border-b border-white/10">
-            <div className="p-4">
-              <div className="glass p-1 rounded-2xl grid grid-cols-3 gap-1">
-                {[
-                  { id: 'liked' as const, icon: Heart, label: 'Liked' },
-                  { id: 'saved' as const, icon: Grid3X3, label: 'Saved' },
-                  { id: 'about' as const, icon: Sparkles, label: 'About' },
-                ].map((tab) => {
-                  const Icon = tab.icon;
-                  const isActive = activeTab === tab.id;
+            <div>
+              <h1 className="text-2xl font-bold text-white mb-1">{displayName}</h1>
+              <p className="text-white/50 text-sm mb-4">@{username}</p>
 
-                  return (
-                    <motion.button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id)}
-                      className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-all relative overflow-hidden ${isActive ? 'text-white' : 'text-muted-foreground'
-                        }`}
-                      whileTap={{ scale: 0.97 }}
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeProfileTab"
-                          className="absolute inset-0 rounded-xl"
-                          style={{
-                            background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
-                            boxShadow: '0 4px 12px rgba(247, 37, 133, 0.3)',
-                          }}
-                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                      )}
-                      <Icon className="h-4 w-4 relative z-10" />
-                      <span className="relative z-10">{tab.label}</span>
-                    </motion.button>
-                  );
-                })}
+              {/* Stats */}
+              <div className="flex gap-6 p-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{stats.eventsHosted}</div>
+                  <div className="text-xs text-white/50">Events</div>
+                </div>
+                <div className="w-px bg-white/10" />
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{stats.followers}</div>
+                  <div className="text-xs text-white/50">Followers</div>
+                </div>
+                <div className="w-px bg-white/10" />
+                <div className="text-center">
+                  <div className="text-lg font-bold text-white">{stats.following}</div>
+                  <div className="text-xs text-white/50">Following</div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Content Grid */}
-          <div className="p-4">
-            {activeTab === 'liked' && (
-              <div className="grid grid-cols-3 gap-2">
-                {likedEvents.map((event, idx) => (
-                  <motion.div
-                    key={event.id}
-                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-2xl"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <ImageWithFallback
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
+          {/* Navigation Tabs */}
+          <div className="sticky top-0 z-20 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/5 px-6">
+            <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
+              {[
+                { id: 'hosted', label: 'My Events' },
+                { id: 'tickets', label: 'My Tickets' },
+                { id: 'about', label: 'About' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as any)}
+                  className="relative py-4"
+                >
+                  <span className={`text-sm font-medium transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/50'
+                    }`}>
+                    {tab.label}
+                  </span>
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute -bottom-px left-0 right-0 h-0.5 bg-emerald-500"
                     />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                    {/* Gradient Overlay on hover */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end justify-center p-3"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="text-white text-center w-full">
-                        <div className="text-xs mb-1 line-clamp-2">{event.title}</div>
-                        <div className="text-[10px]" style={{ color: '#F72585' }}>
-                          {event.attendees} attendees
-                        </div>
+          {/* Tab Content */}
+          <div className="p-6">
+            <AnimatePresence mode="wait">
+              {activeTab === 'hosted' && (
+                <motion.div
+                  key="hosted"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-4"
+                >
+                  {loading ? (
+                    <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-emerald-500 animate-spin" /></div>
+                  ) : hostedEvents.length === 0 ? (
+                    <div className="text-center py-10">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                        <Sparkles className="h-8 w-8 text-white/20" />
                       </div>
-                    </motion.div>
+                      <h3 className="text-white font-medium mb-1">No events yet</h3>
+                      <p className="text-white/40 text-sm">Host your first event to get started!</p>
+                    </div>
+                  ) : (
+                    hostedEvents.map(event => (
+                      <EventListItem key={event.id} event={event} />
+                    ))
+                  )}
+                </motion.div>
+              )}
 
-                    {/* Heart indicator */}
-                    <motion.div
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full glass backdrop-blur-xl flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Heart className="h-3 w-3" style={{ color: '#F72585', fill: '#F72585' }} />
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
+              {activeTab === 'tickets' && (
+                <motion.div
+                  key="tickets"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-6"
+                >
+                  {loading ? (
+                    <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-emerald-500 animate-spin" /></div>
+                  ) : tickets.length === 0 ? (
+                    <div className="text-center py-10">
+                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+                        <Ticket className="h-8 w-8 text-white/20" />
+                      </div>
+                      <h3 className="text-white font-medium mb-1">No tickets</h3>
+                      <p className="text-white/40 text-sm">You haven't booked any events yet.</p>
+                    </div>
+                  ) : (
+                    tickets.map(ticket => (
+                      <div key={ticket.id} className="relative">
+                        {/* Use TicketCard but without QR functional? Or fully functional */}
+                        <TicketCard event={ticket.event} ticketId={ticket.id} />
+                      </div>
+                    ))
+                  )}
+                </motion.div>
+              )}
 
-            {activeTab === 'saved' && (
-              <div className="grid grid-cols-3 gap-2">
-                {savedEvents.map((event, idx) => (
-                  <motion.div
-                    key={event.id}
-                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-2xl"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+              {activeTab === 'about' && (
+                <motion.div
+                  key="about"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  className="space-y-6"
+                >
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/5">
+                    <h3 className="text-white font-semibold mb-3">Bio</h3>
+                    <p className="text-white/60 text-sm leading-relaxed">
+                      {user?.user_metadata?.bio || "No bio added yet. Edit your profile to add one."}
+                    </p>
+                  </div>
+
+                  <div className="p-5 rounded-2xl bg-white/5 border border-white/5">
+                    <h3 className="text-white font-semibold mb-3">Interests</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {['Music', 'Art', 'Technology', 'Nightlife', 'Food'].map(tag => (
+                        <span key={tag} className="px-3 py-1 rounded-full bg-white/5 text-xs text-white/70 border border-white/10">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="w-full h-12 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
+                    onClick={() => signOut()}
                   >
-                    <ImageWithFallback
-                      src={event.imageUrl}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </Button>
 
-                    {/* Gradient Overlay on hover */}
-                    <motion.div
-                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end justify-center p-3"
-                      initial={{ opacity: 0 }}
-                      whileHover={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <div className="text-white text-center w-full">
-                        <div className="text-xs mb-1 line-clamp-2">{event.title}</div>
-                        <div className="text-[10px]" style={{ color: '#F72585' }}>
-                          by {event.host.name}
-                        </div>
-                      </div>
-                    </motion.div>
-
-                    {/* Bookmark indicator */}
-                    <motion.div
-                      className="absolute top-2 right-2 w-6 h-6 rounded-full glass backdrop-blur-xl flex items-center justify-center"
-                      whileHover={{ scale: 1.1 }}
-                    >
-                      <Grid3X3 className="h-3 w-3" style={{ color: '#4CC9F0' }} />
-                    </motion.div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === 'about' && (
-              <motion.div
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <div className="glass backdrop-blur-xl rounded-3xl p-6">
-                  <h3 className="text-foreground mb-3">About</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                    🎉 Creating unforgettable experiences across Delhi's hottest venues.
-                    From intimate gatherings to spectacular events, I bring people together
-                    through music, art, and culture.
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {['Events', 'Music', 'Art', 'Culture', 'Delhi'].map((tag) => (
-                      <motion.span
-                        key={tag}
-                        className="px-3 py-1.5 rounded-full text-xs glass"
-                        whileHover={{ scale: 1.05 }}
-                        style={{ color: '#F72585' }}
-                      >
-                        {tag}
-                      </motion.span>
-                    ))}
+                  <div className="text-center text-xs text-white/20 pt-4">
+                    Version 1.0.0
                   </div>
-                </div>
-
-                <div className="glass backdrop-blur-xl rounded-3xl p-6">
-                  <h3 className="text-foreground mb-3">Favorite Spots</h3>
-                  <div className="space-y-3">
-                    {['Hauz Khas Village', 'Connaught Place', 'Khan Market'].map((spot, idx) => (
-                      <motion.div
-                        key={spot}
-                        className="flex items-center gap-3"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.1 }}
-                      >
-                        <MapPin className="h-4 w-4" style={{ color: '#F72585' }} />
-                        <span className="text-sm text-foreground">{spot}</span>
-                      </motion.div>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </ScrollArea>

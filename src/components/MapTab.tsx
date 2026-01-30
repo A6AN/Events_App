@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Navigation, MapPin, Loader2, ListFilter } from 'lucide-react';
 import { Button } from './ui/button';
-import { fetchEvents } from '../lib/supabase';
+import { getEvents } from '../lib/supabase';
 import { Event } from '../types';
 import { TorchFilter } from './map/TorchFilter';
 import { MoodFilter } from './map/MoodFilter';
@@ -42,7 +42,7 @@ export const MapTab = () => {
   useEffect(() => {
     const loadEvents = async () => {
       setIsLoadingEvents(true);
-      const data = await fetchEvents();
+      const data = await getEvents();
       // Use mock events as fallback if Supabase is empty
       setEvents(data.length > 0 ? data : mockEvents);
       setIsLoadingEvents(false);
@@ -402,8 +402,7 @@ export const MapTab = () => {
             <span className="text-sm font-medium">Nearby</span>
           </Button>
 
-          {/* Create Event FAB */}
-          <CreateEventWizard />
+
         </div>
       </div>
 

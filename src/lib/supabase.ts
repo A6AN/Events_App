@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import { DbEvent, DbProfile, Event } from '../types';
+import { DbEvent, DbProfile, Event, DbTicket } from '../types';
 
 import { Capacitor } from '@capacitor/core';
 
@@ -128,6 +128,48 @@ export async function uploadEventImage(file: File) {
         .getPublicUrl(filePath);
 
     return data.publicUrl;
+}
+
+export async function createTicket(ticketData: Omit<DbTicket, 'id' | 'created_at'>) {
+    const { data, error } = await supabase
+        .from('tickets')
+        .insert([ticketData])
+        .select()
+        .single();
+
+    return data;
+}
+
+export async function getUserHostedEvents(userId: string) {
+    const { data, error } = await supabase
+        .from('events')
+        .select('*')
+        .eq('host_id', userId)
+        .order('date', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching hosted events:', error);
+        return [];
+    }
+    return data;
+}
+
+
+
+export async function getEvents() {
+    const { data, error } = await supabase
+        .from('events')
+        .select(`
+            *,
+            host:profiles!host_id (id, full_name, avatar_url)
+        `)
+        .order('date', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching events:', error);
+        return [];
+    }
+    return data;
 }
 
 export const rsvpToEvent = async (eventId: string, userId: string) => {

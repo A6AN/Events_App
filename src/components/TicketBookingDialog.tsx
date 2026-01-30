@@ -1,8 +1,10 @@
-import { Calendar, X, Download, QrCode, Check } from 'lucide-react';
+import { Calendar, X, Download, QrCode, Check, Loader2 } from 'lucide-react';
 import { TicketEvent } from '../types';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust path if needed
+import { useAuth } from '../context/AuthContext';
+import { createTicket } from '../lib/supabase';
 
 interface TicketBookingDialogProps {
   ticket: TicketEvent | null; // Or generic Event
@@ -11,13 +13,39 @@ interface TicketBookingDialogProps {
 }
 
 export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDialogProps) {
+  const { user } = useAuth();
   const [isBooked, setIsBooked] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState(2);
 
   if (!ticket) return null;
 
-  const handleBook = () => {
-    setIsBooked(true);
+  const handleBook = async () => {
+    if (!user) {
+      alert("Please login to book tickets");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const qrCode = `EVENT-${ticket.id}-USER-${user.id}-${Date.now()}`;
+
+      await createTicket({
+        event_id: ticket.id,
+        user_id: user.id,
+        quantity: selectedSeats,
+        total_price: ticket.price * selectedSeats,
+        status: 'confirmed',
+        qr_code: qrCode
+      });
+
+      setIsBooked(true);
+    } catch (error) {
+      console.error('Error booking ticket:', error);
+      alert('Failed to book ticket. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleCloseConfirmation = () => {
@@ -201,14 +229,17 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <div className="pb-6">
                     <motion.button
                       onClick={handleBook}
-                      className="w-full rounded-2xl text-white font-semibold py-4 shadow-lg relative overflow-hidden"
+                      disabled={isLoading}
+                      className="w-full rounded-2xl text-white font-semibold py-4 shadow-lg relative overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
                       style={{
-                        background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      <span className="relative z-10">Confirm Booking</span>
+                      <span className="relative z-10 flex items-center justify-center gap-2">
+                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm Booking'}
+                      </span>
                       {/* Shimmer effect */}
                       <motion.div
                         className="absolute inset-0"
@@ -238,7 +269,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              <div className="flex-1 overflow-y-auto scrollbar-hide p-6" style={{ background: '#4A2424' }}>
+              <div className="flex-1 overflow-y-auto scrollbar-hide p-6" style={{ background: '#022c22' }}>
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                   <motion.button
@@ -338,7 +369,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <motion.button
                     className="flex-1 rounded-2xl text-white font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
                     style={{
-                      background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
+                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                     }}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
