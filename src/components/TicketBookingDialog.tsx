@@ -285,7 +285,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         {ticket.title}
                       </h3>
                       <p className="text-black/60 text-sm text-center mb-6">
-                        {ticket.location.name}
+                        {ticket.venue}
                       </p>
 
                       {/* Date & Time */}
@@ -296,7 +296,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Time</div>
-                          <div className="text-black font-semibold">{ticket.startTime}</div>
+                          <div className="text-black font-semibold">{ticket.time}</div>
                         </div>
                       </div>
 
@@ -304,7 +304,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Location</div>
-                          <div className="text-black font-semibold truncate">{ticket.location.address.split(',')[0]}</div>
+                          <div className="text-black font-semibold truncate">{ticket.venue}</div>
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Quantity</div>
