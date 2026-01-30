@@ -5,7 +5,9 @@ import { Button } from './ui/button';
 import { Event } from '../types';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../context/AuthContext';
+import { getProfileStats } from '../lib/supabase';
 
 interface ProfileTabProps {
   events?: Event[];
@@ -13,10 +15,25 @@ interface ProfileTabProps {
 
 export function ProfileTab({ events = [] }: ProfileTabProps) {
   const [activeTab, setActiveTab] = useState<'liked' | 'saved' | 'about'>('liked');
+  const { user } = useAuth();
+  const [stats, setStats] = useState({ followers: 0, following: 0, eventsHosted: 0 });
 
-  // Split events into hosted and attended (mock data)
+  // Fetch real profile stats
+  useEffect(() => {
+    if (user?.id) {
+      getProfileStats(user.id).then(setStats);
+    }
+  }, [user?.id]);
+
+  // Split events into hosted and attended
   const likedEvents = events.slice(0, 6);
   const savedEvents = events.slice(3, 9);
+
+  // Get user display name and avatar from user metadata
+  const metadata = user?.user_metadata || {};
+  const displayName = metadata.full_name || metadata.name || user?.email?.split('@')[0] || 'User';
+  const avatarUrl = metadata.avatar_url || metadata.picture || 'https://github.com/shadcn.png';
+  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
   return (
     <div className="h-full relative">
@@ -86,10 +103,10 @@ export function ProfileTab({ events = [] }: ProfileTabProps) {
                   >
                     <Avatar className="h-24 w-24 border-4 border-white/20 shadow-2xl">
                       <AvatarImage
-                        src="https://images.unsplash.com/photo-1667382136327-5f78dc5cf835?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYW4lMjBtYW4lMjBwb3J0cmFpdHxlbnwxfHx8fDE3NjMzNzA5NzN8MA&ixlib=rb-4.1.0&q=80&w=1080"
+                        src={avatarUrl}
                         alt="Profile"
                       />
-                      <AvatarFallback>AM</AvatarFallback>
+                      <AvatarFallback>{initials}</AvatarFallback>
                     </Avatar>
                     <motion.div
                       className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg"
@@ -113,9 +130,9 @@ export function ProfileTab({ events = [] }: ProfileTabProps) {
                 {/* Stats */}
                 <div className="flex-1 grid grid-cols-3 gap-3">
                   {[
-                    { label: 'Hosted', value: likedEvents.length },
-                    { label: 'Attended', value: savedEvents.length },
-                    { label: 'Friends', value: 156 },
+                    { label: 'Events', value: stats.eventsHosted },
+                    { label: 'Followers', value: stats.followers },
+                    { label: 'Following', value: stats.following },
                   ].map((stat, idx) => (
                     <motion.div
                       key={stat.label}
@@ -134,10 +151,10 @@ export function ProfileTab({ events = [] }: ProfileTabProps) {
 
               {/* Name and Location */}
               <div>
-                <h1 className="text-white mb-1">Arjun Malhotra</h1>
+                <h1 className="text-white mb-1">{displayName}</h1>
                 <div className="flex items-center gap-2 text-white/80 text-sm mb-3">
                   <MapPin className="h-3.5 w-3.5" style={{ color: '#F72585' }} />
-                  <span>Delhi • Event Curator</span>
+                  <span>Delhi • Event Enthusiast</span>
                 </div>
               </div>
             </motion.div>
