@@ -7,11 +7,8 @@ import { MapTab } from './components/MapTab';
 import { SocialTab } from './components/SocialTab';
 import { ProfileTab } from './components/ProfileTab';
 import { VenuesTab } from './components/VenuesTab';
-import { TicketBookingDialog } from './components/TicketBookingDialog'; // Add import
-
-
-
-// ... rest of the file ...
+import { TicketBookingDialog } from './components/TicketBookingDialog';
+import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
 import { CreateEventWizard } from './components/modals/CreateEventWizard';
 import { LiquidBackground } from './components/ui/LiquidBackground';
@@ -69,23 +66,6 @@ function AppContent() {
     setSelectedEvent(event);
     setSheetOpen(true);
   };
-
-  // ... (skip unchanged lines) ...
-
-  {/* Event Detail Sheet */ }
-  <EventDetailsSheet
-    event={selectedEvent}
-    open={sheetOpen}
-    onClose={handleCloseSheet}
-    onBook={handleBookTicket}
-  />
-
-  {/* Ticket Booking Dialog */ }
-  <TicketBookingDialog
-    ticket={selectedTicket}
-    open={ticketBookingOpen}
-    onClose={() => setTicketBookingOpen(false)}
-  />
 
   const handleCloseSheet = () => {
     setSheetOpen(false);
