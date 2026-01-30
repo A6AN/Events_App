@@ -1,409 +1,346 @@
-import { Share2, Settings, Camera, Ticket, Sparkles, MapPin, Calendar, LogOut, Edit2, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Share2, Settings, Grid3X3, Heart, Sparkles, MapPin } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Button } from './ui/button';
 import { Event } from '../types';
 import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getProfileStats, uploadAvatar, updateProfile, getUserTickets, getProfile } from '../lib/supabase';
+import { getProfileStats } from '../lib/supabase';
 
 interface ProfileTabProps {
   events?: Event[];
 }
 
 export function ProfileTab({ events = [] }: ProfileTabProps) {
-  const [activeTab, setActiveTab] = useState<'events' | 'tickets' | 'about'>('events');
-  const { user, signOut } = useAuth();
+  const [activeTab, setActiveTab] = useState<'liked' | 'saved' | 'about'>('liked');
+  const { user } = useAuth();
   const [stats, setStats] = useState({ followers: 0, following: 0, eventsHosted: 0 });
-  const [userTickets, setUserTickets] = useState<any[]>([]);
-  const [isUploading, setIsUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
-  const [displayName, setDisplayName] = useState('User');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch profile data from database (syncs across devices)
+  // Fetch real profile stats
   useEffect(() => {
     if (user?.id) {
-      // Fetch stats
       getProfileStats(user.id).then(setStats);
-      getUserTickets(user.id).then(setUserTickets);
-
-      // Fetch profile from database for synced avatar
-      getProfile(user.id).then((profile) => {
-        if (profile?.avatar_url) {
-          setAvatarUrl(profile.avatar_url);
-        } else {
-          // Fallback to Google avatar from auth metadata
-          const metadata = user.user_metadata || {};
-          setAvatarUrl(metadata.avatar_url || metadata.picture || '');
-        }
-
-        // Set display name
-        if (profile?.full_name) {
-          setDisplayName(profile.full_name);
-        } else if (profile?.username) {
-          setDisplayName(profile.username);
-        } else {
-          const metadata = user.user_metadata || {};
-          setDisplayName(metadata.full_name || metadata.name || user.email?.split('@')[0] || 'User');
-        }
-      });
     }
   }, [user?.id]);
 
-  const userEmail = user?.email || '';
+  // Split events into hosted and attended
+  const likedEvents = events.slice(0, 6);
+  const savedEvents = events.slice(3, 9);
+
+  // Get user display name and avatar from user metadata
+  const metadata = user?.user_metadata || {};
+  const displayName = metadata.full_name || metadata.name || user?.email?.split('@')[0] || 'User';
+  const avatarUrl = metadata.avatar_url || metadata.picture || 'https://github.com/shadcn.png';
   const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // Handle avatar upload
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !user?.id) return;
-
-    setIsUploading(true);
-    try {
-      const newUrl = await uploadAvatar(user.id, file);
-      if (newUrl) {
-        setAvatarUrl(newUrl);
-        await updateProfile(user.id, { avatar_url: newUrl });
-      }
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      // Don't break the UI - just log the error
-    } finally {
-      setIsUploading(false);
-      // Reset the file input so the same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
-
-  // Filter events hosted by this user
-  const myEvents = events.filter(e => e.host?.id === user?.id);
-
   return (
-    <div className="h-full relative bg-[#0a0a0f]">
-      {/* Subtle grain overlay - very light */}
-      <div
-        className="fixed inset-0 pointer-events-none opacity-[0.03] z-0 mix-blend-overlay"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
-      <ScrollArea className="h-full relative z-10">
+    <div className="h-full relative">
+      <ScrollArea className="h-full">
         <div className="pb-24">
-          {/* Header */}
-          <div className="px-4 pt-4 pb-3 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-white">Profile</h2>
-            <div className="flex gap-2">
+          {/* Full-Bleed Hero Section */}
+          <div className="relative h-[50vh] overflow-hidden">
+            {/* Hero Background Image */}
+            <motion.div
+              className="absolute inset-0"
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.6 }}
+            >
+              <ImageWithFallback
+                src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=1200&h=800&fit=crop"
+                alt="Profile Hero"
+                className="w-full h-full object-cover"
+              />
+              {/* Gradient Overlays */}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
+              <div
+                className="absolute inset-0"
+                style={{
+                  background: 'radial-gradient(ellipse at 50% 80%, rgba(247, 37, 133, 0.2) 0%, transparent 60%)',
+                }}
+              />
+            </motion.div>
+
+            {/* Floating Header Bar */}
+            <motion.div
+              className="absolute top-0 left-0 right-0 z-10 p-4 flex items-center justify-between glass backdrop-blur-2xl border-b border-white/10"
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
               <Button
                 size="icon"
                 variant="ghost"
-                className="rounded-xl w-9 h-9 bg-white/5 hover:bg-white/10"
+                className="glass-hover rounded-2xl w-10 h-10 btn-press"
               >
-                <Share2 className="h-4 w-4 text-white/70" />
+                <Share2 className="h-4 w-4" />
               </Button>
+              <h2 className="gradient-text">Profile</h2>
               <Button
                 size="icon"
                 variant="ghost"
-                className="rounded-xl w-9 h-9 bg-white/5 hover:bg-white/10"
+                className="glass-hover rounded-2xl w-10 h-10 btn-press"
               >
-                <Settings className="h-4 w-4 text-white/70" />
+                <Settings className="h-4 w-4" />
               </Button>
-            </div>
+            </motion.div>
+
+            {/* Profile Info - Bottom of Hero */}
+            <motion.div
+              className="absolute bottom-0 left-0 right-0 p-6"
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="flex items-end gap-4 mb-4">
+                {/* Avatar with ring */}
+                <div className="relative">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    className="relative"
+                  >
+                    <Avatar className="h-24 w-24 border-4 border-white/20 shadow-2xl">
+                      <AvatarImage
+                        src={avatarUrl}
+                        alt="Profile"
+                      />
+                      <AvatarFallback>{initials}</AvatarFallback>
+                    </Avatar>
+                    <motion.div
+                      className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center border-2 border-white/20 shadow-lg"
+                      style={{
+                        background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
+                      }}
+                      animate={{
+                        scale: [1, 1.1, 1],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: 'easeInOut',
+                      }}
+                    >
+                      <Sparkles className="h-3.5 w-3.5 text-white" />
+                    </motion.div>
+                  </motion.div>
+                </div>
+
+                {/* Stats */}
+                <div className="flex-1 grid grid-cols-3 gap-3">
+                  {[
+                    { label: 'Events', value: stats.eventsHosted },
+                    { label: 'Followers', value: stats.followers },
+                    { label: 'Following', value: stats.following },
+                  ].map((stat, idx) => (
+                    <motion.div
+                      key={stat.label}
+                      className="text-center glass backdrop-blur-xl rounded-2xl p-2.5"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.4 + idx * 0.1 }}
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <div className="text-white text-lg mb-0.5">{stat.value}</div>
+                      <div className="text-white/60 text-[10px]">{stat.label}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Name and Location */}
+              <div>
+                <h1 className="text-white mb-1">{displayName}</h1>
+                <div className="flex items-center gap-2 text-white/80 text-sm mb-3">
+                  <MapPin className="h-3.5 w-3.5" style={{ color: '#F72585' }} />
+                  <span>Delhi • Event Enthusiast</span>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
-          {/* Profile Section */}
-          <div className="px-4 mb-6">
-            {/* Avatar - Centered */}
-            <div className="flex flex-col items-center mb-5">
-              <motion.div
-                className="relative cursor-pointer mb-3"
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={handleAvatarClick}
-              >
-                <Avatar className="h-24 w-24 border-2 border-white/10">
-                  <AvatarImage src={avatarUrl} alt="Profile" />
-                  <AvatarFallback className="text-lg bg-white/10 text-white">{initials}</AvatarFallback>
-                </Avatar>
-                <motion.div
-                  className="absolute bottom-0 right-0 w-8 h-8 rounded-full bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20"
-                  whileHover={{ scale: 1.1 }}
-                >
-                  {isUploading ? (
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <Camera className="h-4 w-4 text-white" />
-                  )}
-                </motion.div>
-                {/* Hidden file input - properly hidden */}
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="sr-only"
-                  onChange={handleFileChange}
-                  aria-hidden="true"
-                />
-              </motion.div>
+          {/* Segmented Control - Sticky */}
+          <div className="sticky top-0 z-20 glass backdrop-blur-2xl border-b border-white/10">
+            <div className="p-4">
+              <div className="glass p-1 rounded-2xl grid grid-cols-3 gap-1">
+                {[
+                  { id: 'liked' as const, icon: Heart, label: 'Liked' },
+                  { id: 'saved' as const, icon: Grid3X3, label: 'Saved' },
+                  { id: 'about' as const, icon: Sparkles, label: 'About' },
+                ].map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.id;
 
-              {/* Name and Email */}
-              <h1 className="text-xl font-semibold text-white mb-1">{displayName}</h1>
-              <p className="text-sm text-white/50 mb-2">{userEmail}</p>
-              <div className="flex items-center gap-1.5 text-xs text-white/40">
-                <MapPin className="h-3 w-3" />
-                <span>Delhi, India</span>
+                  return (
+                    <motion.button
+                      key={tab.id}
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-all relative overflow-hidden ${isActive ? 'text-white' : 'text-muted-foreground'
+                        }`}
+                      whileTap={{ scale: 0.97 }}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="activeProfileTab"
+                          className="absolute inset-0 rounded-xl"
+                          style={{
+                            background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
+                            boxShadow: '0 4px 12px rgba(247, 37, 133, 0.3)',
+                          }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                      )}
+                      <Icon className="h-4 w-4 relative z-10" />
+                      <span className="relative z-10">{tab.label}</span>
+                    </motion.button>
+                  );
+                })}
               </div>
             </div>
-
-            {/* Stats Row */}
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              {[
-                { label: 'Events', value: stats.eventsHosted },
-                { label: 'Followers', value: stats.followers },
-                { label: 'Following', value: stats.following },
-              ].map((stat, idx) => (
-                <motion.div
-                  key={stat.label}
-                  className="text-center py-4 rounded-2xl bg-white/5 border border-white/5"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 + idx * 0.05 }}
-                >
-                  <div className="text-2xl font-semibold text-white">{stat.value}</div>
-                  <div className="text-xs text-white/40">{stat.label}</div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Edit Profile Button */}
-            <Button
-              variant="outline"
-              className="w-full rounded-2xl border-white/10 bg-white/5 hover:bg-white/10 text-white"
-            >
-              <Edit2 className="h-4 w-4 mr-2" />
-              Edit Profile
-            </Button>
           </div>
 
-          {/* Tab Section */}
-          <div className="px-4 mb-4">
-            <div className="p-1 rounded-2xl bg-white/5 grid grid-cols-3 gap-1">
-              {[
-                { id: 'events' as const, icon: Calendar, label: 'My Events' },
-                { id: 'tickets' as const, icon: Ticket, label: 'Tickets' },
-                { id: 'about' as const, icon: Sparkles, label: 'About' },
-              ].map((tab) => {
-                const Icon = tab.icon;
-                const isActive = activeTab === tab.id;
-
-                return (
-                  <motion.button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm transition-all relative overflow-hidden ${isActive ? 'text-white' : 'text-white/40'
-                      }`}
-                    whileTap={{ scale: 0.97 }}
+          {/* Content Grid */}
+          <div className="p-4">
+            {activeTab === 'liked' && (
+              <div className="grid grid-cols-3 gap-2">
+                {likedEvents.map((event, idx) => (
+                  <motion.div
+                    key={event.id}
+                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-2xl"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    {isActive && (
+                    <ImageWithFallback
+                      src={event.imageUrl}
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
+
+                    {/* Gradient Overlay on hover */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end justify-center p-3"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="text-white text-center w-full">
+                        <div className="text-xs mb-1 line-clamp-2">{event.title}</div>
+                        <div className="text-[10px]" style={{ color: '#F72585' }}>
+                          {event.attendees} attendees
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Heart indicator */}
+                    <motion.div
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full glass backdrop-blur-xl flex items-center justify-center"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      <Heart className="h-3 w-3" style={{ color: '#F72585', fill: '#F72585' }} />
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'saved' && (
+              <div className="grid grid-cols-3 gap-2">
+                {savedEvents.map((event, idx) => (
+                  <motion.div
+                    key={event.id}
+                    className="aspect-square relative group cursor-pointer overflow-hidden rounded-2xl"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <ImageWithFallback
+                      src={event.imageUrl}
+                      alt={event.title}
+                      className="w-full h-full object-cover"
+                    />
+
+                    {/* Gradient Overlay on hover */}
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex items-end justify-center p-3"
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <div className="text-white text-center w-full">
+                        <div className="text-xs mb-1 line-clamp-2">{event.title}</div>
+                        <div className="text-[10px]" style={{ color: '#F72585' }}>
+                          by {event.host.name}
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Bookmark indicator */}
+                    <motion.div
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full glass backdrop-blur-xl flex items-center justify-center"
+                      whileHover={{ scale: 1.1 }}
+                    >
+                      <Grid3X3 className="h-3 w-3" style={{ color: '#4CC9F0' }} />
+                    </motion.div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === 'about' && (
+              <motion.div
+                className="space-y-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <div className="glass backdrop-blur-xl rounded-3xl p-6">
+                  <h3 className="text-foreground mb-3">About</h3>
+                  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                    🎉 Creating unforgettable experiences across Delhi's hottest venues.
+                    From intimate gatherings to spectacular events, I bring people together
+                    through music, art, and culture.
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {['Events', 'Music', 'Art', 'Culture', 'Delhi'].map((tag) => (
+                      <motion.span
+                        key={tag}
+                        className="px-3 py-1.5 rounded-full text-xs glass"
+                        whileHover={{ scale: 1.05 }}
+                        style={{ color: '#F72585' }}
+                      >
+                        {tag}
+                      </motion.span>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="glass backdrop-blur-xl rounded-3xl p-6">
+                  <h3 className="text-foreground mb-3">Favorite Spots</h3>
+                  <div className="space-y-3">
+                    {['Hauz Khas Village', 'Connaught Place', 'Khan Market'].map((spot, idx) => (
                       <motion.div
-                        layoutId="activeProfileTab"
-                        className="absolute inset-0 rounded-xl bg-white/10"
-                        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                      />
-                    )}
-                    <Icon className="h-4 w-4 relative z-10" />
-                    <span className="relative z-10 text-xs font-medium">{tab.label}</span>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Content */}
-          <div className="px-4">
-            <AnimatePresence mode="wait">
-              {activeTab === 'events' && (
-                <motion.div
-                  key="events"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  {myEvents.length > 0 ? (
-                    <div className="space-y-3">
-                      {myEvents.map((event, idx) => (
-                        <EventCard key={event.id} event={event} index={idx} />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={Calendar}
-                      title="No events yet"
-                      description="Events you create will appear here"
-                    />
-                  )}
-                </motion.div>
-              )}
-
-              {activeTab === 'tickets' && (
-                <motion.div
-                  key="tickets"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  {userTickets.length > 0 ? (
-                    <div className="space-y-3">
-                      {userTickets.map((ticket, idx) => (
-                        <TicketCard key={ticket.id} ticket={ticket} index={idx} />
-                      ))}
-                    </div>
-                  ) : (
-                    <EmptyState
-                      icon={Ticket}
-                      title="No tickets yet"
-                      description="When you RSVP to events, your tickets appear here"
-                    />
-                  )}
-                </motion.div>
-              )}
-
-              {activeTab === 'about' && (
-                <motion.div
-                  key="about"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="space-y-4"
-                >
-                  <div className="rounded-2xl p-4 bg-white/5 border border-white/5">
-                    <h3 className="text-sm font-medium text-white mb-2">Bio</h3>
-                    <p className="text-sm text-white/50 leading-relaxed">
-                      Event enthusiast exploring Delhi's vibrant scene. Always looking for the next great experience! 🎉
-                    </p>
+                        key={spot}
+                        className="flex items-center gap-3"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                      >
+                        <MapPin className="h-4 w-4" style={{ color: '#F72585' }} />
+                        <span className="text-sm text-foreground">{spot}</span>
+                      </motion.div>
+                    ))}
                   </div>
-
-                  <div className="rounded-2xl p-4 bg-white/5 border border-white/5">
-                    <h3 className="text-sm font-medium text-white mb-3">Interests</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {['Music', 'Art', 'Food', 'Nightlife', 'Culture'].map((tag) => (
-                        <span
-                          key={tag}
-                          className="px-3 py-1.5 rounded-full text-xs bg-white/5 border border-white/10 text-white/70"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Sign Out Button */}
-                  <Button
-                    variant="ghost"
-                    className="w-full rounded-2xl text-red-400 hover:text-red-300 hover:bg-red-500/10 bg-white/5"
-                    onClick={signOut}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
           </div>
         </div>
       </ScrollArea>
     </div>
-  );
-}
-
-// Event Card Component
-function EventCard({ event, index }: { event: Event; index: number }) {
-  return (
-    <motion.div
-      className="rounded-2xl p-3 flex items-center gap-3 bg-white/5 border border-white/5"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-    >
-      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0">
-        <ImageWithFallback
-          src={event.imageUrl}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-medium text-white truncate">{event.title}</h4>
-        <p className="text-xs text-white/40 truncate">{event.location?.name}</p>
-        <p className="text-xs text-white/30">{event.attendees} going</p>
-      </div>
-      <ChevronRight className="h-4 w-4 text-white/30 flex-shrink-0" />
-    </motion.div>
-  );
-}
-
-// Ticket Card Component
-function TicketCard({ ticket, index }: { ticket: any; index: number }) {
-  const event = ticket.event;
-  if (!event) return null;
-
-  return (
-    <motion.div
-      className="rounded-2xl p-3 flex items-center gap-3 bg-white/5 border border-white/5"
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.05 }}
-      whileHover={{ scale: 1.01 }}
-      whileTap={{ scale: 0.99 }}
-    >
-      <div className="w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 relative">
-        <ImageWithFallback
-          src={event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'}
-          alt={event.title}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-          <Ticket className="h-5 w-5 text-white" />
-        </div>
-      </div>
-      <div className="flex-1 min-w-0">
-        <h4 className="text-sm font-medium text-white truncate">{event.title}</h4>
-        <p className="text-xs text-white/40 truncate">{event.location_name}</p>
-        <div className="flex items-center gap-1 mt-1">
-          <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">
-            {ticket.status}
-          </span>
-        </div>
-      </div>
-      <ChevronRight className="h-4 w-4 text-white/30 flex-shrink-0" />
-    </motion.div>
-  );
-}
-
-// Empty State Component
-function EmptyState({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
-  return (
-    <motion.div
-      className="flex flex-col items-center justify-center py-16 text-center"
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-    >
-      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-        <Icon className="h-7 w-7 text-white/30" />
-      </div>
-      <h3 className="text-white font-medium mb-1">{title}</h3>
-      <p className="text-sm text-white/40 max-w-[200px]">{description}</p>
-    </motion.div>
   );
 }
