@@ -177,3 +177,379 @@ export const checkRsvpStatus = async (eventId: string, userId: string) => {
 
     return !!data;
 };
+
+// ============================================
+// VENUES API
+// ============================================
+
+export const fetchVenues = async () => {
+    const { data, error } = await supabase
+        .from('venues')
+        .select('*')
+        .order('rating', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching venues:', error);
+        return [];
+    }
+    return data;
+};
+
+export const getVenueById = async (venueId: string) => {
+    const { data, error } = await supabase
+        .from('venues')
+        .select(`
+            *,
+            owner:owner_id (full_name, avatar_url, username)
+        `)
+        .eq('id', venueId)
+        .single();
+
+    if (error) {
+        console.error('Error fetching venue:', error);
+        return null;
+    }
+    return data;
+};
+
+export const createVenueBooking = async (bookingData: {
+    venue_id: string;
+    user_id: string;
+    booking_date: string;
+    start_time: string;
+    end_time: string;
+    total_price: number;
+    notes?: string;
+}) => {
+    const { data, error } = await supabase
+        .from('venue_bookings')
+        .insert([bookingData])
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const getUserVenueBookings = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('venue_bookings')
+        .select(`
+            *,
+            venue:venues (*)
+        `)
+        .eq('user_id', userId)
+        .order('booking_date', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching venue bookings:', error);
+        return [];
+    }
+    return data;
+};
+
+// ============================================
+// SOCIAL: LIKES API
+// ============================================
+
+export const likeEvent = async (eventId: string, userId: string) => {
+    const { data, error } = await supabase
+        .from('event_likes')
+        .insert([{ event_id: eventId, user_id: userId }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const unlikeEvent = async (eventId: string, userId: string) => {
+    const { error } = await supabase
+        .from('event_likes')
+        .delete()
+        .eq('event_id', eventId)
+        .eq('user_id', userId);
+
+    if (error) throw error;
+};
+
+export const getEventLikeStatus = async (eventId: string, userId: string) => {
+    const { data: liked } = await supabase
+        .from('event_likes')
+        .select('id')
+        .eq('event_id', eventId)
+        .eq('user_id', userId)
+        .single();
+
+    const { count } = await supabase
+        .from('event_likes')
+        .select('*', { count: 'exact', head: true })
+        .eq('event_id', eventId);
+
+    return { isLiked: !!liked, likeCount: count || 0 };
+};
+
+// ============================================
+// SOCIAL: COMMENTS API
+// ============================================
+
+export const addComment = async (eventId: string, userId: string, content: string) => {
+    const { data, error } = await supabase
+        .from('event_comments')
+        .insert([{ event_id: eventId, user_id: userId, content }])
+        .select(`
+            *,
+            user:user_id (full_name, avatar_url, username)
+        `)
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const getComments = async (eventId: string) => {
+    const { data, error } = await supabase
+        .from('event_comments')
+        .select(`
+            *,
+            user:user_id (full_name, avatar_url, username)
+        `)
+        .eq('event_id', eventId)
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        console.error('Error fetching comments:', error);
+        return [];
+    }
+    return data;
+};
+
+export const deleteComment = async (commentId: string) => {
+    const { error } = await supabase
+        .from('event_comments')
+        .delete()
+        .eq('id', commentId);
+
+    if (error) throw error;
+};
+
+// ============================================
+// SOCIAL: FOLLOWS API
+// ============================================
+
+export const followUser = async (followerId: string, followingId: string) => {
+    const { data, error } = await supabase
+        .from('follows')
+        .insert([{ follower_id: followerId, following_id: followingId }])
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const unfollowUser = async (followerId: string, followingId: string) => {
+    const { error } = await supabase
+        .from('follows')
+        .delete()
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId);
+
+    if (error) throw error;
+};
+
+export const getFollowStatus = async (followerId: string, followingId: string) => {
+    const { data } = await supabase
+        .from('follows')
+        .select('id')
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId)
+        .single();
+
+    return !!data;
+};
+
+export const getProfileStats = async (userId: string) => {
+    const { count: followersCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('following_id', userId);
+
+    const { count: followingCount } = await supabase
+        .from('follows')
+        .select('*', { count: 'exact', head: true })
+        .eq('follower_id', userId);
+
+    const { count: eventsCount } = await supabase
+        .from('events')
+        .select('*', { count: 'exact', head: true })
+        .eq('host_id', userId);
+
+    return {
+        followers: followersCount || 0,
+        following: followingCount || 0,
+        eventsHosted: eventsCount || 0,
+    };
+};
+
+// ============================================
+// EVENT GROUP CHAT API
+// ============================================
+
+export const getEventChat = async (eventId: string) => {
+    const { data, error } = await supabase
+        .from('event_chats')
+        .select('*')
+        .eq('event_id', eventId)
+        .single();
+
+    if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching event chat:', error);
+    }
+    return data;
+};
+
+export const getChatMessages = async (chatId: string, limit = 50, offset = 0) => {
+    const { data, error } = await supabase
+        .from('chat_messages')
+        .select(`
+            *,
+            user:user_id (full_name, avatar_url, username)
+        `)
+        .eq('chat_id', chatId)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+    if (error) {
+        console.error('Error fetching chat messages:', error);
+        return [];
+    }
+    return data.reverse(); // Return in chronological order
+};
+
+export const sendMessage = async (chatId: string, userId: string, content: string, messageType: 'text' | 'image' | 'system' = 'text') => {
+    const { data, error } = await supabase
+        .from('chat_messages')
+        .insert([{ chat_id: chatId, user_id: userId, content, message_type: messageType }])
+        .select(`
+            *,
+            user:user_id (full_name, avatar_url, username)
+        `)
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const getChatMembers = async (chatId: string) => {
+    const { data, error } = await supabase
+        .from('chat_members')
+        .select(`
+            *,
+            user:user_id (full_name, avatar_url, username)
+        `)
+        .eq('chat_id', chatId);
+
+    if (error) {
+        console.error('Error fetching chat members:', error);
+        return [];
+    }
+    return data;
+};
+
+export const getUserChats = async (userId: string) => {
+    const { data, error } = await supabase
+        .from('chat_members')
+        .select(`
+            *,
+            chat:chat_id (
+                id,
+                event_id,
+                event:event_id (title, image_url)
+            )
+        `)
+        .eq('user_id', userId);
+
+    if (error) {
+        console.error('Error fetching user chats:', error);
+        return [];
+    }
+    return data;
+};
+
+export const markChatAsRead = async (chatId: string, userId: string) => {
+    const { error } = await supabase
+        .from('chat_members')
+        .update({ last_read_at: new Date().toISOString() })
+        .eq('chat_id', chatId)
+        .eq('user_id', userId);
+
+    if (error) throw error;
+};
+
+// Real-time subscription for chat messages
+export const subscribeToChatMessages = (chatId: string, callback: (message: any) => void) => {
+    return supabase
+        .channel(`chat:${chatId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'chat_messages',
+                filter: `chat_id=eq.${chatId}`,
+            },
+            async (payload) => {
+                // Fetch the full message with user info
+                const { data } = await supabase
+                    .from('chat_messages')
+                    .select(`
+                        *,
+                        user:user_id (full_name, avatar_url, username)
+                    `)
+                    .eq('id', payload.new.id)
+                    .single();
+
+                if (data) callback(data);
+            }
+        )
+        .subscribe();
+};
+
+// ============================================
+// PROFILE UPDATE API
+// ============================================
+
+export const updateProfile = async (userId: string, profileData: {
+    full_name?: string;
+    username?: string;
+    avatar_url?: string;
+    website?: string;
+}) => {
+    const { data, error } = await supabase
+        .from('profiles')
+        .update({ ...profileData, updated_at: new Date().toISOString() })
+        .eq('id', userId)
+        .select()
+        .single();
+
+    if (error) throw error;
+    return data;
+};
+
+export const uploadAvatar = async (userId: string, file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${userId}.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+};

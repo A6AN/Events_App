@@ -78,3 +78,92 @@ export interface Venue {
 }
 
 export type MoodFilter = 'All' | 'Chill' | 'Energetic' | 'Creative' | 'Romantic';
+
+// ============================================
+// DATABASE TYPES FOR NEW TABLES
+// ============================================
+
+export interface DbVenue {
+  id: string;
+  created_at: string;
+  name: string;
+  location: string;
+  latitude: number | null;
+  longitude: number | null;
+  rating: number;
+  image_url: string | null;
+  capacity: string | null;
+  price_per_hour: number;
+  amenities: string[];
+  category: 'Banquet Hall' | 'Rooftop' | 'Restaurant' | 'Garden' | 'Conference Room';
+  owner_id: string | null;
+}
+
+export interface DbVenueBooking {
+  id: string;
+  created_at: string;
+  venue_id: string;
+  user_id: string;
+  booking_date: string;
+  start_time: string;
+  end_time: string;
+  total_price: number | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  notes: string | null;
+}
+
+export interface DbTicket {
+  id: string;
+  created_at: string;
+  event_id: string;
+  user_id: string;
+  quantity: number;
+  total_price: number | null;
+  status: 'pending' | 'confirmed' | 'cancelled';
+  qr_code: string | null;
+}
+
+export interface DbEventLike {
+  id: string;
+  event_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface DbEventComment {
+  id: string;
+  event_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+}
+
+export interface DbFollow {
+  id: string;
+  follower_id: string;
+  following_id: string;
+  created_at: string;
+}
+
+export interface DbEventChat {
+  id: string;
+  event_id: string;
+  created_at: string;
+}
+
+export interface DbChatMessage {
+  id: string;
+  chat_id: string;
+  user_id: string;
+  content: string;
+  message_type: 'text' | 'image' | 'system';
+  created_at: string;
+}
+
+export interface DbChatMember {
+  id: string;
+  chat_id: string;
+  user_id: string;
+  joined_at: string;
+  last_read_at: string | null;
+}

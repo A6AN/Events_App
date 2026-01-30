@@ -1,79 +1,13 @@
--- Create a table for public profiles
-create table profiles (
-  id uuid references auth.users not null primary key,
-  updated_at timestamp with time zone,
-  username text unique,
-  full_name text,
-  avatar_url text,
-  website text,
-
-  constraint username_length check (char_length(username) >= 3)
-);
-
--- Set up Row Level Security (RLS)
-alter table profiles enable row level security;
-
-create policy "Public profiles are viewable by everyone."
-  on profiles for select
-  using ( true );
-
-create policy "Users can insert their own profile."
-  on profiles for insert
-  with check ( auth.uid() = id );
-
-create policy "Users can update own profile."
-  on profiles for update
-  using ( auth.uid() = id );
-
--- Create a table for events
-create table events (
-  id uuid default uuid_generate_v4() primary key,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  title text not null,
-  description text,
-  date timestamp with time zone not null,
-  location_name text not null,
-  latitude double precision not null,
-  longitude double precision not null,
-  price double precision default 0,
-  capacity integer,
-  image_url text,
-  host_id uuid references profiles(id) not null,
-  category text,
-  mood text
-);
-
--- Set up RLS for events
-alter table events enable row level security;
-
-create policy "Events are viewable by everyone."
-  on events for select
-  using ( true );
-
-create policy "Authenticated users can create events."
-  on events for insert
-  with check ( auth.role() = 'authenticated' );
-
-create policy "Users can update their own events."
-  on events for update
-  using ( auth.uid() = host_id );
-
--- Set up Storage for event images
-insert into storage.buckets (id, name)
-values ('event-images', 'event-images');
-
-create policy "Event images are publicly accessible."
-  on storage.objects for select
-  using ( bucket_id = 'event-images' );
-
-create policy "Authenticated users can upload event images."
-  on storage.objects for insert
-  with check ( bucket_id = 'event-images' and auth.role() = 'authenticated' );
+-- ============================================
+-- MIGRATION: Add new tables for Events App
+-- Run this in Supabase SQL Editor
+-- (profiles, events, event-images bucket already exist)
+-- ============================================
 
 -- ============================================
--- TICKETS TABLE
+-- 1. TICKETS TABLE
 -- ============================================
-create table tickets (
+create table if not exists tickets (
   id uuid default uuid_generate_v4() primary key,
   created_at timestamp with time zone default now(),
   event_id uuid references events(id) on delete cascade not null,
@@ -100,9 +34,9 @@ create policy "Users can update their own tickets."
   using ( auth.uid() = user_id );
 
 -- ============================================
--- VENUES TABLE
+-- 2. VENUES TABLE
 -- ============================================
-create table venues (
+create table if not exists venues (
   id uuid default uuid_generate_v4() primary key,
   created_at timestamp with time zone default now(),
   name text not null,
@@ -137,9 +71,9 @@ create policy "Owners can delete their venues."
   using ( auth.uid() = owner_id );
 
 -- ============================================
--- VENUE BOOKINGS TABLE
+-- 3. VENUE BOOKINGS TABLE
 -- ============================================
-create table venue_bookings (
+create table if not exists venue_bookings (
   id uuid default uuid_generate_v4() primary key,
   created_at timestamp with time zone default now(),
   venue_id uuid references venues(id) on delete cascade not null,
@@ -171,9 +105,9 @@ create policy "Users can update their own venue bookings."
   using ( auth.uid() = user_id );
 
 -- ============================================
--- EVENT LIKES TABLE
+-- 4. EVENT LIKES TABLE
 -- ============================================
-create table event_likes (
+create table if not exists event_likes (
   id uuid default uuid_generate_v4() primary key,
   event_id uuid references events(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
@@ -196,9 +130,9 @@ create policy "Users can unlike (delete) their own likes."
   using ( auth.uid() = user_id );
 
 -- ============================================
--- EVENT COMMENTS TABLE
+-- 5. EVENT COMMENTS TABLE
 -- ============================================
-create table event_comments (
+create table if not exists event_comments (
   id uuid default uuid_generate_v4() primary key,
   event_id uuid references events(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
@@ -221,9 +155,9 @@ create policy "Users can delete their own comments."
   using ( auth.uid() = user_id );
 
 -- ============================================
--- FOLLOWS TABLE
+-- 6. FOLLOWS TABLE
 -- ============================================
-create table follows (
+create table if not exists follows (
   id uuid default uuid_generate_v4() primary key,
   follower_id uuid references profiles(id) on delete cascade not null,
   following_id uuid references profiles(id) on delete cascade not null,
@@ -246,9 +180,9 @@ create policy "Users can unfollow."
   using ( auth.uid() = follower_id );
 
 -- ============================================
--- EVENT CHATS TABLE (Group Chat per Event)
+-- 7. EVENT CHATS TABLE (Group Chat per Event)
 -- ============================================
-create table event_chats (
+create table if not exists event_chats (
   id uuid default uuid_generate_v4() primary key,
   event_id uuid references events(id) on delete cascade not null unique,
   created_at timestamp with time zone default now()
@@ -256,21 +190,40 @@ create table event_chats (
 
 alter table event_chats enable row level security;
 
-create policy "Chat members can view event chats."
-  on event_chats for select
-  using ( 
-    auth.uid() in (
-      select user_id from chat_members where chat_id = id
-    )
-    or auth.uid() in (
-      select host_id from events where id = event_id
-    )
-  );
+-- ============================================
+-- 8. CHAT MEMBERS TABLE (create before chat_messages due to RLS dependency)
+-- ============================================
+create table if not exists chat_members (
+  id uuid default uuid_generate_v4() primary key,
+  chat_id uuid references event_chats(id) on delete cascade not null,
+  user_id uuid references profiles(id) on delete cascade not null,
+  joined_at timestamp with time zone default now(),
+  last_read_at timestamp with time zone,
+  unique(chat_id, user_id)
+);
+
+alter table chat_members enable row level security;
+
+create policy "Chat members can view membership."
+  on chat_members for select
+  using ( auth.uid() = user_id );
+
+create policy "System can add members (via RSVP)."
+  on chat_members for insert
+  with check ( auth.role() = 'authenticated' );
+
+create policy "Users can leave chats."
+  on chat_members for delete
+  using ( auth.uid() = user_id );
+
+create policy "Users can update their last_read_at."
+  on chat_members for update
+  using ( auth.uid() = user_id );
 
 -- ============================================
--- CHAT MESSAGES TABLE
+-- 9. CHAT MESSAGES TABLE
 -- ============================================
-create table chat_messages (
+create table if not exists chat_messages (
   id uuid default uuid_generate_v4() primary key,
   chat_id uuid references event_chats(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
@@ -279,8 +232,7 @@ create table chat_messages (
   created_at timestamp with time zone default now()
 );
 
--- Index for fast message retrieval
-create index chat_messages_chat_id_idx on chat_messages(chat_id, created_at desc);
+create index if not exists chat_messages_chat_id_idx on chat_messages(chat_id, created_at desc);
 
 alter table chat_messages enable row level security;
 
@@ -304,39 +256,17 @@ create policy "Users can delete their own messages."
   on chat_messages for delete
   using ( auth.uid() = user_id );
 
--- ============================================
--- CHAT MEMBERS TABLE
--- ============================================
-create table chat_members (
-  id uuid default uuid_generate_v4() primary key,
-  chat_id uuid references event_chats(id) on delete cascade not null,
-  user_id uuid references profiles(id) on delete cascade not null,
-  joined_at timestamp with time zone default now(),
-  last_read_at timestamp with time zone,
-  unique(chat_id, user_id)
-);
-
-alter table chat_members enable row level security;
-
-create policy "Chat members can view membership."
-  on chat_members for select
+-- Now add the event_chats RLS policy (after chat_members exists)
+create policy "Chat members can view event chats."
+  on event_chats for select
   using ( 
     auth.uid() in (
-      select user_id from chat_members cm where cm.chat_id = chat_members.chat_id
+      select user_id from chat_members where chat_id = id
+    )
+    or auth.uid() in (
+      select host_id from events where id = event_id
     )
   );
-
-create policy "System can add members (via RSVP)."
-  on chat_members for insert
-  with check ( auth.role() = 'authenticated' );
-
-create policy "Users can leave chats."
-  on chat_members for delete
-  using ( auth.uid() = user_id );
-
-create policy "Users can update their last_read_at."
-  on chat_members for update
-  using ( auth.uid() = user_id );
 
 -- ============================================
 -- STORAGE BUCKETS
@@ -366,7 +296,7 @@ create policy "Users can upload their own avatar."
   with check ( bucket_id = 'avatars' and auth.role() = 'authenticated' );
 
 -- ============================================
--- HELPER FUNCTION: Auto-create chat when event is created
+-- TRIGGER: Auto-create chat when event is created
 -- ============================================
 create or replace function create_event_chat()
 returns trigger as $$
@@ -377,22 +307,21 @@ begin
 end;
 $$ language plpgsql security definer;
 
+drop trigger if exists on_event_created on events;
 create trigger on_event_created
   after insert on events
   for each row execute procedure create_event_chat();
 
 -- ============================================
--- HELPER FUNCTION: Auto-join chat when RSVP
+-- TRIGGER: Auto-join chat when RSVP (ticket created)
 -- ============================================
 create or replace function join_chat_on_rsvp()
 returns trigger as $$
 declare
   chat_id_var uuid;
 begin
-  -- Get the chat for this event
   select id into chat_id_var from event_chats where event_id = NEW.event_id;
   
-  -- Add user to chat if not already a member
   if chat_id_var is not null then
     insert into chat_members (chat_id, user_id)
     values (chat_id_var, NEW.user_id)
@@ -403,6 +332,7 @@ begin
 end;
 $$ language plpgsql security definer;
 
+drop trigger if exists on_ticket_created on tickets;
 create trigger on_ticket_created
   after insert on tickets
   for each row execute procedure join_chat_on_rsvp();
