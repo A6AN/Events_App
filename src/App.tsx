@@ -177,145 +177,143 @@ function AppContent() {
       </div>
 
       {/* Floating Glass Pill Navigation */}
-      <div className="relative shrink-0 pb-6 pointer-events-none">
-        {/* Navigation Bar - Floating Pill */}
-        <motion.div
-          className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] border border-white/15 grid grid-cols-4 items-center px-2 pointer-events-auto z-[9999]"
-          style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
-          }}
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{
-            duration: 0.5,
-            type: 'spring',
-            stiffness: 300,
-            damping: 30,
-          }}
-        >
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === tab.id;
+      {/* Navigation Bar - Floating Pill */}
+      <motion.div
+        className="fixed bottom-6 left-4 right-4 max-w-lg mx-auto h-16 rounded-full backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] border border-white/15 grid grid-cols-4 items-center px-2 pointer-events-auto z-[9999]"
+        style={{
+          background: 'linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%)',
+        }}
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{
+          duration: 0.5,
+          type: 'spring',
+          stiffness: 300,
+          damping: 30,
+        }}
+      >
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
 
-            return (
-              <motion.button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className="relative flex flex-col items-center justify-center gap-1 py-2"
-                whileTap={{ scale: 0.95 }}
-                transition={{
-                  type: 'spring',
-                  stiffness: 400,
-                  damping: 25,
-                }}
-              >
-                {/* Active Indicator Glow */}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-0 rounded-full"
-                    style={{
-                      background:
-                        'radial-gradient(circle, rgba(247, 37, 133, 0.2) 0%, transparent 70%)',
-                    }}
-                    transition={{
-                      type: 'spring',
-                      stiffness: 300,
-                      damping: 30,
-                    }}
-                  />
-                )}
-
-                {/* Icon */}
+          return (
+            <motion.button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className="relative flex flex-col items-center justify-center gap-1 py-2"
+              whileTap={{ scale: 0.95 }}
+              transition={{
+                type: 'spring',
+                stiffness: 400,
+                damping: 25,
+              }}
+            >
+              {/* Active Indicator Glow */}
+              {isActive && (
                 <motion.div
-                  className="relative z-10"
-                  animate={{
-                    scale: isActive ? 1.1 : 1,
-                    y: isActive ? -2 : 0,
+                  layoutId="activeTab"
+                  className="absolute inset-0 rounded-full"
+                  style={{
+                    background:
+                      'radial-gradient(circle, rgba(247, 37, 133, 0.2) 0%, transparent 70%)',
                   }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Icon
-                    className="h-5 w-5 transition-colors duration-200"
-                    style={{
-                      color: isActive ? '#FFFFFF' : '#a0a0a0',
-                      filter: isActive ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))' : 'none',
-                    }}
-                  />
-                </motion.div>
+                  transition={{
+                    type: 'spring',
+                    stiffness: 300,
+                    damping: 30,
+                  }}
+                />
+              )}
 
-                {/* Label */}
-                <span
-                  className="text-[10px] relative z-10 transition-colors duration-200"
+              {/* Icon */}
+              <motion.div
+                className="relative z-10"
+                animate={{
+                  scale: isActive ? 1.1 : 1,
+                  y: isActive ? -2 : 0,
+                }}
+                transition={{ duration: 0.2 }}
+              >
+                <Icon
+                  className="h-5 w-5 transition-colors duration-200"
                   style={{
                     color: isActive ? '#FFFFFF' : '#a0a0a0',
+                    filter: isActive ? 'drop-shadow(0 0 8px rgba(255, 255, 255, 0.5))' : 'none',
                   }}
-                >
-                  {tab.label}
-                </span>
+                />
+              </motion.div>
 
-                {/* Active Dot Below */}
-                {isActive && (
-                  <motion.div
-                    className="absolute -bottom-1 w-1 h-1 rounded-full"
-                    style={{
-                      background: '#FFFFFF',
-                      boxShadow: '0 0 8px rgba(255, 255, 255, 0.6)',
-                    }}
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </motion.button>
-            );
-          })}
-        </motion.div>
+              {/* Label */}
+              <span
+                className="text-[10px] relative z-10 transition-colors duration-200"
+                style={{
+                  color: isActive ? '#FFFFFF' : '#a0a0a0',
+                }}
+              >
+                {tab.label}
+              </span>
 
-        {/* Floating Center FAB */}
-        <motion.div
-          className="fixed bottom-14 left-1/2 -translate-x-1/2 z-20 max-w-lg pointer-events-auto"
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{
-            delay: 0.3,
-            type: 'spring',
-            stiffness: 300,
-            damping: 25,
+              {/* Active Dot Below */}
+              {isActive && (
+                <motion.div
+                  className="absolute -bottom-1 w-1 h-1 rounded-full"
+                  style={{
+                    background: '#FFFFFF',
+                    boxShadow: '0 0 8px rgba(255, 255, 255, 0.6)',
+                  }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              )}
+            </motion.button>
+          );
+        })}
+      </motion.div>
+
+      {/* Floating Center FAB */}
+      <motion.div
+        className="fixed bottom-14 left-1/2 -translate-x-1/2 z-20 max-w-lg pointer-events-auto"
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{
+          delay: 0.3,
+          type: 'spring',
+          stiffness: 300,
+          damping: 25,
+        }}
+        whileHover={{ scale: 1.1, rotate: 90 }}
+        whileTap={{ scale: 0.95 }}
+      >
+        <Button
+          size="icon"
+          onClick={() => setWheelOpen(true)}
+          className="w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(16,185,129,0.4)] border-0 relative overflow-hidden btn-press"
+          style={{
+            background:
+              'linear-gradient(135deg, #10b981 0%, #059669 100%)',
           }}
-          whileHover={{ scale: 1.1, rotate: 90 }}
-          whileTap={{ scale: 0.95 }}
         >
-          <Button
-            size="icon"
-            onClick={() => setWheelOpen(true)}
-            className="w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(16,185,129,0.4)] border-0 relative overflow-hidden btn-press"
+          {/* Pulse animation */}
+          <motion.div
+            className="absolute inset-0 rounded-full"
             style={{
               background:
                 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             }}
-          >
-            {/* Pulse animation */}
-            <motion.div
-              className="absolute inset-0 rounded-full"
-              style={{
-                background:
-                  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              }}
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 0, 0.5],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
-            />
-            <Plus className="h-6 w-6 text-white relative z-10" />
-          </Button>
-        </motion.div>
-      </div>
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.5, 0, 0.5],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
+          />
+          <Plus className="h-6 w-6 text-white relative z-10" />
+        </Button>
+      </motion.div>
 
       {/* Event Detail Sheet */}
       <EventDetailsSheet

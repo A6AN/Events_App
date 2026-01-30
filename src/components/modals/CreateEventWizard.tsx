@@ -143,20 +143,25 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
             if (formData.locationType === 'venue' && formData.selectedVenueId) {
                 const venue = venues.find(v => v.id === formData.selectedVenueId);
                 if (venue) {
-                    const [hours, minutes] = formData.time.split(':').map(Number);
-                    const endDate = new Date();
-                    endDate.setHours(hours + 3, minutes); // Default 3 hours
-                    const endTime = endDate.toTimeString().slice(0, 5);
+                    try {
+                        const [hours, minutes] = formData.time.split(':').map(Number);
+                        const endDate = new Date();
+                        endDate.setHours(hours + 3, minutes); // Default 3 hours
+                        const endTime = endDate.toTimeString().slice(0, 5);
 
-                    await createVenueBooking({
-                        venue_id: venue.id,
-                        user_id: user.id,
-                        booking_date: formData.date,
-                        start_time: formData.time,
-                        end_time: endTime,
-                        total_price: (venue.pricePerHour || 1000) * 3,
-                        notes: `Event: ${formData.title}`
-                    });
+                        await createVenueBooking({
+                            venue_id: venue.id,
+                            user_id: user.id,
+                            booking_date: formData.date,
+                            start_time: formData.time,
+                            end_time: endTime,
+                            total_price: (venue.pricePerHour || 1000) * 3,
+                            notes: `Event: ${formData.title}`
+                        });
+                    } catch (bookingError) {
+                        console.error('Failed to book venue, but proceeding with event creation:', bookingError);
+                        // Optional: Show toast warning
+                    }
                 }
             }
 
@@ -179,8 +184,9 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
 
             onClose();
             window.location.reload();
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating event:', error);
+            alert(`Failed to create event: ${error.message || JSON.stringify(error)}`);
         } finally {
             setIsLoading(false);
         }
