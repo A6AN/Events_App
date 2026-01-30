@@ -286,10 +286,10 @@ function AppContent() {
           <Button
             size="icon"
             onClick={() => setWheelOpen(true)}
-            className="w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(247,37,133,0.4)] border-0 relative overflow-hidden btn-press"
+            className="w-14 h-14 rounded-full shadow-[0_8px_24px_rgba(16,185,129,0.4)] border-0 relative overflow-hidden btn-press"
             style={{
               background:
-                'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
+                'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             }}
           >
             {/* Pulse animation */}
@@ -297,7 +297,7 @@ function AppContent() {
               className="absolute inset-0 rounded-full"
               style={{
                 background:
-                  'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
+                  'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               }}
               animate={{
                 scale: [1, 1.2, 1],

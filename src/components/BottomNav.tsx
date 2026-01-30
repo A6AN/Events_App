@@ -35,15 +35,15 @@ export function BottomNav({ activeTab, onTabChange, onPlusClick }: BottomNavProp
                     onClick={onPlusClick}
                     className="w-14 h-14 rounded-full flex items-center justify-center relative overflow-hidden"
                     style={{
-                        background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
-                        boxShadow: '0 8px 24px rgba(247, 37, 133, 0.4)',
+                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                        boxShadow: '0 8px 24px rgba(16, 185, 129, 0.4)',
                     }}
                 >
                     {/* Pulse animation ring */}
                     <motion.div
                         className="absolute inset-0 rounded-full"
                         style={{
-                            background: 'linear-gradient(135deg, #F72585 0%, #7209B7 100%)',
+                            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                         }}
                         animate={{
                             scale: [1, 1.2, 1],
