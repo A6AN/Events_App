@@ -1,239 +1,366 @@
-import { Dialog, DialogContent } from './ui/dialog';
-import { Button } from './ui/button';
-import { Calendar, MapPin, Clock, Ticket, CreditCard, CheckCircle, Users, Sparkles, X, Minus, Plus, Zap } from 'lucide-react';
+import { Calendar, X, Download, QrCode, Check } from 'lucide-react';
 import { TicketEvent } from '../types';
-import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import confetti from 'canvas-confetti';
+import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust path if needed
 
 interface TicketBookingDialogProps {
-  ticket: TicketEvent | null;
+  ticket: TicketEvent | null; // Or generic Event
   open: boolean;
   onClose: () => void;
 }
 
 export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDialogProps) {
   const [isBooked, setIsBooked] = useState(false);
-  const [quantity, setQuantity] = useState(1);
+  const [selectedSeats, setSelectedSeats] = useState(2);
 
   if (!ticket) return null;
 
   const handleBook = () => {
     setIsBooked(true);
-    confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
-    setTimeout(() => {
-      setIsBooked(false);
-      setQuantity(1);
-      onClose();
-    }, 2500);
   };
 
-  const totalPrice = ticket.price * quantity;
+  const handleCloseConfirmation = () => {
+    setIsBooked(false);
+    onClose();
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-zinc-950 border-2 border-cyan-500/50 text-white max-w-md max-h-[90vh] overflow-hidden p-0 rounded-3xl shadow-2xl shadow-cyan-500/30">
-        <AnimatePresence mode="wait">
+    <AnimatePresence>
+      {open && (
+        <>
+          {/* Backdrop */}
+          <motion.div
+            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+            onClick={!isBooked ? onClose : undefined}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+
           {!isBooked ? (
+            /* Booking Detail View */
             <motion.div
-              key="booking"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col max-h-[90vh]"
+              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              {/* Header Image */}
-              <div className="relative h-48 flex-shrink-0">
-                <ImageWithFallback
-                  src={ticket.imageUrl}
-                  alt={ticket.title}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
+              <div className="h-full overflow-y-auto scrollbar-hide bg-background">
+                {/* Hero Image Section */}
+                <div className="relative h-96">
+                  <ImageWithFallback
+                    src={ticket.imageUrl}
+                    alt={ticket.title}
+                    className="w-full h-full object-cover"
+                  />
 
-                {/* Close Button */}
-                <button
-                  onClick={onClose}
-                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-zinc-900/80 backdrop-blur-sm hover:bg-cyan-500/80 transition-all hover:scale-110 flex items-center justify-center border border-white/10"
-                >
-                  <X className="h-5 w-5 text-white" />
-                </button>
+                  {/* Gradient Overlays */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+                  <div className="absolute inset-0 grain opacity-30" />
 
-                {/* Category Badge */}
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  className="absolute top-4 left-4 bg-gradient-to-r from-cyan-500 to-blue-500 px-3 py-1.5 rounded-full shadow-lg shadow-cyan-500/40 flex items-center gap-1"
-                >
-                  <Ticket className="h-3 w-3 text-white" />
-                  <span className="text-sm text-white font-bold">{ticket.category}</span>
-                </motion.div>
+                  {/* Header Controls */}
+                  <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
+                    <motion.button
+                      onClick={onClose}
+                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <X className="h-5 w-5 text-white" />
+                    </motion.button>
 
-                {/* Title Overlay */}
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <h2 className="text-2xl font-bold text-white">{ticket.title}</h2>
-                  <p className="text-cyan-400 font-semibold mt-1">{ticket.artist}</p>
-                </div>
-              </div>
+                    <motion.button
+                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {/* Share Icon */}
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
+                        <path d="M18 8h3M21 5v6M12 13v9M8 20h8M3 21l6-6M12 13l3 8 3-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </motion.button>
+                  </div>
 
-              {/* Scrollable Content */}
-              <div className="flex-1 overflow-y-auto p-5 space-y-4 bg-zinc-950">
-                {/* Event Details */}
-                <div className="grid grid-cols-2 gap-3">
-                  <motion.div
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="bg-cyan-500/15 rounded-2xl p-4 border-2 border-cyan-500/40 shadow-lg shadow-cyan-500/10"
-                  >
-                    <Calendar className="h-5 w-5 text-cyan-400 mb-2" />
-                    <div className="text-white font-bold text-sm">{ticket.date}</div>
-                    <div className="text-cyan-300/70 text-xs">{ticket.time}</div>
-                  </motion.div>
-                  <motion.div
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    className="bg-blue-500/15 rounded-2xl p-4 border-2 border-blue-500/40 shadow-lg shadow-blue-500/10"
-                  >
-                    <MapPin className="h-5 w-5 text-blue-400 mb-2" />
-                    <div className="text-white font-bold text-sm truncate">{ticket.venue.split(',')[0]}</div>
-                    <div className="text-blue-300/70 text-xs truncate">{ticket.venue.split(',').slice(1).join(',')}</div>
-                  </motion.div>
-                </div>
-
-                {/* Availability */}
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="flex items-center justify-between p-4 bg-zinc-900 rounded-2xl border-2 border-cyan-500/30"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-cyan-500/30 to-blue-500/30 shadow-lg shadow-cyan-500/20">
-                      <Users className="h-5 w-5 text-cyan-400" />
+                  {/* Event Title & Price Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h1 className="text-white text-3xl font-bold mb-2 drop-shadow-lg">
+                          {ticket.title}
+                        </h1>
+                        <p className="text-white/80 text-sm">
+                          {ticket.category}: {ticket.venue}
+                        </p>
+                      </div>
+                      <motion.div
+                        className="bg-white rounded-3xl px-5 py-3 shadow-2xl ml-4 flex-shrink-0"
+                        whileHover={{ scale: 1.05 }}
+                      >
+                        <div className="text-black text-xl font-bold">₹{ticket.price}</div>
+                      </motion.div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Content Section */}
+                <div className="p-6 space-y-6">
+                  {/* Date & Time Info */}
+                  <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-white font-bold">{ticket.availableSeats} seats left</div>
-                      <div className="text-cyan-300/60 text-xs">Book before they sell out!</div>
+                      <div className="flex items-center gap-4 mb-1">
+                        <div>
+                          <div className="text-3xl font-bold text-foreground">29</div>
+                          <div className="text-xs text-muted-foreground uppercase">December</div>
+                        </div>
+                        <div className="h-12 w-px bg-border" />
+                        <div>
+                          <div className="text-lg font-semibold text-foreground">Tuesday</div>
+                          <div className="text-sm text-muted-foreground">{ticket.time} - End</div>
+                        </div>
+                      </div>
+                    </div>
+                    <motion.div
+                      className="glass backdrop-blur-xl p-3 rounded-2xl border border-white/10"
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      <Calendar className="h-6 w-6 text-foreground" />
+                    </motion.div>
+                  </div>
+
+                  {/* About Section */}
+                  <div>
+                    <h3 className="text-foreground text-lg font-semibold mb-3">About this event :</h3>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Experience {ticket.title} live at {ticket.venue}.
+                      An unforgettable evening of entertainment and connection.
+                    </p>
+                  </div>
+
+                  {/* Description with Rating */}
+                  <div>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-foreground text-lg font-semibold">Description</h3>
+                      <div className="flex items-center gap-1.5 glass backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10">
+                        <svg className="h-4 w-4 text-yellow-400 fill-yellow-400" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="text-foreground text-sm font-medium">4.8</span>
+                      </div>
+                    </div>
+
+                    {/* Checklist Items */}
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <div className="glass backdrop-blur-xl w-6 h-6 rounded-full flex items-center justify-center border border-white/20 flex-shrink-0 mt-0.5">
+                          <Check className="h-3.5 w-3.5 text-foreground" />
+                        </div>
+                        <p className="text-muted-foreground text-sm flex-1">
+                          {ticket.title} performance at {ticket.time}
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="glass backdrop-blur-xl w-6 h-6 rounded-full flex items-center justify-center border border-white/20 flex-shrink-0 mt-0.5">
+                          <Check className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
+                        <p className="text-muted-foreground text-sm flex-1">
+                          Meet and greet opportunities available
+                        </p>
+                      </div>
                     </div>
                   </div>
-                  {ticket.availableSeats < 50 && (
-                    <motion.span
-                      animate={{ scale: [1, 1.05, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}
-                      className="px-3 py-1.5 rounded-full bg-gradient-to-r from-red-500 to-orange-500 text-white text-xs font-bold flex items-center gap-1 shadow-lg shadow-red-500/30"
-                    >
-                      <Zap className="h-3 w-3" />
-                      HOT
-                    </motion.span>
-                  )}
-                </motion.div>
 
-                {/* Quantity Selector */}
-                <div>
-                  <h4 className="text-sm text-cyan-300 font-medium mb-3">Number of Tickets</h4>
-                  <div className="flex items-center justify-between p-4 bg-zinc-900 rounded-2xl border-2 border-cyan-500/30">
+                  {/* Seats Available */}
+                  <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-foreground text-sm font-medium">Number of tickets</span>
+                      <span className="text-muted-foreground text-xs">{ticket.availableSeats} available</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <motion.button
+                        onClick={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
+                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <span className="text-foreground text-xl">−</span>
+                      </motion.button>
+                      <div className="flex-1 glass backdrop-blur-xl rounded-xl py-2 text-center border border-white/10">
+                        <span className="text-foreground text-lg font-semibold">{selectedSeats}</span>
+                      </div>
+                      <motion.button
+                        onClick={() => setSelectedSeats(Math.min(10, selectedSeats + 1))}
+                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <span className="text-foreground text-xl">+</span>
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  {/* Bottom Actions */}
+                  <div className="pb-6">
                     <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/40 flex items-center justify-center hover:from-cyan-500/30 hover:to-blue-500/30 transition-all"
+                      onClick={handleBook}
+                      className="w-full rounded-2xl text-white font-semibold py-4 shadow-lg relative overflow-hidden"
+                      style={{
+                        background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
+                      }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
                     >
-                      <Minus className="h-5 w-5 text-cyan-400" />
-                    </motion.button>
-                    <motion.span
-                      key={quantity}
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      className="text-4xl font-bold text-white"
-                    >
-                      {quantity}
-                    </motion.span>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => setQuantity(Math.min(10, quantity + 1))}
-                      className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/40 flex items-center justify-center hover:from-cyan-500/30 hover:to-blue-500/30 transition-all"
-                    >
-                      <Plus className="h-5 w-5 text-cyan-400" />
+                      <span className="relative z-10">Confirm Booking</span>
+                      {/* Shimmer effect */}
+                      <motion.div
+                        className="absolute inset-0"
+                        style={{
+                          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
+                        }}
+                        animate={{
+                          x: ['-100%', '200%'],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          ease: 'linear',
+                        }}
+                      />
                     </motion.button>
                   </div>
                 </div>
-
-                {/* Pricing Summary */}
-                <motion.div
-                  whileHover={{ scale: 1.01 }}
-                  className="bg-gradient-to-br from-cyan-500/15 to-blue-500/15 border-2 border-cyan-500/40 rounded-2xl p-5 shadow-lg shadow-cyan-500/10"
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-cyan-200/70 text-sm">₹{ticket.price} × {quantity} ticket{quantity > 1 ? 's' : ''}</span>
-                    <span className="text-cyan-200/70 text-sm">₹{totalPrice.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-3 border-t border-cyan-500/30">
-                    <span className="text-white font-semibold">Total</span>
-                    <span className="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                      ₹{totalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex-shrink-0 p-5 bg-gradient-to-t from-zinc-950 via-zinc-950 to-transparent border-t border-cyan-500/20">
-                <motion.div
-                  whileHover={{ scale: 1.02, y: -2 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button
-                    onClick={handleBook}
-                    className="w-full h-14 rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white font-bold text-lg shadow-xl shadow-cyan-500/40 border-0"
-                  >
-                    <CreditCard className="h-5 w-5 mr-2" />
-                    Book {quantity} Ticket{quantity > 1 ? 's' : ''} Now
-                  </Button>
-                </motion.div>
               </div>
             </motion.div>
           ) : (
+            /* Ticket Confirmation View */
             <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex flex-col items-center justify-center py-16 px-8"
+              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden flex flex-col"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             >
-              <motion.div
-                initial={{ scale: 0, rotate: -180 }}
-                animate={{ scale: 1, rotate: 0 }}
-                transition={{ type: "spring", delay: 0.1 }}
-                className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center mb-6 shadow-2xl shadow-cyan-500/50"
-              >
-                <CheckCircle className="h-12 w-12 text-white" />
-              </motion.div>
-              <motion.h3
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-                className="text-2xl font-bold text-white mb-2"
-              >
-                Booking Confirmed! 🎉
-              </motion.h3>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-zinc-400 text-center"
-              >
-                Your ticket{quantity > 1 ? 's have' : ' has'} been booked successfully.<br />
-                Check your email for details.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-2 mt-6 px-4 py-2 rounded-full bg-cyan-500/20 border border-cyan-500/40"
-              >
-                <Sparkles className="h-4 w-4 text-cyan-400" />
-                <span className="text-sm text-cyan-300">E-ticket sent to your email</span>
-              </motion.div>
+              <div className="flex-1 overflow-y-auto scrollbar-hide p-6" style={{ background: '#4A2424' }}>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <motion.button
+                    onClick={handleCloseConfirmation}
+                    className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <X className="h-5 w-5 text-white" />
+                  </motion.button>
+                  <h2 className="text-white text-xl font-semibold">Tickets</h2>
+                  <div className="w-10" />
+                </div>
+
+                {/* Ticket Card */}
+                <motion.div
+                  className="relative mx-auto"
+                  style={{ maxWidth: '340px' }}
+                  initial={{ y: 50, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  {/* Ticket Shape with Notches */}
+                  <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl">
+                    {/* Hero Image */}
+                    <div className="relative h-48 overflow-hidden rounded-t-3xl">
+                      <ImageWithFallback
+                        src={ticket.imageUrl}
+                        alt={ticket.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+                    </div>
+
+                    {/* Notches */}
+                    <div className="absolute left-0 top-48 -ml-4 w-8 h-8 rounded-full bg-[#4A2424]" />
+                    <div className="absolute right-0 top-48 -mr-4 w-8 h-8 rounded-full bg-[#4A2424]" />
+
+                    {/* Dashed Line */}
+                    <div className="border-t-2 border-dashed border-gray-300" />
+
+                    {/* Ticket Details */}
+                    <div className="p-6">
+                      <h3 className="text-black text-lg font-bold text-center mb-1">
+                        {ticket.title}
+                      </h3>
+                      <p className="text-black/60 text-sm text-center mb-6">
+                        {ticket.location.name}
+                      </p>
+
+                      {/* Date & Time */}
+                      <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                          <div className="text-gray-400 text-xs mb-1">Date</div>
+                          <div className="text-black font-semibold">Dec 29, 2024</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-400 text-xs mb-1">Time</div>
+                          <div className="text-black font-semibold">{ticket.startTime}</div>
+                        </div>
+                      </div>
+
+                      {/* Venue & Seat */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        <div>
+                          <div className="text-gray-400 text-xs mb-1">Location</div>
+                          <div className="text-black font-semibold truncate">{ticket.location.address.split(',')[0]}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-400 text-xs mb-1">Quantity</div>
+                          <div className="text-black font-semibold">{selectedSeats} Tickets</div>
+                        </div>
+                      </div>
+
+                      {/* Barcode */}
+                      <div className="border-t-2 border-dashed border-gray-300 pt-4">
+                        <div className="flex justify-center">
+                          <svg width="280" height="60" viewBox="0 0 280 60">
+                            {[...Array(40)].map((_, i) => (
+                              <rect
+                                key={i}
+                                x={i * 7}
+                                y="0"
+                                width={Math.random() > 0.5 ? 3 : 2}
+                                height="60"
+                                fill="black"
+                              />
+                            ))}
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Action Buttons */}
+                <div className="mt-8 flex gap-3">
+                  <motion.button
+                    className="flex-1 rounded-2xl text-white font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
+                    style={{
+                      background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
+                    }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Download className="h-5 w-5" />
+                    <span>Image</span>
+                  </motion.button>
+
+                  <motion.button
+                    className="flex-1 bg-white rounded-2xl text-black font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <QrCode className="h-5 w-5" />
+                    <span>QR Code</span>
+                  </motion.button>
+                </div>
+              </div>
             </motion.div>
           )}
-        </AnimatePresence>
-      </DialogContent>
-    </Dialog>
+        </>
+      )}
+    </AnimatePresence>
   );
 }

@@ -7,6 +7,7 @@ export interface Event {
     lat: number;
     lng: number;
     name: string;
+    address?: string; // Added for compatibility
   };
   imageUrl: string;
   host: {

@@ -7,7 +7,11 @@ import { MapTab } from './components/MapTab';
 import { SocialTab } from './components/SocialTab';
 import { ProfileTab } from './components/ProfileTab';
 import { VenuesTab } from './components/VenuesTab';
-import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
+import { TicketBookingDialog } from './components/TicketBookingDialog'; // Add import
+
+
+
+// ... rest of the file ...
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
 import { CreateEventWizard } from './components/modals/CreateEventWizard';
 import { LiquidBackground } from './components/ui/LiquidBackground';
@@ -37,12 +41,51 @@ function AppContent() {
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
   const [activeTab, setActiveTab] = useState<'feed' | 'map' | 'venues' | 'profile'>('feed');
+  const [ticketBookingOpen, setTicketBookingOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
+
+  const handleBookTicket = () => {
+    setTicketBookingOpen(true);
+    setSheetOpen(false);
+  };
+
+  // Helper to convert Event to TicketEvent (mock data mapping)
+  const selectedTicket = selectedEvent ? {
+    id: selectedEvent.id,
+    title: selectedEvent.title,
+    date: selectedEvent.startTime,
+    time: selectedEvent.startTime,
+    venue: selectedEvent.location.name,
+    price: selectedEvent.price || 499,
+    imageUrl: selectedEvent.imageUrl,
+    availableSeats: 45,
+    category: 'Concert' as const,
+    attendees: selectedEvent.attendees,
+    artist: selectedEvent.host.name,
+    location: selectedEvent.location // Kept for compatibility if needed
+  } : null;
 
   const handleEventSelect = (event: Event) => {
     setSelectedEvent(event);
     setSheetOpen(true);
   };
+
+  // ... (skip unchanged lines) ...
+
+  {/* Event Detail Sheet */ }
+  <EventDetailsSheet
+    event={selectedEvent}
+    open={sheetOpen}
+    onClose={handleCloseSheet}
+    onBook={handleBookTicket}
+  />
+
+  {/* Ticket Booking Dialog */ }
+  <TicketBookingDialog
+    ticket={selectedTicket}
+    open={ticketBookingOpen}
+    onClose={() => setTicketBookingOpen(false)}
+  />
 
   const handleCloseSheet = () => {
     setSheetOpen(false);
@@ -284,6 +327,14 @@ function AppContent() {
         event={selectedEvent}
         open={sheetOpen}
         onClose={handleCloseSheet}
+        onBook={handleBookTicket}
+      />
+
+      {/* Ticket Booking Dialog */}
+      <TicketBookingDialog
+        ticket={selectedTicket}
+        open={ticketBookingOpen}
+        onClose={() => setTicketBookingOpen(false)}
       />
 
       {/* Create Event Wheel */}

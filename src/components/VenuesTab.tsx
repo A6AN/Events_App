@@ -1,9 +1,10 @@
 import { Building2, MapPin, Star, Users, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Venue } from '../types';
-import { ImageWithFallback } from './figma/ImageWithFallback';
+import { Venue } from '../types'; // Adjust import
+import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust import
 import { useState, useRef, useEffect } from 'react';
 import { VenueBookingDialog } from './VenueBookingDialog';
+import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Ensure ui/avatar exists
 
 interface VenuesTabProps {
   venues: Venue[];
@@ -36,7 +37,7 @@ export function VenuesTab({ venues }: VenuesTabProps) {
 
   // Track scroll for header shrinking
   useEffect(() => {
-    const handleScroll = (e: globalThis.Event) => {
+    const handleScroll = (e: Event) => {
       const target = e.target as HTMLElement;
       setIsScrolled(target.scrollTop > 50);
     };
