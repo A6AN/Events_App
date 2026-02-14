@@ -35,9 +35,11 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
 
   // Format time 
   const getTime = (event: Event) => {
+    if (event.startTime) return event.startTime;
     if (!event.date) return 'Upcoming';
     try {
       const d = new Date(event.date);
+      if (isNaN(d.getTime())) return event.date;
       return d.toLocaleDateString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' });
     } catch {
       return event.date;
@@ -81,7 +83,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
                 style={{ animationDelay: `${i * 0.1}s` }}
               >
                 <img
-                  src={event.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800'}
+                  src={event.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800'}
                   alt={event.title}
                   className="poster-img"
                 />
@@ -99,7 +101,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
                   <div className="poster-category">{getCategory(event)}</div>
                   <h3 className="poster-title">{event.title}</h3>
                   <div className="poster-meta">
-                    <span className="poster-meta-item"><MapPin size={13} /> {event.location || 'Mumbai'}</span>
+                    <span className="poster-meta-item"><MapPin size={13} /> {typeof event.location === 'object' ? event.location.name : (event.location || 'Mumbai')}</span>
                     <span className="poster-meta-item"><Clock size={13} /> {getTime(event)}</span>
                   </div>
                   <div className="poster-bottom">
