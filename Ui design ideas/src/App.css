@@ -1,0 +1,54 @@
+/* App shell */
+.app-shell {
+  min-height: 100vh;
+  position: relative;
+  background: var(--bg-primary);
+  overflow-x: hidden;
+  padding-bottom: 110px;
+}
+
+/* Floating chat button — top right within container */
+.app-chat-fab {
+  position: fixed;
+  top: 56px;
+  right: 16px;
+  z-index: 200;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: all 0.25s;
+  animation: bounceIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both;
+}
+
+/* On desktop, pin the FAB to the right edge of the 430px container */
+@media (min-width: 431px) {
+  .app-chat-fab {
+    right: calc(50vw - 215px + 16px);
+  }
+}
+
+.app-chat-fab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: scale(1.08);
+}
+
+.app-chat-fab .chat-badge {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--saffron);
+  border: 2px solid var(--bg-primary);
+}

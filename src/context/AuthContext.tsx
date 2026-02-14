@@ -79,7 +79,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return { error: null };
         }
         const redirectURL = getURL();
-        console.log('🚀 Authenticating with redirect:', redirectURL);
 
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',

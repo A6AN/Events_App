@@ -1,298 +1,151 @@
-import { Building2, MapPin, Star, Users, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Venue } from '../types'; // Adjust import
-import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust import
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
+import { Search, SlidersHorizontal, MapPin, Star, Users, Zap } from 'lucide-react';
+import { Venue } from '../types';
 import { VenueBookingDialog } from './VenueBookingDialog';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'; // Ensure ui/avatar exists
+import './VenuesTab.css';
 
 interface VenuesTabProps {
   venues: Venue[];
 }
 
-const categoryEmoji = {
-  'Banquet Hall': '🏛️',
-  'Rooftop': '🌆',
-  'Restaurant': '🍽️',
-  'Garden': '🌳',
-  'Conference Room': '💼'
-};
+const CATEGORIES = ['All', 'Banquet Hall', 'Rooftop', 'Restaurant', 'Garden', 'Conference Room'];
 
 export function VenuesTab({ venues }: VenuesTabProps) {
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
-  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [activeCat, setActiveCat] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
+  const [bookingOpen, setBookingOpen] = useState(false);
 
-  const categories = ['All', 'Banquet Hall', 'Rooftop', 'Restaurant', 'Garden', 'Conference Room'];
-
+  // Filter venues
   const filteredVenues = venues.filter(v => {
-    const matchesCategory = selectedCategory === 'All' || v.category === selectedCategory;
-    const matchesSearch = v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.location.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+    const matchesCat = activeCat === 'All' || v.category === activeCat;
+    const matchesSearch = !searchQuery || v.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesSearch;
   });
 
-  // Track scroll for header shrinking
-  useEffect(() => {
-    const handleScroll = (e: Event) => {
-      const target = e.target as HTMLElement;
-      setIsScrolled(target.scrollTop > 50);
-    };
+  // Featured venue (first venue or fallback)
+  const featured = venues[0];
 
-    const scrollContainer = scrollRef.current;
-    if (scrollContainer) {
-      scrollContainer.addEventListener('scroll', handleScroll as any);
-      return () => scrollContainer.removeEventListener('scroll', handleScroll as any);
-    }
-  }, []);
+  // Get default image for venue
+  const getVenueImage = (venue: Venue) => {
+    return venue.imageUrl || 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?auto=format&fit=crop&q=80&w=800';
+  };
 
   const handleVenueClick = (venue: Venue) => {
     setSelectedVenue(venue);
-    setDialogOpen(true);
+    setBookingOpen(true);
   };
 
   return (
-    <div className="h-full relative">
-      <div className="relative h-full flex flex-col">
-        {/* Shrinking Glass Header */}
-        <motion.div
-          className="sticky top-0 z-20 glass backdrop-blur-3xl border-b border-white/10"
-          animate={{
-            paddingTop: isScrolled ? '12px' : '16px',
-            paddingBottom: isScrolled ? '12px' : '0px',
-          }}
-          transition={{ duration: 0.3, ease: 'easeInOut' }}
-        >
-          <div className="px-4">
-            {/* Title - Hides on scroll */}
-            <motion.div
-              className="flex items-center justify-between overflow-hidden"
-              animate={{
-                height: isScrolled ? 0 : 'auto',
-                opacity: isScrolled ? 0 : 1,
-                marginBottom: isScrolled ? 0 : '16px',
-              }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <div>
-                <h1 className="text-foreground mb-0.5">Venues</h1>
-                <p className="text-muted-foreground text-xs">Premium event spaces across Delhi</p>
-              </div>
-              <motion.div
-                animate={{
-                  rotate: [0, 10, -10, 0],
-                  scale: [1, 1.1, 1],
-                }}
-                transition={{
-                  duration: 3,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
-              >
-                <Building2 className="h-5 w-5 text-foreground/60" />
-              </motion.div>
-            </motion.div>
+    <div className="venues" style={{ height: '100%', overflowY: 'auto' }}>
+      {/* Header */}
+      <div className="venues-header">
+        <h1 className="venues-title">Venues</h1>
+        <p className="venues-subtitle">Discover the best spots in your city</p>
 
-            {/* Search Bar */}
-            <motion.div
-              className="relative mb-3 overflow-hidden"
-              animate={{
-                height: isScrolled ? 0 : 'auto',
-                opacity: isScrolled ? 0 : 1,
-                marginBottom: isScrolled ? 0 : '12px',
-              }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              <div className="relative glass backdrop-blur-xl rounded-2xl border border-white/10">
-                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search venues or locations..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-transparent pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                />
-              </div>
-            </motion.div>
-
-            {/* Category Pills */}
-            <motion.div
-              className="flex gap-2 overflow-x-auto scrollbar-hide pb-1"
-              animate={{
-                marginBottom: isScrolled ? '0px' : '16px',
-              }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-            >
-              {categories.map((cat, idx) => {
-                const isActive = selectedCategory === cat;
-                return (
-                  <motion.button
-                    key={cat}
-                    onClick={() => setSelectedCategory(cat)}
-                    className="relative px-4 py-2 whitespace-nowrap rounded-full text-sm overflow-hidden"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05 }}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {isActive && (
-                      <motion.div
-                        layoutId="activeVenueCategory"
-                        className="absolute inset-0 glass backdrop-blur-xl rounded-full border border-white/20"
-                        style={{
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
-                        }}
-                        transition={{ type: 'spring', stiffness: 350, damping: 30 }}
-                      />
-                    )}
-                    <div className={`relative z-10 flex items-center gap-2 font-medium ${isActive ? 'text-foreground' : 'text-muted-foreground'
-                      }`}>
-                      {cat !== 'All' && (
-                        <span className="text-base">{categoryEmoji[cat as keyof typeof categoryEmoji]}</span>
-                      )}
-                      <span>{cat}</span>
-                    </div>
-                    {!isActive && (
-                      <div className="absolute inset-0 glass opacity-30" />
-                    )}
-                  </motion.button>
-                );
-              })}
-            </motion.div>
+        <div className="venues-search-row">
+          <div className="venues-search">
+            <Search size={16} color="rgba(255,255,255,0.3)" />
+            <input
+              placeholder="Search venues, clubs, cafés..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
           </div>
-        </motion.div>
+          <button className="venues-filter-btn"><SlidersHorizontal size={18} /></button>
+        </div>
 
-        {/* Venues Grid */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto scrollbar-hide bg-background">
-          <div className="p-4 space-y-4 pb-24">
-            <AnimatePresence mode="wait">
-              {filteredVenues.length > 0 ? (
-                filteredVenues.map((venue, idx) => (
-                  <VenueCard
-                    key={venue.id}
-                    venue={venue}
-                    index={idx}
-                    onClick={() => handleVenueClick(venue)}
-                  />
-                ))
-              ) : (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="flex flex-col items-center justify-center py-20 px-4"
+        <div className="venues-categories">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat}
+              className={`cat-pill ${activeCat === cat ? 'active' : ''}`}
+              onClick={() => setActiveCat(cat)}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="venues-content">
+        {/* Featured */}
+        {featured && (
+          <div className="venue-featured" onClick={() => handleVenueClick(featured)}>
+            <img src={getVenueImage(featured)} alt={featured.name} />
+            <div className="venue-featured-overlay" />
+            <span className="venue-featured-badge">⭐ Featured</span>
+            <div className="venue-featured-info">
+              <h2 className="venue-featured-name">{featured.name}</h2>
+              <div className="venue-featured-meta">
+                <span className="venue-featured-meta-item"><MapPin size={12} /> {featured.location || 'Mumbai'}</span>
+                <span className="venue-featured-rating"><Star size={12} fill="currentColor" /> {featured.rating || 4.5}</span>
+                <span className="venue-featured-meta-item"><Users size={12} /> {featured.capacity || 200}</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trending */}
+        {venues.length > 1 && (
+          <>
+            <h3 className="venues-section-title">🔥 Trending Now</h3>
+            <div className="venues-trending-scroll">
+              {venues.slice(0, 4).map((v, i) => (
+                <div
+                  key={v.id}
+                  className="venue-trending-card"
+                  style={{ animationDelay: `${0.2 + i * 0.05}s` }}
+                  onClick={() => handleVenueClick(v)}
                 >
-                  <div className="glass backdrop-blur-xl rounded-3xl p-8 text-center border border-white/10">
-                    <Building2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                    <h3 className="text-foreground text-lg mb-2">No venues found</h3>
-                    <p className="text-muted-foreground text-sm">Try adjusting your filters or search</p>
+                  <img src={getVenueImage(v)} alt={v.name} className="venue-trending-img" />
+                  <div className="venue-trending-info">
+                    <div className="venue-trending-name">{v.name}</div>
+                    <div className="venue-trending-meta"><Zap size={10} /> Popular venue</div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        {/* All Venues */}
+        <h3 className="venues-section-title">📍 Near You</h3>
+        <div className="venue-list">
+          {filteredVenues.map((v, i) => (
+            <div
+              key={v.id}
+              className="venue-card"
+              style={{ animationDelay: `${0.25 + i * 0.05}s` }}
+              onClick={() => handleVenueClick(v)}
+            >
+              <img src={getVenueImage(v)} alt={v.name} className="venue-card-img" />
+              <div className="venue-card-body">
+                <span className="venue-card-type">{v.category || 'Venue'}</span>
+                <div className="venue-card-name">{v.name}</div>
+                <div className="venue-card-meta">
+                  <span className="venue-card-meta-item"><MapPin size={11} /> {v.location || 'Mumbai'}</span>
+                  <span className="venue-card-rating"><Star size={11} fill="currentColor" /> {v.rating || 4.5}</span>
+                </div>
+              </div>
+              <span className="venue-card-events">{v.capacity ? `${v.capacity} cap` : 'Open'}</span>
+            </div>
+          ))}
+          {filteredVenues.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: 'var(--text-muted-new)', fontSize: 14 }}>
+              No venues found
+            </div>
+          )}
         </div>
       </div>
 
       {/* Booking Dialog */}
       <VenueBookingDialog
         venue={selectedVenue}
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
       />
     </div>
-  );
-}
-
-// Venue card matching the reference design
-function VenueCard({ venue, index, onClick }: { venue: Venue; index: number; onClick: () => void }) {
-  return (
-    <motion.div
-      className="cursor-pointer rounded-3xl overflow-hidden shadow-lg"
-      style={{
-        background: 'linear-gradient(180deg, rgba(26, 26, 36, 0.6) 0%, rgba(26, 26, 36, 0.9) 100%)',
-      }}
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.5, type: 'spring' }}
-      onClick={onClick}
-      whileTap={{ scale: 0.98 }}
-    >
-      {/* Card Image */}
-      <div className="relative h-72 overflow-hidden">
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          transition={{ duration: 0.4 }}
-        >
-          <ImageWithFallback
-            src={venue.imageUrl}
-            alt={venue.name}
-            className="w-full h-full object-cover"
-          />
-        </motion.div>
-
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-
-        {/* Rating Badge - Top Left (mimicking avatar position) */}
-        <motion.div
-          className="absolute top-4 left-4 glass backdrop-blur-2xl px-3 py-2 rounded-2xl border border-white/20 shadow-2xl"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: index * 0.08 + 0.2 }}
-        >
-          <div className="flex items-center gap-1.5">
-            <Star
-              className="h-4 w-4 text-yellow-400 fill-yellow-400"
-              style={{
-                filter: 'drop-shadow(0 0 4px rgba(250, 204, 21, 0.6))',
-              }}
-            />
-            <span className="text-white text-sm font-medium">{venue.rating}</span>
-          </div>
-        </motion.div>
-
-        {/* Price Badge - Top Right */}
-        <motion.div
-          className="absolute top-4 right-4 bg-white rounded-2xl px-4 py-2.5 shadow-xl"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: index * 0.08 + 0.3 }}
-        >
-          <div className="text-center">
-            <div className="text-lg font-bold text-black leading-none mb-0.5">
-              ₹{(venue.pricePerHour / 1000).toFixed(0)}k
-            </div>
-            <div className="text-[10px] font-semibold text-black/60 uppercase tracking-wider">
-              /hour
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Info Overlay - Bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-          <div className="text-xs text-white/70 mb-1 uppercase tracking-wide flex items-center gap-1.5">
-            <span>{categoryEmoji[venue.category as keyof typeof categoryEmoji]}</span>
-            {venue.category}
-          </div>
-          <h3 className="text-white text-2xl font-semibold mb-2 drop-shadow-lg">
-            {venue.name}
-          </h3>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-white/80 text-sm">
-              <MapPin className="h-4 w-4" />
-              {venue.location}
-            </div>
-            <div className="flex items-center gap-2 text-white/80 text-sm">
-              <Users className="h-4 w-4" />
-              {venue.capacity}
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
   );
 }

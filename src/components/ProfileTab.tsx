@@ -1,14 +1,12 @@
-import { Share2, Settings, Camera, Ticket, Sparkles, MapPin, Calendar, LogOut, Edit2, ChevronRight, Loader2 } from 'lucide-react';
+import { Share2, Settings, Camera, Ticket, Sparkles, MapPin, Calendar, LogOut, Edit2, ChevronRight, Loader2, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
-import { Button } from './ui/button';
-import { ScrollArea } from './ui/scroll-area';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile, getUserVenueBookings } from '../lib/supabase';
 import { TicketCard } from './tickets/TicketCard';
 import { DbEvent, DbTicket } from '../types';
+import './ProfileTab.css';
 
 export function ProfileTab() {
   const { user, signOut } = useAuth();
@@ -49,14 +47,11 @@ export function ProfileTab() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || !e.target.files[0] || !user) return;
-
     const file = e.target.files[0];
     setUploading(true);
     try {
       const publicUrl = await uploadAvatar(user.id, file);
-      // Update profile in DB
       await updateProfile(user.id, { avatar_url: publicUrl });
-      // Update local state
       setProfile((prev: any) => ({ ...prev, avatar_url: publicUrl }));
     } catch (error) {
       console.error('Error uploading avatar:', error);
@@ -68,243 +63,196 @@ export function ProfileTab() {
 
   // Safe display values
   const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User';
-  const username = profile?.username || user?.email?.split('@')[0] || 'username';
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || undefined;
-  const initials = displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // Helper to map DbEvent to card UI (simplified inline card for hosted events)
-  const EventListItem = ({ event }: { event: DbEvent }) => (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/10 mb-3"
-    >
-      <div className="h-20 w-20 rounded-xl overflow-hidden flex-shrink-0 relative">
-        <ImageWithFallback src={event.image_url || undefined} alt={event.title} className="w-full h-full object-cover" />
-        <div className="absolute inset-0 bg-black/20" />
-      </div>
-      <div className="flex-1 min-w-0 py-1">
-        <h3 className="text-white font-semibold truncate">{event.title}</h3>
-        <div className="flex items-center gap-2 text-white/50 text-xs mt-1">
-          <Calendar className="h-3 w-3" />
-          <span>{new Date(event.date).toLocaleDateString()}</span>
-        </div>
-        <div className="flex items-center gap-2 text-white/50 text-xs mt-1">
-          <MapPin className="h-3 w-3" />
-          <span className="truncate">{event.location_name}</span>
-        </div>
-      </div>
-      <div className="flex flex-col justify-between items-end py-1">
-        <span className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${new Date(event.date) < new Date() ? 'bg-white/10 text-white/50' : 'bg-emerald-500/20 text-emerald-400'}`}>
-          {new Date(event.date) < new Date() ? 'Past' : 'Upcoming'}
-        </span>
-        <ChevronRight className="h-4 w-4 text-white/30" />
-      </div>
-    </motion.div>
-  );
+  const TABS = [
+    { id: 'hosted', label: 'Hosted' },
+    { id: 'tickets', label: 'Tickets' },
+    { id: 'venues', label: 'Venues' },
+    { id: 'about', label: 'About' },
+  ];
 
   return (
-    <div className="h-full relative bg-[#0a0a0f]">
-
-
-      <ScrollArea className="h-full relative z-10">
-        <div className="pb-24">
-          {/* Profile Header */}
-          <div className="pt-24 px-6 pb-6">
-            <div className="flex items-start justify-between mb-6">
-              <div className="relative">
-                <motion.div whileHover={{ scale: 1.05 }} className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                  <Avatar className="h-24 w-24 border-4 border-white/5 shadow-2xl">
-                    <AvatarImage src={avatarUrl} className="object-cover" />
-                    <AvatarFallback className="bg-white/10 text-white text-2xl">{initials}</AvatarFallback>
-                  </Avatar>
-                  {/* Camera Overlay */}
-                  <div className="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                    <Camera className="h-8 w-8 text-white" />
-                  </div>
-                  {uploading && (
-                    <div className="absolute inset-0 rounded-full bg-black/60 flex items-center justify-center">
-                      <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-                    </div>
-                  )}
-                  <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center border-4 border-[#0a0a0f]">
-                    <Edit2 className="h-3.5 w-3.5 text-white" />
-                  </div>
-                </motion.div>
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                />
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/5">
-                  <Share2 className="h-5 w-5 text-white" />
-                </Button>
-                <Button variant="ghost" size="icon" className="rounded-xl hover:bg-white/5">
-                  <Settings className="h-5 w-5 text-white" />
-                </Button>
-              </div>
-            </div>
-
-            <div>
-              <h1 className="text-2xl font-bold text-white mb-1">{displayName}</h1>
-              <p className="text-white/50 text-sm mb-4">@{username}</p>
-
-              {/* Stats */}
-              <div className="flex gap-6 p-4 rounded-2xl bg-white/5 border border-white/5 backdrop-blur-sm">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">{stats.eventsHosted}</div>
-                  <div className="text-xs text-white/50">Events</div>
-                </div>
-                <div className="w-px bg-white/10" />
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">{stats.followers}</div>
-                  <div className="text-xs text-white/50">Followers</div>
-                </div>
-                <div className="w-px bg-white/10" />
-                <div className="text-center">
-                  <div className="text-lg font-bold text-white">{stats.following}</div>
-                  <div className="text-xs text-white/50">Following</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Navigation Tabs */}
-          <div className="sticky top-0 z-20 bg-[#0a0a0f]/95 backdrop-blur-md border-b border-white/5 px-6">
-            <div className="flex items-center gap-8 overflow-x-auto scrollbar-hide">
-              {[
-                { id: 'hosted', label: 'My Events' },
-                { id: 'tickets', label: 'My Tickets' },
-                { id: 'venues', label: 'Venue Bookings' },
-                { id: 'about', label: 'About' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className="relative py-4"
-                >
-                  <span className={`text-sm font-medium transition-colors ${activeTab === tab.id ? 'text-white' : 'text-white/50'
-                    }`}>
-                    {tab.label}
-                  </span>
-                  {activeTab === tab.id && (
-                    <motion.div
-                      layoutId="activeTab"
-                      className="absolute -bottom-px left-0 right-0 h-0.5 bg-emerald-500"
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Tab Content */}
-          <div className="p-6">
-            <AnimatePresence mode="wait">
-              {activeTab === 'hosted' && (
-                <motion.div
-                  key="hosted"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-4"
-                >
-                  {loading ? (
-                    <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-emerald-500 animate-spin" /></div>
-                  ) : hostedEvents.length === 0 ? (
-                    <div className="text-center py-10">
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                        <Sparkles className="h-8 w-8 text-white/20" />
-                      </div>
-                      <h3 className="text-white font-medium mb-1">No events yet</h3>
-                      <p className="text-white/40 text-sm">Host your first event to get started!</p>
-                    </div>
-                  ) : (
-                    hostedEvents.map(event => (
-                      <EventListItem key={event.id} event={event} />
-                    ))
-                  )}
-                </motion.div>
-              )}
-
-              {activeTab === 'tickets' && (
-                <motion.div
-                  key="tickets"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-6"
-                >
-                  {loading ? (
-                    <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 text-emerald-500 animate-spin" /></div>
-                  ) : tickets.length === 0 ? (
-                    <div className="text-center py-10">
-                      <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
-                        <Ticket className="h-8 w-8 text-white/20" />
-                      </div>
-                      <h3 className="text-white font-medium mb-1">No tickets</h3>
-                      <p className="text-white/40 text-sm">You haven't booked any events yet.</p>
-                    </div>
-                  ) : (
-                    tickets.map(ticket => (
-                      <div key={ticket.id} className="relative">
-                        {/* Use TicketCard but without QR functional? Or fully functional */}
-                        <TicketCard event={ticket.event} ticketId={ticket.id} />
-                      </div>
-                    ))
-                  )}
-                </motion.div>
-              )}
-
-              {activeTab === 'about' && (
-                <motion.div
-                  key="about"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className="space-y-6"
-                >
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/5">
-                    <h3 className="text-white font-semibold mb-3">Bio</h3>
-                    <p className="text-white/60 text-sm leading-relaxed">
-                      {user?.user_metadata?.bio || "No bio added yet. Edit your profile to add one."}
-                    </p>
-                  </div>
-
-                  <div className="p-5 rounded-2xl bg-white/5 border border-white/5">
-                    <h3 className="text-white font-semibold mb-3">Interests</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {['Music', 'Art', 'Technology', 'Nightlife', 'Food'].map(tag => (
-                        <span key={tag} className="px-3 py-1 rounded-full bg-white/5 text-xs text-white/70 border border-white/10">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <Button
-                    variant="outline"
-                    className="w-full h-12 rounded-xl border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors"
-                    onClick={() => signOut()}
-                  >
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </Button>
-
-                  <div className="text-center text-xs text-white/20 pt-4">
-                    Version 1.0.0
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+    <div className="profile">
+      {/* Hero Section */}
+      <div className="profile-hero">
+        <img
+          src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=800"
+          alt="cover"
+          className="profile-hero-img"
+        />
+        <div className="profile-hero-overlay" />
+        <div className="profile-top-actions">
+          <div>{/* left spacer */}</div>
+          <div className="profile-actions-right">
+            <button className="profile-action-btn"><Share2 size={18} /></button>
+            <button className="profile-action-btn"><Settings size={18} /></button>
           </div>
         </div>
-      </ScrollArea>
+      </div>
+
+      {/* Body */}
+      <div className="profile-body">
+        {/* Avatar */}
+        <div className="profile-avatar-wrap" onClick={handleAvatarClick} style={{ cursor: 'pointer' }}>
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={displayName} className="profile-avatar-img" />
+          ) : (
+            <div className="profile-avatar-img" style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: 'rgba(255,255,255,0.1)', fontSize: 28, fontWeight: 800, color: '#fff'
+            }}>
+              {displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+            </div>
+          )}
+          {uploading && (
+            <div style={{ position: 'absolute', top: 0, left: 0, width: 88, height: 88, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
+            </div>
+          )}
+          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
+        </div>
+
+        <h1 className="profile-name">{displayName}</h1>
+        <div className="profile-location"><MapPin size={13} /> Mumbai, India</div>
+
+        {/* Rep Badge */}
+        <div className="profile-rep">
+          <Star size={16} fill="currentColor" className="profile-rep-star" />
+          <span className="profile-rep-score">4.8</span>
+          <span className="profile-rep-label">Reputation</span>
+        </div>
+
+        {/* Stats */}
+        <div className="profile-stats">
+          <div>
+            <div className="profile-stat-num">{stats.followers}</div>
+            <div className="profile-stat-label">Followers</div>
+          </div>
+          <div>
+            <div className="profile-stat-num">{stats.following}</div>
+            <div className="profile-stat-label">Following</div>
+          </div>
+          <div>
+            <div className="profile-stat-num">{stats.eventsHosted}</div>
+            <div className="profile-stat-label">Events</div>
+          </div>
+        </div>
+
+        {/* Language row */}
+        <div className="profile-lang-row">
+          {['English', 'Hindi', 'Marathi'].map(l => (
+            <span key={l} className="profile-lang">{l}</span>
+          ))}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="profile-actions">
+          <button className="profile-btn" onClick={handleAvatarClick}><Camera size={14} style={{ marginRight: 6, display: 'inline' }} /> Edit Profile</button>
+          <button className="profile-btn"><Share2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Share</button>
+        </div>
+
+        {/* Tabs */}
+        <div className="profile-tabs">
+          {TABS.map(tab => (
+            <button
+              key={tab.id}
+              className={`profile-tab ${activeTab === tab.id ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab.id as any)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          {activeTab === 'hosted' && (
+            <motion.div key="hosted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                  <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
+                </div>
+              ) : hostedEvents.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <Sparkles size={24} color="rgba(255,255,255,0.2)" />
+                  </div>
+                  <h3 style={{ color: '#fff', fontWeight: 600, marginBottom: 4 }}>No events yet</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Host your first event to get started!</p>
+                </div>
+              ) : (
+                <div className="profile-grid">
+                  {hostedEvents.map((event, i) => (
+                    <div key={event.id} className="profile-grid-item" style={{ animationDelay: `${i * 0.05}s` }}>
+                      <ImageWithFallback src={event.image_url || undefined} alt={event.title} />
+                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10, background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', borderRadius: '0 0 12px 12px' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{event.title}</div>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
+                          <Calendar size={9} /> {new Date(event.date).toLocaleDateString()}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'tickets' && (
+            <motion.div key="tickets" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              {loading ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                  <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
+                </div>
+              ) : tickets.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <Ticket size={24} color="rgba(255,255,255,0.2)" />
+                  </div>
+                  <h3 style={{ color: '#fff', fontWeight: 600, marginBottom: 4 }}>No tickets</h3>
+                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>You haven't booked any events yet.</p>
+                </div>
+              ) : (
+                tickets.map(ticket => (
+                  <div key={ticket.id} style={{ marginBottom: 16 }}>
+                    <TicketCard event={ticket.event} ticketId={ticket.id} />
+                  </div>
+                ))
+              )}
+            </motion.div>
+          )}
+
+          {activeTab === 'about' && (
+            <motion.div key="about" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 14 }}>
+                <h3 style={{ color: '#fff', fontWeight: 700, marginBottom: 8, fontSize: 15 }}>Bio</h3>
+                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.6 }}>
+                  {user?.user_metadata?.bio || "No bio added yet. Edit your profile to add one."}
+                </p>
+              </div>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 20 }}>
+                <h3 style={{ color: '#fff', fontWeight: 700, marginBottom: 8, fontSize: 15 }}>Interests</h3>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {['Music', 'Art', 'Technology', 'Nightlife', 'Food'].map(tag => (
+                    <span key={tag} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.05)', fontSize: 12, color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <button className="profile-logout-btn" onClick={() => signOut()}>
+                <LogOut size={16} /> Sign Out
+              </button>
+
+              <div style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.2)', paddingTop: 12, paddingBottom: 20 }}>
+                Version 1.0.0
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

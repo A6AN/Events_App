@@ -49,8 +49,7 @@ export const MapTab = ({ events }: MapTabProps) => {
 
     const initMap = () => {
       try {
-        console.log('Initializing Ola Maps...');
-        console.log('API Key present:', !!OLA_MAPS_API_KEY);
+        // Initializing Ola Maps...
 
         // @ts-ignore
         olaMapsRef.current = new OlaMaps({
@@ -100,16 +99,16 @@ export const MapTab = ({ events }: MapTabProps) => {
                     myMap.setPaintProperty(layer.id, 'icon-opacity', 0.7);
                   }
                 }
+
               });
-              console.log('🗺️ Landmark colors toned down');
             }
           } catch (e) {
-            console.error('Error styling map layers:', e);
+            // Error styling map layers
           }
         });
 
       } catch (error) {
-        console.error("Error initializing Ola Maps:", error);
+        // Error initializing Ola Maps
       }
     };
 
@@ -158,7 +157,7 @@ export const MapTab = ({ events }: MapTabProps) => {
           }
         },
         (error) => {
-          console.error("Error getting location:", error);
+          // Error getting location
         }
       );
     }
@@ -260,7 +259,6 @@ export const MapTab = ({ events }: MapTabProps) => {
           setSearchResults([]);
         }
       } catch (error) {
-        console.error('Ola Maps search error:', error);
         setSearchResults([]);
       } finally {
         setIsSearching(false);
@@ -280,9 +278,8 @@ export const MapTab = ({ events }: MapTabProps) => {
         `https://api.olamaps.io/places/v1/details?place_id=${result.place_id}&api_key=${OLA_MAPS_API_KEY}`
       );
       const data = await response.json();
-      console.log('Place Details Response:', data);
 
-      // Check for different response structures (Google Places style vs others)
+      // Check for different response structures
       const geometry = data.result?.geometry || data.geometry;
       const location = geometry?.location;
 
@@ -291,11 +288,10 @@ export const MapTab = ({ events }: MapTabProps) => {
         const lng = typeof location.lng === 'function' ? location.lng() : parseFloat(location.lng);
 
         if (!isNaN(lat) && !isNaN(lng)) {
-          console.log('Flying to:', { lat, lng });
           mapInstanceRef.current.flyTo({
             center: [lng, lat],
             zoom: 15,
-            duration: 2000 // Add smooth animation duration
+            duration: 2000
           });
 
           // Add a default marker
@@ -303,14 +299,10 @@ export const MapTab = ({ events }: MapTabProps) => {
             .addMarker({})
             .setLngLat([lng, lat])
             .addTo(mapInstanceRef.current);
-        } else {
-          console.error('Invalid coordinates:', location);
         }
-      } else {
-        console.error('Could not find location in response:', data);
       }
     } catch (error) {
-      console.error('Error fetching place details:', error);
+      // Error fetching place details
     }
 
     setSearchQuery('');

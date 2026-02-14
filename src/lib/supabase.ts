@@ -62,20 +62,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 export const getURL = () => {
     let url = 'http://localhost:3000/';
 
-    // Debug logging
-    console.log('🔗 getURL Debug:');
-    console.log('- window.origin:', typeof window !== 'undefined' ? window.location.origin : 'undefined');
-    console.log('- VITE_SITE_URL:', import.meta.env.VITE_SITE_URL);
-    console.log('- VITE_VERCEL_URL:', import.meta.env.VITE_VERCEL_URL);
+    // Debug logging removed
 
     if (typeof window !== 'undefined' && window.location.origin) {
         url = window.location.origin;
-        console.log('- Using window.origin:', url);
     } else {
         url = import.meta.env.VITE_SITE_URL ??
             import.meta.env.VITE_VERCEL_URL ??
             'http://localhost:3000/';
-        console.log('- Using fallback env:', url);
     }
     // Make sure to include `https://` when not localhost.
     url = url.includes('http') ? url : `https://${url}`;
@@ -103,7 +97,6 @@ export async function fetchEvents(): Promise<Event[]> {
         .order('date', { ascending: true });
 
     if (error) {
-        console.error('Error fetching events:', error);
         return [];
     }
 
@@ -192,7 +185,6 @@ export async function getUserHostedEvents(userId: string) {
         .order('date', { ascending: true });
 
     if (error) {
-        console.error('Error fetching hosted events:', error);
         return [];
     }
     return data;
@@ -210,7 +202,6 @@ export async function getEvents() {
         .order('date', { ascending: true });
 
     if (error) {
-        console.error('Error fetching events:', error);
         return [];
     }
     return data;
@@ -226,7 +217,6 @@ export const rsvpToEvent = async (eventId: string, userId: string) => {
         .single();
 
     if (error) {
-        console.error('Error RSVPing to event:', error);
         throw error;
     }
     return data;
@@ -243,7 +233,6 @@ export const getUserTickets = async (userId: string) => {
         .order('created_at', { ascending: false });
 
     if (error) {
-        console.error('Error fetching user tickets:', error);
         return [];
     }
     return data;
@@ -258,7 +247,7 @@ export const checkRsvpStatus = async (eventId: string, userId: string) => {
         .single();
 
     if (error && error.code !== 'PGRST116') { // PGRST116 is "Row not found"
-        console.error('Error checking RSVP status:', error);
+        // Handle error silently
     }
 
     return !!data;
@@ -275,7 +264,6 @@ export const fetchVenues = async () => {
         .order('rating', { ascending: false });
 
     if (error) {
-        console.error('Error fetching venues:', error);
         return [];
     }
     return data;
@@ -292,7 +280,6 @@ export const getVenueById = async (venueId: string) => {
         .single();
 
     if (error) {
-        console.error('Error fetching venue:', error);
         return null;
     }
     return data;
@@ -328,7 +315,6 @@ export const getUserVenueBookings = async (userId: string) => {
         .order('booking_date', { ascending: true });
 
     if (error) {
-        console.error('Error fetching venue bookings:', error);
         return [];
     }
     return data;
@@ -404,7 +390,6 @@ export const getComments = async (eventId: string) => {
         .order('created_at', { ascending: true });
 
     if (error) {
-        console.error('Error fetching comments:', error);
         return [];
     }
     return data;
@@ -490,7 +475,7 @@ export const getEventChat = async (eventId: string) => {
         .single();
 
     if (error && error.code !== 'PGRST116') {
-        console.error('Error fetching event chat:', error);
+        // Handle error
     }
     return data;
 };
@@ -507,7 +492,6 @@ export const getChatMessages = async (chatId: string, limit = 50, offset = 0) =>
         .range(offset, offset + limit - 1);
 
     if (error) {
-        console.error('Error fetching chat messages:', error);
         return [];
     }
     return data.reverse(); // Return in chronological order
@@ -537,7 +521,6 @@ export const getChatMembers = async (chatId: string) => {
         .eq('chat_id', chatId);
 
     if (error) {
-        console.error('Error fetching chat members:', error);
         return [];
     }
     return data;
@@ -557,7 +540,6 @@ export const getUserChats = async (userId: string) => {
         .eq('user_id', userId);
 
     if (error) {
-        console.error('Error fetching user chats:', error);
         return [];
     }
     return data;
