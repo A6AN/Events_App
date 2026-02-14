@@ -1,7 +1,17 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Zap, Ticket, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Ticket, Coffee, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import '../modals/ModalStyles.css';
+
+const CATEGORIES = [
+    { id: 'party', name: 'House Party', c1: '#FF0044', c2: '#FF8800' },
+    { id: 'concert', name: 'Concert', c1: '#1a1a2e', c2: '#5533ff' },
+    { id: 'chill', name: 'Chill Sesh', c1: '#00CC88', c2: '#00EEDD' },
+    { id: 'dinner', name: 'Dinner', c1: '#FFCC00', c2: '#FF6600' },
+    { id: 'sports', name: 'Sports', c1: '#FF4400', c2: '#CC0000' },
+    { id: 'other', name: 'Other', c1: '#CC00FF', c2: '#FF66AA' },
+];
 
 interface CreateEventWheelProps {
     open: boolean;
@@ -10,124 +20,120 @@ interface CreateEventWheelProps {
 }
 
 export function CreateEventWheel({ open, onClose, onSelectType }: CreateEventWheelProps) {
-    const [selectedType, setSelectedType] = useState<'casual' | 'ticketed' | null>(null);
+    const [step, setStep] = useState(1);
+    const [category, setCategory] = useState(CATEGORIES[0]);
+    const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
 
     useEffect(() => {
         if (!open) {
-            setSelectedType(null);
+            setStep(1);
+            setCategory(CATEGORIES[0]);
+            setEventType('casual');
         }
     }, [open]);
 
-    const handleSelect = (type: 'casual' | 'ticketed') => {
-        setSelectedType(type);
-        setTimeout(() => {
-            onSelectType(type);
-            onClose();
-        }, 200);
+    const handleContinue = () => {
+        onSelectType(eventType);
+        onClose();
     };
 
     return createPortal(
         <AnimatePresence>
             {open && (
-                <div className="fixed inset-0 z-[100]">
-                    {/* Backdrop */}
+                <div className="sheet-overlay" onClick={onClose}>
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-                        onClick={onClose}
-                    />
+                        className="sheet-content"
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="sheet-handle" />
+                        <button className="sheet-close-btn" onClick={onClose}><X size={18} /></button>
 
-                    {/* Centered Content Container */}
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="relative pointer-events-auto" style={{ width: '200px', height: '200px' }}>
+                        <div className="create-screen" style={{ height: 'auto', padding: '20px 20px 24px' }}>
+                            {/* Header */}
+                            <div className="create-header">
+                                {step > 1 ? (
+                                    <button className="create-back-btn" onClick={() => setStep(step - 1)}>
+                                        <ArrowLeft size={20} />
+                                    </button>
+                                ) : <div style={{ width: 40 }} />}
+                                <span className="create-title-text">Create Event</span>
+                                <div style={{ width: 40 }} />
+                            </div>
 
-                            {/* Casual Event - Left */}
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
-                                animate={{ opacity: 1, scale: 1, x: -65, y: -30 }}
-                                exit={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
-                                transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.05 }}
-                                onClick={() => handleSelect('casual')}
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
-                            >
-                                <motion.div
-                                    whileHover={{ scale: 1.15, rotate: 5 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${selectedType === 'casual'
-                                        ? 'bg-emerald-500 shadow-emerald-500/60'
-                                        : 'bg-emerald-500/90 hover:bg-emerald-500 shadow-emerald-500/40'
-                                        }`}
-                                >
-                                    {/* Pulsing ring */}
-                                    <motion.div
-                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
-                                        transition={{ duration: 2, repeat: Infinity }}
-                                        className="absolute inset-0 rounded-full bg-emerald-500/30"
-                                    />
-                                    <Zap className="h-7 w-7 text-white relative z-10" />
-                                </motion.div>
-                                <span className="text-sm font-bold text-white drop-shadow-lg">
-                                    Casual
-                                </span>
-                            </motion.button>
+                            {/* Progress */}
+                            <div className="create-steps">
+                                {[1, 2].map(i => (
+                                    <div key={i} className={`create-step-dot ${i < step ? 'done' : ''} ${i === step ? 'active' : ''}`} />
+                                ))}
+                            </div>
 
-                            {/* Ticketed Event - Right */}
-                            <motion.button
-                                initial={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
-                                animate={{ opacity: 1, scale: 1, x: 65, y: -30 }}
-                                exit={{ opacity: 0, scale: 0.3, x: 0, y: 0 }}
-                                transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.1 }}
-                                onClick={() => handleSelect('ticketed')}
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-2"
-                            >
-                                <motion.div
-                                    whileHover={{ scale: 1.15, rotate: -5 }}
-                                    whileTap={{ scale: 0.9 }}
-                                    className={`relative w-16 h-16 rounded-full flex items-center justify-center shadow-2xl transition-all ${selectedType === 'ticketed'
-                                        ? 'bg-teal-500 shadow-teal-500/60'
-                                        : 'bg-teal-500/90 hover:bg-teal-500 shadow-teal-500/40'
-                                        }`}
-                                >
-                                    {/* Pulsing ring */}
-                                    <motion.div
-                                        animate={{ scale: [1, 1.3, 1], opacity: [0.6, 0, 0.6] }}
-                                        transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-                                        className="absolute inset-0 rounded-full bg-teal-500/30"
-                                    />
-                                    <Ticket className="h-7 w-7 text-white relative z-10" />
-                                </motion.div>
-                                <span className="text-sm font-bold text-white drop-shadow-lg">
-                                    Ticketed
-                                </span>
-                            </motion.button>
+                            {step === 1 && (
+                                <>
+                                    <h2 className="create-step-title">Choose the Vibe</h2>
+                                    <p className="create-step-subtitle">Select a disc for your event</p>
 
-                            {/* Center Close Button */}
-                            <motion.button
-                                initial={{ scale: 0, rotate: -180 }}
-                                animate={{ scale: 1, rotate: 0 }}
-                                exit={{ scale: 0, rotate: 180 }}
-                                transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-                                whileHover={{ scale: 1.1 }}
-                                onClick={onClose}
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 rounded-full bg-white/90 backdrop-blur-lg shadow-2xl flex items-center justify-center z-10 border border-white/50"
-                            >
-                                <X className="h-7 w-7 text-gray-800" />
-                            </motion.button>
+                                    <div className="disc-stage">
+                                        {/* Main spinning CD */}
+                                        <div
+                                            className="main-disc"
+                                            style={{ '--disc-c1': category.c1, '--disc-c2': category.c2 } as React.CSSProperties}
+                                        >
+                                            <div className="disc-tracks" />
+                                            <div className="disc-shine" />
+                                            <div className="disc-center-hole" />
+                                        </div>
+                                        <div className="disc-name">{category.name}</div>
 
-                            {/* Label */}
-                            <motion.p
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 50 }}
-                                exit={{ opacity: 0, y: 20 }}
-                                className="absolute left-1/2 top-1/2 -translate-x-1/2 text-center text-white/80 text-sm font-medium whitespace-nowrap"
-                            >
-                                What type of event?
-                            </motion.p>
+                                        {/* Mini disc grid */}
+                                        <div className="disc-grid">
+                                            {CATEGORIES.map(cat => (
+                                                <div
+                                                    key={cat.id}
+                                                    className={`mini-disc ${category.id === cat.id ? 'selected' : ''}`}
+                                                    onClick={() => setCategory(cat)}
+                                                >
+                                                    <div
+                                                        className="mini-disc-circle"
+                                                        style={{ '--mc1': cat.c1, '--mc2': cat.c2 } as React.CSSProperties}
+                                                    >
+                                                        <div className="mini-disc-hub" />
+                                                    </div>
+                                                    <span className="mini-disc-label">{cat.name}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        {/* Event Type Toggle */}
+                                        <div className="event-type-section" style={{ marginTop: 20 }}>
+                                            <div className="event-type-label">Event Type</div>
+                                            <div className="event-type-toggle">
+                                                <button
+                                                    className={`type-btn ${eventType === 'casual' ? 'active' : ''}`}
+                                                    onClick={() => setEventType('casual')}
+                                                >
+                                                    <Coffee size={14} /> Casual
+                                                </button>
+                                                <button
+                                                    className={`type-btn ${eventType === 'ticketed' ? 'active' : ''}`}
+                                                    onClick={() => setEventType('ticketed')}
+                                                >
+                                                    <Ticket size={14} /> Ticketed
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <button className="create-continue-btn" style={{ marginTop: 16 }} onClick={handleContinue}>
+                                            Continue <ArrowRight size={18} />
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             )}
         </AnimatePresence>,

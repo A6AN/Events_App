@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MessageCircle, Search, ChevronRight, Loader2 } from 'lucide-react';
+import { X, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getUserChats } from '../../lib/supabase';
 import { ChatScreen } from './ChatScreen';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
-import { ImageWithFallback } from '../figma/ImageWithFallback';
-import { cn } from '../ui/utils';
+import '../modals/ModalStyles.css';
 
 interface ChatListSheetProps {
     open: boolean;
@@ -14,12 +12,22 @@ interface ChatListSheetProps {
 }
 
 interface Chat {
-    id: string; // chat_id
+    id: string;
     eventId: string;
     title: string;
     image: string;
     lastRead: string;
 }
+
+// Static online friends for visual richness
+const ONLINE = [
+    { id: 1, name: 'Riya', img: 'https://i.pravatar.cc/100?img=5' },
+    { id: 2, name: 'Aman', img: 'https://i.pravatar.cc/100?img=12' },
+    { id: 3, name: 'Priya', img: 'https://i.pravatar.cc/100?img=32' },
+    { id: 4, name: 'Raj', img: 'https://i.pravatar.cc/100?img=8' },
+    { id: 5, name: 'Neha', img: 'https://i.pravatar.cc/100?img=25' },
+    { id: 6, name: 'Dev', img: 'https://i.pravatar.cc/100?img=15' },
+];
 
 export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
     const { user } = useAuth();
@@ -28,13 +36,10 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
 
-    // Load chats when sheet opens
     useEffect(() => {
         if (open && user?.id) {
             setLoading(true);
             getUserChats(user.id).then((data) => {
-                // Map supabase response to Chat interface
-                // getUserChats returns chat_members with nested chat -> event
                 const mappedChats = data.map((item: any) => {
                     if (!item.chat || !item.chat.event) return null;
                     return {
@@ -45,7 +50,6 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                         lastRead: item.last_read_at
                     };
                 }).filter(Boolean) as Chat[];
-
                 setChats(mappedChats);
                 setLoading(false);
             });
@@ -59,96 +63,82 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
     return (
         <AnimatePresence>
             {open && (
-                <>
-                    {/* Backdrop */}
+                <div className="sheet-overlay" onClick={onClose}>
                     <motion.div
-                        className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
-                        onClick={onClose}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.3 }}
-                    />
-
-                    {/* Full Screen Sheet */}
-                    <motion.div
-                        className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden bg-[#0a0a0f]"
+                        className="sheet-content"
                         initial={{ y: '100%' }}
                         animate={{ y: 0 }}
                         exit={{ y: '100%' }}
                         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Grain overlay */}
+                        <div className="sheet-handle" />
+                        <button className="sheet-close-btn" onClick={onClose}><X size={18} /></button>
 
-
-                        <div className="h-full relative z-10 flex flex-col">
-                            {/* Header */}
-                            <div className="flex-shrink-0 px-4 py-4 border-b border-white/10 flex items-center justify-between bg-white/5">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 rounded-xl bg-emerald-500/20">
-                                        <MessageCircle className="h-5 w-5 text-emerald-400" />
-                                    </div>
-                                    <h2 className="text-lg font-semibold text-white">Messages</h2>
-                                </div>
-                                <button
-                                    onClick={onClose}
-                                    className="p-2 rounded-full hover:bg-white/10 transition-colors"
-                                >
-                                    <X className="h-5 w-5 text-white/70" />
-                                </button>
+                        <div className="chat-screen">
+                            <div className="chat-header">
+                                <h1 className="chat-greeting">Messages</h1>
+                                <p className="chat-sub">Stay connected with your crew</p>
                             </div>
 
                             {/* Search */}
-                            <div className="p-4">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/50" />
-                                    <input
-                                        type="text"
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        placeholder="Search chats..."
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-3 text-white placeholder:text-white/30 focus:outline-none focus:border-emerald-500/50 transition-colors"
-                                    />
+                            <div className="chat-search-wrap">
+                                <Search size={18} color="rgba(255,255,255,0.3)" />
+                                <input
+                                    className="chat-search-input"
+                                    placeholder="Search conversations..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+
+                            {/* Online Now */}
+                            <div className="chat-online-section">
+                                <div className="chat-section-title">Online Now</div>
+                                <div className="chat-online-list">
+                                    {ONLINE.map(u => (
+                                        <div key={u.id} className="chat-online-item">
+                                            <div className="chat-online-avatar-wrap">
+                                                <img src={u.img} alt="" className="chat-online-avatar" />
+                                                <span className="chat-online-dot" />
+                                            </div>
+                                            <span className="chat-online-name">{u.name}</span>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Chat List */}
-                            <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-2">
+                            {/* Chat list */}
+                            <div className="chat-section-title">Recent</div>
+                            <div className="chat-list">
                                 {loading ? (
-                                    <div className="flex items-center justify-center h-40">
-                                        <Loader2 className="h-6 w-6 text-emerald-500 animate-spin" />
+                                    <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
+                                        <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite', color: 'var(--gold)' }} />
                                     </div>
                                 ) : filteredChats.length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center h-64 text-center">
-                                        <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
-                                            <MessageCircle className="h-7 w-7 text-white/30" />
-                                        </div>
-                                        <h3 className="text-white font-medium mb-1">No chats yet</h3>
-                                        <p className="text-sm text-white/40 max-w-[200px]">
-                                            Join events to start chatting with other attendees!
+                                    <div style={{ textAlign: 'center', padding: '40px 0' }}>
+                                        <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>
+                                            {searchQuery ? 'No matching chats' : 'No chats yet — join events to start chatting!'}
                                         </p>
                                     </div>
                                 ) : (
-                                    filteredChats.map((chat) => (
-                                        <motion.div
-                                            key={chat.id}
-                                            onClick={() => setSelectedChat(chat)}
-                                            whileTap={{ scale: 0.98 }}
-                                            className="flex items-center gap-4 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors cursor-pointer"
-                                        >
-                                            <div className="relative h-12 w-12 flex-shrink-0">
-                                                <ImageWithFallback
-                                                    src={chat.image}
-                                                    alt={chat.title}
-                                                    className="h-full w-full rounded-xl object-cover"
+                                    filteredChats.map(chat => (
+                                        <div key={chat.id} className="chat-item" onClick={() => setSelectedChat(chat)}>
+                                            <div className="chat-item-avatar-wrap">
+                                                <img
+                                                    src={chat.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=100'}
+                                                    alt=""
+                                                    className="chat-item-avatar"
                                                 />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="text-white font-medium truncate">{chat.title}</h3>
-                                                <p className="text-xs text-white/50 truncate">Tap to view messages</p>
+                                            <div className="chat-item-body">
+                                                <div className="chat-item-top">
+                                                    <span className="chat-item-name">{chat.title}</span>
+                                                    <span className="chat-item-time">Tap to view</span>
+                                                </div>
+                                                <p className="chat-item-preview">Event group chat</p>
                                             </div>
-                                            <ChevronRight className="h-4 w-4 text-white/30" />
-                                        </motion.div>
+                                        </div>
                                     ))
                                 )}
                             </div>
@@ -167,7 +157,7 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                             )}
                         </AnimatePresence>
                     </motion.div>
-                </>
+                </div>
             )}
         </AnimatePresence>
     );
