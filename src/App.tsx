@@ -38,19 +38,21 @@ function AppContent() {
   const [venuesLoading, setVenuesLoading] = useState(true);
   const { theme, toggleTheme } = useTheme();
 
+  // Load data function (reusable for refresh after event creation)
+  const loadData = async () => {
+    setVenuesLoading(true);
+    const [venuesData, eventsData] = await Promise.all([
+      fetchVenues(),
+      getEvents()
+    ]);
+    setVenues((venuesData as any[]).map(mapDbVenueToVenue));
+    const fetchedEvents = (eventsData as any[]).map(mapDbEventToEvent);
+    setEvents(fetchedEvents.length > 0 ? fetchedEvents : mockEvents);
+    setVenuesLoading(false);
+  };
+
   // Fetch venues from Supabase
   useEffect(() => {
-    const loadData = async () => {
-      setVenuesLoading(true);
-      const [venuesData, eventsData] = await Promise.all([
-        fetchVenues(),
-        getEvents()
-      ]);
-      setVenues((venuesData as any[]).map(mapDbVenueToVenue));
-      const fetchedEvents = (eventsData as any[]).map(mapDbEventToEvent);
-      setEvents(fetchedEvents.length > 0 ? fetchedEvents : mockEvents);
-      setVenuesLoading(false);
-    };
     loadData();
   }, []);
 
@@ -170,6 +172,7 @@ function AppContent() {
         onClose={() => setCreateEventOpen(false)}
         eventType={eventType}
         venues={venues}
+        onEventCreated={loadData}
       />
 
       <ChatListSheet

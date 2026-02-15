@@ -74,7 +74,8 @@ export interface Venue {
   capacity: string;
   pricePerHour: number;
   amenities: string[];
-  category: 'Banquet Hall' | 'Rooftop' | 'Restaurant' | 'Garden' | 'Conference Room';
+  category: string;
+  description?: string;
 }
 
 export type MoodFilter = 'All' | 'Chill' | 'Energetic' | 'Creative' | 'Romantic';
@@ -95,7 +96,7 @@ export interface DbVenue {
   capacity: string | null;
   price_per_hour: number;
   amenities: string[];
-  category: 'Banquet Hall' | 'Rooftop' | 'Restaurant' | 'Garden' | 'Conference Room';
+  category: string;
   owner_id: string | null;
 }
 

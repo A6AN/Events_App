@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Plus, Loader2, MapPin, Calendar, Clock,
+    Plus, Loader2, MapPin, Calendar, Clock, Search,
     Sparkles, ArrowRight, ArrowLeft, Building2,
     PartyPopper, Mic2, Music, Palette, Users,
     CheckCircle2, X, Upload
@@ -26,19 +26,28 @@ const EVENT_TYPES = [
     { id: 'meetup', label: 'Meetup', icon: Users },
 ];
 
+const OLA_MAPS_API_KEY = (import.meta as any).env.VITE_OLA_MAPS_API_KEY;
+
 interface CreateEventWizardProps {
     open: boolean;
     onClose: () => void;
     eventType: 'casual' | 'ticketed';
     venues: Venue[];
+    onEventCreated?: () => void;
 }
 
-export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onClose, eventType, venues }) => {
+export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onClose, eventType, venues, onEventCreated }) => {
     const { user } = useAuth();
     const [currentStep, setCurrentStep] = useState(STEPS.VIBE);
     const [isLoading, setIsLoading] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+    // Ola Maps search state
+    const [locationQuery, setLocationQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const searchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Form State
     const [formData, setFormData] = useState({
@@ -78,8 +87,63 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
             });
             setImageFile(null);
             setImagePreview(null);
+            setLocationQuery('');
+            setSearchResults([]);
         }
     }, [open]);
+
+    // Ola Maps autocomplete search
+    const searchLocation = useCallback(async (query: string) => {
+        if (!query || query.length < 3 || !OLA_MAPS_API_KEY) {
+            setSearchResults([]);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const res = await fetch(
+                `https://api.olamaps.io/places/v1/autocomplete?input=${encodeURIComponent(query)}&api_key=${OLA_MAPS_API_KEY}`
+            );
+            const data = await res.json();
+            setSearchResults(data.predictions || []);
+        } catch {
+            setSearchResults([]);
+        } finally {
+            setIsSearching(false);
+        }
+    }, []);
+
+    const handleLocationQueryChange = (value: string) => {
+        setLocationQuery(value);
+        if (searchTimerRef.current) clearTimeout(searchTimerRef.current);
+        searchTimerRef.current = setTimeout(() => searchLocation(value), 400);
+    };
+
+    const handleLocationSelect = async (result: any) => {
+        const mainText = result.structured_formatting?.main_text || result.description;
+        setFormData(prev => ({ ...prev, location_name: mainText }));
+        setLocationQuery(mainText);
+        setSearchResults([]);
+
+        // Fetch place details to get lat/lng
+        if (result.place_id && OLA_MAPS_API_KEY) {
+            try {
+                const res = await fetch(
+                    `https://api.olamaps.io/places/v1/details?place_id=${result.place_id}&api_key=${OLA_MAPS_API_KEY}`
+                );
+                const data = await res.json();
+                const geo = data.result?.geometry?.location;
+                if (geo) {
+                    setFormData(prev => ({
+                        ...prev,
+                        latitude: geo.lat,
+                        longitude: geo.lng,
+                    }));
+                }
+            } catch {
+                // Keep default coords
+            }
+        }
+    };
 
     const handleNext = () => {
         if (currentStep < STEPS.DETAILS) {
@@ -178,7 +242,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
             });
 
             onClose();
-            window.location.reload();
+            onEventCreated?.();
         } catch (error: any) {
             console.error('Error creating event:', error);
             alert(`Failed to create event: ${error.message || JSON.stringify(error)}`);
@@ -304,18 +368,61 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
                                         {formData.locationType === 'custom' ? (
                                             <div className="wizard-field-gap">
                                                 <div className="create-field">
-                                                    <label className="create-label">Location Name</label>
-                                                    <input
-                                                        className="create-input"
-                                                        placeholder="e.g. My House, Central Park"
-                                                        value={formData.location_name}
-                                                        onChange={(e) => setFormData(prev => ({ ...prev, location_name: e.target.value }))}
-                                                    />
+                                                    <label className="create-label">Search Location</label>
+                                                    <div className="wizard-search-input-wrap">
+                                                        <Search size={16} className="wizard-search-icon" />
+                                                        <input
+                                                            className="create-input"
+                                                            placeholder="Search places with Ola Maps..."
+                                                            value={locationQuery}
+                                                            onChange={(e) => handleLocationQueryChange(e.target.value)}
+                                                        />
+                                                        {locationQuery && (
+                                                            <button className="wizard-search-clear" onClick={() => { setLocationQuery(''); setSearchResults([]); }}>
+                                                                <X size={14} />
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <div className="wizard-loc-hint">
-                                                    <p><MapPin size={16} /> Location will appear on the map</p>
-                                                    <p className="wizard-loc-hint-sub">Using current location coordinates</p>
-                                                </div>
+
+                                                {/* Search Results */}
+                                                {(isSearching || searchResults.length > 0) && (
+                                                    <div className="wizard-search-results">
+                                                        {isSearching ? (
+                                                            <div className="wizard-search-loading">
+                                                                <Loader2 size={16} className="wizard-spin" /> Searching...
+                                                            </div>
+                                                        ) : (
+                                                            searchResults.map((result: any, idx: number) => (
+                                                                <div
+                                                                    key={result.place_id || idx}
+                                                                    className="wizard-search-result-item"
+                                                                    onClick={() => handleLocationSelect(result)}
+                                                                >
+                                                                    <div className="wizard-search-result-icon"><MapPin size={14} /></div>
+                                                                    <div className="wizard-search-result-text">
+                                                                        <div className="wizard-search-result-main">
+                                                                            {result.structured_formatting?.main_text || result.description}
+                                                                        </div>
+                                                                        {result.structured_formatting?.secondary_text && (
+                                                                            <div className="wizard-search-result-sub">
+                                                                                {result.structured_formatting.secondary_text}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                        <div className="wizard-search-powered">Powered by Ola Maps 🇮🇳</div>
+                                                    </div>
+                                                )}
+
+                                                {formData.location_name && !isSearching && searchResults.length === 0 && (
+                                                    <div className="wizard-loc-hint">
+                                                        <p><MapPin size={16} /> {formData.location_name}</p>
+                                                        <p className="wizard-loc-hint-sub">📍 {formData.latitude.toFixed(4)}, {formData.longitude.toFixed(4)}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                         ) : (
                                             <div>

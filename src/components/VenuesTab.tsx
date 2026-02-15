@@ -8,23 +8,35 @@ interface VenuesTabProps {
   venues: Venue[];
 }
 
-const CATEGORIES = ['All', 'Banquet Hall', 'Rooftop', 'Restaurant', 'Garden', 'Conference Room'];
+const CATEGORIES = ['All', 'Clubs', 'Rooftops', 'Lounges', 'Cafés', 'Galleries', 'Outdoor'];
+
+const FALLBACK_VENUES: Venue[] = [
+  { id: 'v1', name: 'Skybar Lounge', category: 'Rooftop Bar', imageUrl: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?auto=format&fit=crop&q=80&w=800', location: 'Bandra West', rating: 4.8, capacity: '250', pricePerHour: 5000, amenities: ['DJ', 'Bar', 'Rooftop'], description: 'Premium rooftop lounge with city views' },
+  { id: 'v2', name: 'Comedy Store Mumbai', category: 'Lounge', imageUrl: 'https://images.unsplash.com/photo-1585699324551-f6c309eedeca?auto=format&fit=crop&q=80&w=800', location: 'Lower Parel', rating: 4.6, capacity: '120', pricePerHour: 3000, amenities: ['Stage', 'Bar'], description: 'Stand-up comedy venue' },
+  { id: 'v3', name: 'Canvas & Co.', category: 'Gallery', imageUrl: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=800', location: 'Kala Ghoda', rating: 4.5, capacity: '80', pricePerHour: 2000, amenities: ['Gallery', 'Café'], description: 'Art gallery and event space' },
+  { id: 'v4', name: 'Juhu Beach Club', category: 'Outdoor', imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=800', location: 'Juhu', rating: 4.3, capacity: '500', pricePerHour: 8000, amenities: ['Beach', 'Bar', 'DJ'], description: 'Beachside outdoor venue' },
+  { id: 'v5', name: 'Masala Library', category: 'Restaurant', imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800', location: 'BKC', rating: 4.9, capacity: '60', pricePerHour: 10000, amenities: ['Fine Dining', 'Bar'], description: 'Premium fine dining venue' },
+  { id: 'v6', name: 'Blue Frog', category: 'Club', imageUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&q=80&w=800', location: 'Andheri', rating: 4.7, capacity: '300', pricePerHour: 6000, amenities: ['Live Music', 'Bar', 'Dance Floor'], description: 'Iconic music venue and nightclub' },
+  { id: 'v7', name: 'Tryst Café', category: 'Café', imageUrl: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=800', location: 'Colaba', rating: 4.4, capacity: '40', pricePerHour: 1500, amenities: ['Café', 'Wi-Fi'], description: 'Cozy café for intimate events' },
+  { id: 'v8', name: 'The Dome', category: 'Rooftop', imageUrl: 'https://images.unsplash.com/photo-1519214605650-76a613ee3245?auto=format&fit=crop&q=80&w=800', location: 'Marine Drive', rating: 4.8, capacity: '200', pricePerHour: 7000, amenities: ['Rooftop', 'Bar', 'Views'], description: 'Iconic dome rooftop venue' },
+];
 
 export function VenuesTab({ venues }: VenuesTabProps) {
+  const allVenues = venues.length > 0 ? venues : FALLBACK_VENUES;
   const [activeCat, setActiveCat] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null);
   const [bookingOpen, setBookingOpen] = useState(false);
 
   // Filter venues
-  const filteredVenues = venues.filter(v => {
+  const filteredVenues = allVenues.filter(v => {
     const matchesCat = activeCat === 'All' || v.category === activeCat;
     const matchesSearch = !searchQuery || v.name.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 
   // Featured venue (first venue or fallback)
-  const featured = venues[0];
+  const featured = allVenues[0];
 
   // Get default image for venue
   const getVenueImage = (venue: Venue) => {
@@ -88,11 +100,11 @@ export function VenuesTab({ venues }: VenuesTabProps) {
         )}
 
         {/* Trending */}
-        {venues.length > 1 && (
+        {allVenues.length > 1 && (
           <>
             <h3 className="venues-section-title">🔥 Trending Now</h3>
             <div className="venues-trending-scroll">
-              {venues.slice(0, 4).map((v, i) => (
+              {allVenues.slice(0, 4).map((v, i) => (
                 <div
                   key={v.id}
                   className="venue-trending-card"

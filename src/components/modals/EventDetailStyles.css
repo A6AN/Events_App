@@ -62,7 +62,7 @@
     position: relative;
     z-index: 5;
     margin-top: -40px;
-    padding: 0 20px 140px;
+    padding: 0 20px 20px;
 }
 
 .event-title-text {
@@ -91,6 +91,7 @@
 
 .event-meta-row svg {
     color: var(--gold-light);
+    stroke: var(--gold-light);
     flex-shrink: 0;
 }
 
@@ -346,16 +347,14 @@
 
 /* Sticky footer */
 .event-footer {
-    position: fixed;
+    position: sticky;
     bottom: 0;
     left: 0;
     right: 0;
     width: 100%;
-    max-width: 430px;
-    margin: 0 auto;
     z-index: 50;
     padding: 16px 20px 32px;
-    background: linear-gradient(to top, var(--bg-primary) 70%, transparent);
+    background: linear-gradient(to top, var(--bg-primary) 80%, transparent);
 }
 
 .event-footer-inner {
@@ -456,6 +455,7 @@
 
 .event-location-icon-wrap svg {
     color: var(--gold-light);
+    stroke: var(--gold-light);
 }
 
 .event-location-name {
