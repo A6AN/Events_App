@@ -101,7 +101,7 @@
     align-items: center;
     gap: 12px;
     padding: 14px;
-    border-radius: var(--radius-xl-new);
+    border-radius: 20px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 24px;
@@ -139,7 +139,7 @@
 
 .event-host-follow-btn {
     padding: 6px 16px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     border: 1px solid var(--gold);
     background: transparent;
     color: var(--gold);
@@ -207,7 +207,7 @@
 /* Comments section */
 .event-comments-block {
     padding: 16px;
-    border-radius: var(--radius-xl-new);
+    border-radius: 20px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 24px;
@@ -250,7 +250,7 @@
 .event-comment-input {
     flex: 1;
     padding: 10px 14px;
-    border-radius: var(--radius-md-new);
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
@@ -265,7 +265,7 @@
 .event-comment-send-btn {
     width: 40px;
     height: 40px;
-    border-radius: var(--radius-md-new);
+    border-radius: 12px;
     border: none;
     background: var(--gold-gradient);
     color: #000;
@@ -385,7 +385,7 @@
 .event-like-btn {
     width: 50px;
     height: 50px;
-    border-radius: var(--radius-lg-new);
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
@@ -411,7 +411,7 @@
 .event-book-btn {
     flex: 1;
     padding: 14px 28px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     border: none;
     background: var(--gold-gradient);
     color: #000;
@@ -435,7 +435,7 @@
     align-items: center;
     gap: 12px;
     padding: 14px;
-    border-radius: var(--radius-xl-new);
+    border-radius: 20px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 24px;
@@ -444,7 +444,7 @@
 .event-location-icon-wrap {
     width: 44px;
     height: 44px;
-    border-radius: var(--radius-lg-new);
+    border-radius: 16px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     display: flex;

@@ -306,14 +306,14 @@
     display: flex;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     padding: 3px;
 }
 
 .type-btn {
     flex: 1;
     padding: 10px 0;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     border: none;
     background: transparent;
     color: var(--text-muted);
@@ -337,7 +337,7 @@
 .create-continue-btn {
     width: 100%;
     padding: 14px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     border: none;
     background: var(--gold-gradient);
     color: #000;
@@ -384,7 +384,7 @@
 .create-input {
     width: 100%;
     padding: 12px 14px;
-    border-radius: var(--radius-md-new);
+    border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     background: rgba(255, 255, 255, 0.04);
     color: var(--text-primary);
@@ -442,7 +442,7 @@ textarea.create-input {
     align-items: center;
     gap: 10px;
     padding: 12px 16px;
-    border-radius: var(--radius-xl-new);
+    border-radius: 20px;
     background: rgba(255, 255, 255, 0.04);
     border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 24px;
@@ -535,7 +535,7 @@ textarea.create-input {
     align-items: center;
     gap: 14px;
     padding: 14px 8px;
-    border-radius: var(--radius-md-new);
+    border-radius: 12px;
     cursor: pointer;
     transition: background 0.2s;
 }
@@ -629,7 +629,7 @@ textarea.create-input {
 .sheet-handle {
     width: 40px;
     height: 4px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     background: rgba(255, 255, 255, 0.2);
     margin: 12px auto;
 }
@@ -716,13 +716,13 @@ textarea.create-input {
     height: 6px;
     width: 100%;
     background: rgba(255, 255, 255, 0.08);
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     overflow: hidden;
 }
 
 .wizard-progress-fill {
     height: 100%;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     background: var(--gold-gradient);
     transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }

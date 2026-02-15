@@ -56,14 +56,14 @@
 .feed-tab-toggle {
     display: flex;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     padding: 3px;
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .feed-tab-btn {
     padding: 7px 18px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     border: none;
     background: transparent;
     color: var(--text-muted-new);
@@ -113,7 +113,7 @@
     position: relative;
     width: 100%;
     height: 440px;
-    border-radius: var(--radius-2xl-new);
+    border-radius: 24px;
     overflow: hidden;
     margin-bottom: 20px;
     cursor: pointer;
@@ -153,7 +153,7 @@
     align-items: center;
     gap: 5px;
     padding: 5px 12px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     background: var(--saffron-gradient);
     font-size: 11px;
     font-weight: 800;
@@ -176,7 +176,7 @@
     top: 16px;
     left: 16px;
     padding: 5px 14px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 215, 0, 0.2);
@@ -265,7 +265,7 @@
     background: rgba(255, 153, 51, 0.15);
     border: 1px solid rgba(255, 153, 51, 0.2);
     padding: 4px 12px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     font-size: 13px;
     font-weight: 700;
     color: var(--saffron);
@@ -279,7 +279,7 @@
 
 .masonry-card {
     position: relative;
-    border-radius: var(--radius-lg-new);
+    border-radius: 16px;
     overflow: hidden;
     margin-bottom: 12px;
     break-inside: avoid;
@@ -332,7 +332,7 @@
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     padding: 3px 10px 3px 3px;
-    border-radius: var(--radius-pill);
+    border-radius: 100px;
     font-size: 11px;
     color: var(--text-secondary);
 }

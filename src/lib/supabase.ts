@@ -126,6 +126,9 @@ export async function fetchEvents(): Promise<Event[]> {
 }
 
 export async function createEvent(eventData: Omit<DbEvent, 'id' | 'created_at'>) {
+    // Ensure the host has a profile row (foreign key requirement)
+    await ensureProfile(eventData.host_id);
+
     const { data, error } = await supabase
         .from('events')
         .insert([eventData])
@@ -134,6 +137,31 @@ export async function createEvent(eventData: Omit<DbEvent, 'id' | 'created_at'>)
 
     if (error) throw error;
     return data;
+}
+
+/**
+ * Ensures a profile row exists for the given user.
+ * The events table requires host_id to reference profiles(id).
+ */
+export async function ensureProfile(userId: string) {
+    const { data } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', userId)
+        .single();
+
+    if (!data) {
+        // Get user metadata from auth to populate basics
+        const { data: { user } } = await supabase.auth.getUser();
+        await supabase
+            .from('profiles')
+            .upsert({
+                id: userId,
+                full_name: user?.user_metadata?.full_name || user?.user_metadata?.name || null,
+                avatar_url: user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null,
+                username: user?.email?.split('@')[0] || null,
+            }, { onConflict: 'id' });
+    }
 }
 
 export async function getProfile(userId: string) {
