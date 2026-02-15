@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapPin, Clock, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { Event } from '../types';
+import { useAuth } from '../context/AuthContext';
 import './SocialTab.css';
 
 interface SocialTabProps {
@@ -20,7 +21,38 @@ const FRIEND_EVENTS = [
 ];
 
 export function SocialTab({ events, onEventSelect }: SocialTabProps) {
+  const { user } = useAuth();
   const [tab, setTab] = useState<'live' | 'friends'>('live');
+  const [city, setCity] = useState('Detecting...');
+  const [suburb, setSuburb] = useState('');
+
+  // Geolocation: detect user's city/area
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setCity('Your City');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16`
+          );
+          const data = await res.json();
+          const addr = data.address || {};
+          setCity(addr.city || addr.town || addr.state_district || addr.state || 'Your City');
+          setSuburb(addr.suburb || addr.neighbourhood || addr.county || '');
+        } catch {
+          setCity('Your City');
+        }
+      },
+      () => setCity('Your City'),
+      { timeout: 8000 }
+    );
+  }, []);
+
+  // User avatar
+  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.full_name || user?.email || 'U')}&background=D4AF37&color=000&bold=true`;
 
   // Helper to get category label
   const getCategory = (event: Event) => {
@@ -52,10 +84,10 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
       <div className="feed-topbar">
         <div className="feed-topbar-inner">
           <div className="feed-location">
-            <img src="https://i.pravatar.cc/100?img=47" alt="avatar" className="feed-avatar" />
+            <img src={avatarUrl} alt="avatar" className="feed-avatar" />
             <div>
-              <div className="feed-city">Mumbai <ChevronDown size={13} style={{ opacity: 0.5 }} /></div>
-              <div className="feed-city-sub">Bandra West</div>
+              <div className="feed-city">{city} <ChevronDown size={13} style={{ opacity: 0.5 }} /></div>
+              <div className="feed-city-sub">{suburb || city}</div>
             </div>
           </div>
 
