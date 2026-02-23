@@ -884,6 +884,198 @@ export const searchUsers = async (query: string, currentUserId: string): Promise
 };
 
 // ============================================
+// DIRECT MESSAGING API
+// ============================================
+
+export interface DMConversation {
+    id: string;
+    otherUser: {
+        id: string;
+        full_name: string | null;
+        username: string | null;
+        avatar_url: string | null;
+    };
+    lastMessage: {
+        content: string;
+        senderId: string;
+        createdAt: string;
+    } | null;
+    unreadCount: number;
+}
+
+export interface DMMessage {
+    id: string;
+    conversation_id: string;
+    sender_id: string;
+    content: string;
+    created_at: string;
+    read_at: string | null;
+    sender?: {
+        full_name: string | null;
+        avatar_url: string | null;
+        username: string | null;
+    };
+}
+
+// Get or create a 1-on-1 conversation between two users
+export const getOrCreateDMConversation = async (userId: string, otherUserId: string): Promise<string | null> => {
+    // Sort IDs so user1_id is always the lesser UUID (ensures uniqueness)
+    const [user1_id, user2_id] = [userId, otherUserId].sort();
+
+    // Check if conversation already exists
+    const { data: existing } = await supabase
+        .from('direct_conversations')
+        .select('id')
+        .eq('user1_id', user1_id)
+        .eq('user2_id', user2_id)
+        .single();
+
+    if (existing) return existing.id;
+
+    // Create new conversation
+    const { data, error } = await supabase
+        .from('direct_conversations')
+        .insert([{ user1_id, user2_id }])
+        .select('id')
+        .single();
+
+    if (error) return null;
+    return data.id;
+};
+
+// Get all DM conversations for a user with last message + unread count
+export const getUserDMConversations = async (userId: string): Promise<DMConversation[]> => {
+    const { data: convs, error } = await supabase
+        .from('direct_conversations')
+        .select(`
+            id,
+            user1_id,
+            user2_id,
+            user1:user1_id (id, full_name, username, avatar_url),
+            user2:user2_id (id, full_name, username, avatar_url)
+        `)
+        .or(`user1_id.eq.${userId},user2_id.eq.${userId}`)
+        .order('created_at', { ascending: false });
+
+    if (error || !convs) return [];
+
+    const result: DMConversation[] = [];
+
+    for (const conv of convs) {
+        const otherUser = (conv as any).user1_id === userId
+            ? (conv as any).user2
+            : (conv as any).user1;
+
+        const { data: lastMsgArr } = await supabase
+            .from('direct_messages')
+            .select('id, content, sender_id, created_at, read_at')
+            .eq('conversation_id', conv.id)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        const lastMsg = lastMsgArr?.[0] as any;
+
+        // Count unread: messages from the other user that have no read_at
+        const { count: unread } = await supabase
+            .from('direct_messages')
+            .select('*', { count: 'exact', head: true })
+            .eq('conversation_id', conv.id)
+            .neq('sender_id', userId)
+            .is('read_at', null);
+
+        result.push({
+            id: conv.id,
+            otherUser: {
+                id: otherUser?.id,
+                full_name: otherUser?.full_name,
+                username: otherUser?.username,
+                avatar_url: otherUser?.avatar_url,
+            },
+            lastMessage: lastMsg ? {
+                content: lastMsg.content,
+                senderId: lastMsg.sender_id,
+                createdAt: lastMsg.created_at,
+            } : null,
+            unreadCount: unread || 0,
+        });
+    }
+
+    // Sort by most recent message
+    result.sort((a, b) => {
+        const aTime = a.lastMessage?.createdAt || '';
+        const bTime = b.lastMessage?.createdAt || '';
+        return bTime.localeCompare(aTime);
+    });
+
+    return result;
+};
+
+// Fetch messages for a conversation  
+export const getDMMessages = async (conversationId: string, limit = 50): Promise<DMMessage[]> => {
+    const { data, error } = await supabase
+        .from('direct_messages')
+        .select(`
+            *,
+            sender:sender_id (full_name, avatar_url, username)
+        `)
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+    if (error) return [];
+    return (data || []).reverse() as DMMessage[];
+};
+
+// Send a DM
+export const sendDMMessage = async (conversationId: string, senderId: string, content: string): Promise<DMMessage | null> => {
+    const { data, error } = await supabase
+        .from('direct_messages')
+        .insert([{ conversation_id: conversationId, sender_id: senderId, content }])
+        .select(`
+            *,
+            sender:sender_id (full_name, avatar_url, username)
+        `)
+        .single();
+
+    if (error) return null;
+    return data as DMMessage;
+};
+
+// Mark DMs as read
+export const markDMsAsRead = async (conversationId: string, userId: string): Promise<void> => {
+    await supabase
+        .from('direct_messages')
+        .update({ read_at: new Date().toISOString() })
+        .eq('conversation_id', conversationId)
+        .neq('sender_id', userId)
+        .is('read_at', null);
+};
+
+// Real-time subscription for a DM conversation
+export const subscribeToDMMessages = (conversationId: string, callback: (msg: DMMessage) => void) => {
+    return supabase
+        .channel(`dm:${conversationId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'direct_messages',
+                filter: `conversation_id=eq.${conversationId}`,
+            },
+            async (payload) => {
+                const { data } = await supabase
+                    .from('direct_messages')
+                    .select(`*, sender:sender_id (full_name, avatar_url, username)`)
+                    .eq('id', payload.new.id)
+                    .single();
+                if (data) callback(data as DMMessage);
+            }
+        )
+        .subscribe();
+};
+
+// ============================================
 // PROFILE UPDATE API
 // ============================================
 

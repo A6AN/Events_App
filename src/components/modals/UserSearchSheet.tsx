@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, UserPlus, UserCheck, Loader2, Users } from 'lucide-react';
+import { X, Search, UserPlus, UserCheck, MessageCircle, Loader2, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { searchUsers, followUser, unfollowUser, SearchedUser } from '../../lib/supabase';
+import { searchUsers, followUser, unfollowUser, getOrCreateDMConversation, SearchedUser } from '../../lib/supabase';
+import { DirectMessageScreen } from './DirectMessageScreen';
 import '../modals/ModalStyles.css';
 import './UserSearchSheet.css';
 
@@ -17,13 +18,12 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
     const [results, setResults] = useState<SearchedUser[]>([]);
     const [loading, setLoading] = useState(false);
     const [followLoading, setFollowLoading] = useState<Set<string>>(new Set());
+    const [msgLoading, setMsgLoading] = useState<string | null>(null);
+    const [dmTarget, setDmTarget] = useState<{ conversationId: string; otherUser: SearchedUser } | null>(null);
 
     // Debounced search
     useEffect(() => {
-        if (!query.trim() || !user?.id) {
-            setResults([]);
-            return;
-        }
+        if (!query.trim() || !user?.id) { setResults([]); return; }
         setLoading(true);
         const timer = setTimeout(async () => {
             const data = await searchUsers(query, user.id);
@@ -35,10 +35,7 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
 
     // Reset on close
     useEffect(() => {
-        if (!open) {
-            setQuery('');
-            setResults([]);
-        }
+        if (!open) { setQuery(''); setResults([]); setDmTarget(null); }
     }, [open]);
 
     const handleFollow = useCallback(async (targetId: string) => {
@@ -61,6 +58,14 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
         } finally {
             setFollowLoading(prev => { const s = new Set(prev); s.delete(targetId); return s; });
         }
+    }, [user?.id]);
+
+    const handleMessage = useCallback(async (u: SearchedUser) => {
+        if (!user?.id) return;
+        setMsgLoading(u.id);
+        const convId = await getOrCreateDMConversation(user.id, u.id);
+        setMsgLoading(null);
+        if (convId) setDmTarget({ conversationId: convId, otherUser: u });
     }, [user?.id]);
 
     const getAvatar = (u: SearchedUser) => {
@@ -89,7 +94,6 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                             <p className="user-search-sub">Search by name or username</p>
                         </div>
 
-                        {/* Search Input */}
                         <div className="user-search-input-wrap">
                             <Search size={18} className="user-search-icon" />
                             <input
@@ -99,25 +103,18 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                                 onChange={e => setQuery(e.target.value)}
                                 autoFocus
                             />
-                            {loading && (
-                                <Loader2 size={16} className="user-search-spinner" />
-                            )}
+                            {loading && <Loader2 size={16} className="user-search-spinner" />}
                         </div>
 
-                        {/* Results */}
                         <div className="user-search-results">
                             {!query.trim() ? (
                                 <div className="user-search-empty">
-                                    <div className="user-search-empty-icon">
-                                        <Users size={36} />
-                                    </div>
-                                    <p>Search for people to follow</p>
+                                    <div className="user-search-empty-icon"><Users size={36} /></div>
+                                    <p>Search for people to follow or message</p>
                                 </div>
                             ) : !loading && results.length === 0 ? (
                                 <div className="user-search-empty">
-                                    <div className="user-search-empty-icon">
-                                        <Search size={36} />
-                                    </div>
+                                    <div className="user-search-empty-icon"><Search size={36} /></div>
                                     <p>No users found for "{query}"</p>
                                 </div>
                             ) : (
@@ -131,19 +128,25 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                                             exit={{ opacity: 0 }}
                                             transition={{ delay: i * 0.05 }}
                                         >
-                                            <img
-                                                src={getAvatar(u)}
-                                                alt={u.full_name || u.username || 'User'}
-                                                className="user-search-avatar"
-                                            />
+                                            <img src={getAvatar(u)} alt={u.full_name || u.username || 'User'} className="user-search-avatar" />
                                             <div className="user-search-info">
-                                                <div className="user-search-name">
-                                                    {u.full_name || u.username || 'Unknown User'}
-                                                </div>
-                                                {u.username && (
-                                                    <div className="user-search-username">@{u.username}</div>
-                                                )}
+                                                <div className="user-search-name">{u.full_name || u.username || 'Unknown User'}</div>
+                                                {u.username && <div className="user-search-username">@{u.username}</div>}
                                             </div>
+
+                                            {/* Message button */}
+                                            <button
+                                                className="user-search-msg-btn"
+                                                onClick={() => handleMessage(u)}
+                                                disabled={msgLoading === u.id}
+                                                title="Send a message"
+                                            >
+                                                {msgLoading === u.id
+                                                    ? <Loader2 size={14} className="user-search-spinner" />
+                                                    : <MessageCircle size={14} />}
+                                            </button>
+
+                                            {/* Follow button */}
                                             <button
                                                 className={`user-search-follow-btn ${u.isFollowing ? 'following' : ''}`}
                                                 onClick={() => u.isFollowing ? handleUnfollow(u.id) : handleFollow(u.id)}
@@ -162,6 +165,18 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                                 </AnimatePresence>
                             )}
                         </div>
+
+                        {/* Slide in DM screen */}
+                        <AnimatePresence>
+                            {dmTarget && (
+                                <DirectMessageScreen
+                                    key={dmTarget.conversationId}
+                                    conversationId={dmTarget.conversationId}
+                                    otherUser={dmTarget.otherUser}
+                                    onClose={() => setDmTarget(null)}
+                                />
+                            )}
+                        </AnimatePresence>
                     </motion.div>
                 </div>
             )}
