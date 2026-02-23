@@ -842,6 +842,48 @@ export const getFriendActivity = async (userId: string): Promise<FriendActivityI
 };
 
 // ============================================
+// USER SEARCH API
+// ============================================
+
+export interface SearchedUser {
+    id: string;
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+    isFollowing: boolean;
+}
+
+export const searchUsers = async (query: string, currentUserId: string): Promise<SearchedUser[]> => {
+    if (!query.trim()) return [];
+
+    const { data: users, error } = await supabase
+        .from('profiles')
+        .select('id, full_name, username, avatar_url')
+        .or(`full_name.ilike.%${query}%,username.ilike.%${query}%`)
+        .neq('id', currentUserId)
+        .limit(20);
+
+    if (error || !users) return [];
+
+    // Check which ones the current user is already following
+    const { data: followingData } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', currentUserId)
+        .in('following_id', users.map(u => u.id));
+
+    const followingSet = new Set((followingData || []).map(f => f.following_id));
+
+    return users.map(u => ({
+        id: u.id,
+        full_name: u.full_name,
+        username: u.username,
+        avatar_url: u.avatar_url,
+        isFollowing: followingSet.has(u.id),
+    }));
+};
+
+// ============================================
 // PROFILE UPDATE API
 // ============================================
 

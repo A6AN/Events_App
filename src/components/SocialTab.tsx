@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, SlidersHorizontal, ChevronDown, Loader2, Users } from 'lucide-react';
+import { MapPin, Clock, Search, ChevronDown, Loader2, Users } from 'lucide-react';
 import { Event } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { getFriendActivity, FriendActivityItem } from '../lib/supabase';
+import { UserSearchSheet } from './modals/UserSearchSheet';
 import './SocialTab.css';
 
 interface SocialTabProps {
@@ -19,6 +20,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
   const [friendActivity, setFriendActivity] = useState<FriendActivityItem[]>([]);
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [friendsLoaded, setFriendsLoaded] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   // Geolocation: detect user's city/area
   useEffect(() => {
@@ -111,8 +113,8 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
             <button className={`feed-tab-btn ${tab === 'live' ? 'active' : ''}`} onClick={() => setTab('live')}>Happening</button>
           </div>
 
-          <button className="feed-filter-btn">
-            <SlidersHorizontal size={18} />
+          <button className="feed-filter-btn" onClick={() => setSearchOpen(true)} aria-label="Find people">
+            <Search size={18} />
           </button>
         </div>
       </div>
@@ -220,6 +222,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
           </>
         )}
       </div>
+      <UserSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 }
