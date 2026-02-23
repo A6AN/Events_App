@@ -10,9 +10,9 @@
 /* Floating chat button — top right within container */
 .app-chat-fab {
     position: fixed;
-    top: 56px;
+    top: 108px;
     right: 16px;
-    z-index: 200;
+    z-index: 150;
     width: 44px;
     height: 44px;
     border-radius: 50%;
