@@ -1,0 +1,401 @@
+/* ===== SETTINGS SHEET ===== */
+.settings-sheet {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.settings-header {
+    margin-bottom: 24px;
+    padding-top: 4px;
+}
+
+.settings-header-back {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.settings-back-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.settings-back-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.settings-section {
+    margin-bottom: 24px;
+}
+
+.settings-section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255, 255, 255, 0.3);
+    margin-bottom: 8px;
+    padding-left: 4px;
+}
+
+.settings-section-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.settings-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.settings-row:hover {
+    background: rgba(255, 255, 255, 0.07);
+}
+
+.settings-row-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 1;
+    min-width: 0;
+}
+
+.settings-row-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.settings-row-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.settings-row-sub {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    margin-top: 2px;
+    line-height: 1.4;
+}
+
+.settings-chevron {
+    color: rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+/* Toggle */
+.settings-toggle {
+    width: 48px;
+    height: 28px;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 3px;
+    flex-shrink: 0;
+    transition: background 0.25s;
+}
+
+.settings-toggle.on {
+    background: linear-gradient(135deg, var(--gold) 0%, var(--saffron) 100%);
+}
+
+.settings-toggle-knob {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    display: block;
+}
+
+.settings-toggle:not(.on) .settings-toggle-knob {
+    margin-left: 0;
+}
+
+.settings-toggle.on .settings-toggle-knob {
+    margin-left: auto;
+}
+
+/* Radio rows */
+.settings-radio-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 14px;
+    margin-bottom: 8px;
+    width: 100%;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.settings-radio-row.selected {
+    border-color: rgba(212, 175, 55, 0.3);
+    background: rgba(212, 175, 55, 0.06);
+}
+
+.settings-radio-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+    position: relative;
+    transition: border-color 0.2s;
+}
+
+.settings-radio-row.selected .settings-radio-dot {
+    border-color: var(--gold);
+}
+
+.settings-radio-row.selected .settings-radio-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--gold);
+}
+
+/* Form */
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.settings-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.settings-input-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-input-group label strong {
+    color: var(--text-primary);
+}
+
+.settings-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.settings-input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+
+.settings-input:focus {
+    border-color: rgba(212, 175, 55, 0.4);
+}
+
+.settings-input::placeholder {
+    color: rgba(255, 255, 255, 0.2);
+}
+
+.settings-input-danger:focus {
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.settings-pw-eye {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0;
+}
+
+/* Save button */
+.settings-save-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    background: var(--gold-gradient);
+    color: #000;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: opacity 0.2s, transform 0.2s;
+    margin-top: 4px;
+}
+
+.settings-save-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.settings-save-btn:not(:disabled):hover {
+    transform: scale(1.01);
+}
+
+.settings-spinner {
+    animation: spin-slow 1s linear infinite;
+    color: #000;
+}
+
+/* Danger */
+.settings-danger-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 24px;
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 16px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.settings-danger-box h3 {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ef4444;
+}
+
+.settings-danger-box p {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.45);
+    line-height: 1.5;
+}
+
+.settings-danger-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background 0.2s;
+}
+
+.settings-danger-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.settings-danger-btn:not(:disabled):hover {
+    background: rgba(239, 68, 68, 0.18);
+}
+
+/* Error */
+.settings-error {
+    font-size: 13px;
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+
+/* Success state */
+.settings-success-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 48px 0;
+    text-align: center;
+}
+
+.settings-success-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(212, 175, 55, 0.1);
+    border: 2px solid rgba(212, 175, 55, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold);
+}
+
+.settings-success-state p {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Footer */
+.settings-footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.2);
+    padding: 16px 0 8px;
+}
+
+.settings-footer-note span {
+    color: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: rgba(255, 255, 255, 0.15);
+}

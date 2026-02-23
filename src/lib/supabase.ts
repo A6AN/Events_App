@@ -444,8 +444,27 @@ export const followUser = async (followerId: string, followingId: string) => {
         .single();
 
     if (error) throw error;
+
+    // Fire a notification to the followed user
+    try {
+        const { data: actorProfile } = await supabase
+            .from('profiles')
+            .select('full_name, username')
+            .eq('id', followerId)
+            .single();
+        const name = actorProfile?.full_name || actorProfile?.username || 'Someone';
+        await createNotification(
+            followingId,
+            followerId,
+            'follow',
+            'New Follower',
+            'started following you'
+        );
+    } catch (_) { /* notifications are non-critical */ }
+
     return data;
 };
+
 
 export const unfollowUser = async (followerId: string, followingId: string) => {
     const { error } = await supabase
@@ -1083,7 +1102,15 @@ export const updateProfile = async (userId: string, profileData: {
     full_name?: string;
     username?: string;
     avatar_url?: string;
+    banner_url?: string;
+    bio?: string;
+    location?: string;
+    languages?: string[];
+    interests?: string[];
     website?: string;
+    is_private?: boolean;
+    dm_privacy?: string;
+    notification_prefs?: Record<string, boolean>;
 }) => {
     const { data, error } = await supabase
         .from('profiles')
@@ -1113,4 +1140,120 @@ export const uploadAvatar = async (userId: string, file: File) => {
     return data.publicUrl;
 };
 
+export const uploadBanner = async (userId: string, file: File) => {
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${userId}-banner.${fileExt}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+};
+
+// ============================================
+// NOTIFICATIONS API
+// ============================================
+
+export interface AppNotification {
+    id: string;
+    user_id: string;      // recipient
+    actor_id: string | null; // who triggered it
+    type: 'follow' | 'like' | 'comment' | 'booking' | 'dm' | 'event_reminder';
+    title: string;
+    body: string;
+    data: Record<string, any> | null;
+    read: boolean;
+    created_at: string;
+    actor?: {
+        id: string;
+        full_name: string | null;
+        username: string | null;
+        avatar_url: string | null;
+    };
+}
+
+// Fetch notifications for current user (most recent 40)
+export const getNotifications = async (userId: string): Promise<AppNotification[]> => {
+    const { data, error } = await supabase
+        .from('notifications')
+        .select(`
+            *,
+            actor:actor_id (id, full_name, username, avatar_url)
+        `)
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(40);
+
+    if (error) return [];
+    return (data || []) as AppNotification[];
+};
+
+// Get unread count
+export const getUnreadNotificationCount = async (userId: string): Promise<number> => {
+    const { count } = await supabase
+        .from('notifications')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('read', false);
+    return count || 0;
+};
+
+// Mark all as read
+export const markAllNotificationsRead = async (userId: string): Promise<void> => {
+    await supabase
+        .from('notifications')
+        .update({ read: true })
+        .eq('user_id', userId)
+        .eq('read', false);
+};
+
+// Create a notification (used internally)
+export const createNotification = async (
+    userId: string,
+    actorId: string,
+    type: AppNotification['type'],
+    title: string,
+    body: string,
+    data: Record<string, any> = {}
+): Promise<void> => {
+    // Don't notify yourself
+    if (userId === actorId) return;
+    await supabase
+        .from('notifications')
+        .insert([{ user_id: userId, actor_id: actorId, type, title, body, data, read: false }]);
+};
+
+// Real-time subscription
+export const subscribeToNotifications = (
+    userId: string,
+    callback: (notif: AppNotification) => void
+) => {
+    return supabase
+        .channel(`notifs:${userId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'notifications',
+                filter: `user_id=eq.${userId}`,
+            },
+            async (payload) => {
+                const { data } = await supabase
+                    .from('notifications')
+                    .select(`*, actor:actor_id (id, full_name, username, avatar_url)`)
+                    .eq('id', payload.new.id)
+                    .single();
+                if (data) callback(data as AppNotification);
+            }
+        )
+        .subscribe();
+};
 

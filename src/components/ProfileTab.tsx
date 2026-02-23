@@ -6,6 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile, getUserVenueBookings } from '../lib/supabase';
 import { TicketCard } from './tickets/TicketCard';
 import { DbEvent, DbTicket } from '../types';
+import { SettingsSheet } from './modals/SettingsSheet';
+import { EditProfileSheet } from './modals/EditProfileSheet';
 import './ProfileTab.css';
 
 export function ProfileTab() {
@@ -18,6 +20,8 @@ export function ProfileTab() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch real profile data
@@ -77,7 +81,7 @@ export function ProfileTab() {
       {/* Hero Section */}
       <div className="profile-hero">
         <img
-          src="https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=800"
+          src={profile?.banner_url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=800'}
           alt="cover"
           className="profile-hero-img"
         />
@@ -85,8 +89,19 @@ export function ProfileTab() {
         <div className="profile-top-actions">
           <div>{/* left spacer */}</div>
           <div className="profile-actions-right">
-            <button className="profile-action-btn"><Share2 size={18} /></button>
-            <button className="profile-action-btn"><Settings size={18} /></button>
+            <button
+              className="profile-action-btn"
+              onClick={async () => {
+                if (navigator.share) {
+                  await navigator.share({ title: profile?.full_name || 'My Profile', text: 'Check out my profile on the app!' });
+                }
+              }}
+            >
+              <Share2 size={18} />
+            </button>
+            <button className="profile-action-btn" onClick={() => setSettingsOpen(true)}>
+              <Settings size={18} />
+            </button>
           </div>
         </div>
       </div>
@@ -114,7 +129,7 @@ export function ProfileTab() {
         </div>
 
         <h1 className="profile-name">{displayName}</h1>
-        <div className="profile-location"><MapPin size={13} /> Mumbai, India</div>
+        <div className="profile-location"><MapPin size={13} /> {profile?.location || 'No location set'}</div>
 
         {/* Rep Badge */}
         <div className="profile-rep">
@@ -148,8 +163,17 @@ export function ProfileTab() {
 
         {/* Action Buttons */}
         <div className="profile-actions">
-          <button className="profile-btn" onClick={handleAvatarClick}><Camera size={14} style={{ marginRight: 6, display: 'inline' }} /> Edit Profile</button>
-          <button className="profile-btn"><Share2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Share</button>
+          <button className="profile-btn" onClick={() => setEditProfileOpen(true)}>
+            <Edit2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Edit Profile
+          </button>
+          <button
+            className="profile-btn"
+            onClick={async () => {
+              if (navigator.share) await navigator.share({ title: profile?.full_name || 'My Profile', text: 'Check out my profile!' });
+            }}
+          >
+            <Share2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Share
+          </button>
         </div>
 
         {/* Tabs */}
@@ -231,10 +255,10 @@ export function ProfileTab() {
                   {user?.user_metadata?.bio || "No bio added yet. Edit your profile to add one."}
                 </p>
               </div>
-              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 20 }}>
+              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 14 }}>
                 <h3 style={{ color: '#fff', fontWeight: 700, marginBottom: 8, fontSize: 15 }}>Interests</h3>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {['Music', 'Art', 'Technology', 'Nightlife', 'Food'].map(tag => (
+                  {(profile?.interests?.length ? profile.interests : ['Music', 'Art', 'Technology', 'Nightlife', 'Food']).map((tag: string) => (
                     <span key={tag} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.05)', fontSize: 12, color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
                       {tag}
                     </span>
@@ -253,6 +277,14 @@ export function ProfileTab() {
           )}
         </AnimatePresence>
       </div>
+
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <EditProfileSheet
+        open={editProfileOpen}
+        onClose={() => setEditProfileOpen(false)}
+        currentProfile={profile}
+        onSaved={(updated) => setProfile((prev: any) => ({ ...prev, ...updated }))}
+      />
     </div>
   );
 }

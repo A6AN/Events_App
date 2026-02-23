@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, Search, ChevronDown, Loader2, Users } from 'lucide-react';
+import { MapPin, Clock, Search, ChevronDown, Loader2, Users, Bell } from 'lucide-react';
 import { Event } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { getFriendActivity, FriendActivityItem } from '../lib/supabase';
+import { getFriendActivity, FriendActivityItem, getUnreadNotificationCount, subscribeToNotifications } from '../lib/supabase';
 import { UserSearchSheet } from './modals/UserSearchSheet';
+import { NotificationsSheet } from './modals/NotificationsSheet';
 import './SocialTab.css';
 
 interface SocialTabProps {
@@ -21,6 +22,8 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
   const [friendsLoading, setFriendsLoading] = useState(false);
   const [friendsLoaded, setFriendsLoaded] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [notifsOpen, setNotifsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Geolocation: detect user's city/area
   useEffect(() => {
@@ -61,6 +64,21 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
       });
     }
   }, [tab, user?.id, friendsLoaded]);
+
+  // Load initial unread count
+  useEffect(() => {
+    if (!user?.id) return;
+    getUnreadNotificationCount(user.id).then(setUnreadCount);
+  }, [user?.id]);
+
+  // Real-time badge update
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = subscribeToNotifications(user.id, () => {
+      setUnreadCount(prev => prev + 1);
+    });
+    return () => { channel.unsubscribe(); };
+  }, [user?.id]);
 
   // User avatar
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.full_name || user?.email || 'U')}&background=D4AF37&color=000&bold=true`;
@@ -113,9 +131,27 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
             <button className={`feed-tab-btn ${tab === 'live' ? 'active' : ''}`} onClick={() => setTab('live')}>Happening</button>
           </div>
 
-          <button className="feed-filter-btn" onClick={() => setSearchOpen(true)} aria-label="Find people">
-            <Search size={18} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              className="feed-filter-btn"
+              onClick={() => {
+                setNotifsOpen(true);
+                setUnreadCount(0); // clear badge immediately on open
+              }}
+              aria-label="Notifications"
+              style={{ position: 'relative' }}
+            >
+              <Bell size={18} />
+              {unreadCount > 0 && (
+                <span className="feed-notif-badge">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+            <button className="feed-filter-btn" onClick={() => setSearchOpen(true)} aria-label="Find people">
+              <Search size={18} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -223,6 +259,7 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
         )}
       </div>
       <UserSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <NotificationsSheet open={notifsOpen} onClose={() => setNotifsOpen(false)} />
     </div>
   );
 }
