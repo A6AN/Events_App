@@ -613,6 +613,235 @@ export const subscribeToChatMessages = (chatId: string, callback: (message: any)
 };
 
 // ============================================
+// ENHANCED CHAT LIST API
+// ============================================
+
+export interface ChatWithLastMessage {
+    id: string;
+    eventId: string;
+    title: string;
+    image: string;
+    lastMessage: {
+        content: string;
+        senderName: string;
+        createdAt: string;
+    } | null;
+    unreadCount: number;
+}
+
+export const getChatsWithLastMessage = async (userId: string): Promise<ChatWithLastMessage[]> => {
+    // 1. Get all chats the user is a member of
+    const { data: memberships, error: memErr } = await supabase
+        .from('chat_members')
+        .select(`
+            last_read_at,
+            chat:chat_id (
+                id,
+                event_id,
+                event:event_id (title, image_url)
+            )
+        `)
+        .eq('user_id', userId);
+
+    if (memErr || !memberships) return [];
+
+    const chats: ChatWithLastMessage[] = [];
+
+    for (const mem of memberships) {
+        const chat = (mem as any).chat;
+        if (!chat || !chat.event) continue;
+
+        const chatId = chat.id;
+        const lastReadAt = (mem as any).last_read_at;
+
+        // 2. Get the last message for this chat
+        const { data: lastMsgArr } = await supabase
+            .from('chat_messages')
+            .select(`
+                content,
+                created_at,
+                user:user_id (full_name, username)
+            `)
+            .eq('chat_id', chatId)
+            .order('created_at', { ascending: false })
+            .limit(1);
+
+        const lastMsg = lastMsgArr?.[0] as any;
+
+        // 3. Get unread count (messages after last_read_at)
+        let unreadCount = 0;
+        if (lastReadAt) {
+            const { count } = await supabase
+                .from('chat_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('chat_id', chatId)
+                .gt('created_at', lastReadAt)
+                .neq('user_id', userId);
+            unreadCount = count || 0;
+        } else if (lastMsg) {
+            // Never read → all messages from others are unread
+            const { count } = await supabase
+                .from('chat_messages')
+                .select('*', { count: 'exact', head: true })
+                .eq('chat_id', chatId)
+                .neq('user_id', userId);
+            unreadCount = count || 0;
+        }
+
+        chats.push({
+            id: chatId,
+            eventId: chat.event_id,
+            title: chat.event.title,
+            image: chat.event.image_url,
+            lastMessage: lastMsg
+                ? {
+                    content: lastMsg.content,
+                    senderName: lastMsg.user?.full_name || lastMsg.user?.username || 'Someone',
+                    createdAt: lastMsg.created_at,
+                }
+                : null,
+            unreadCount,
+        });
+    }
+
+    // Sort: most recent message first
+    chats.sort((a, b) => {
+        const aTime = a.lastMessage?.createdAt || '';
+        const bTime = b.lastMessage?.createdAt || '';
+        return bTime.localeCompare(aTime);
+    });
+
+    return chats;
+};
+
+// Real-time subscription for the chat list — fires when any of the user's chats gets a new message
+export const subscribeToUserChatList = (userId: string, chatIds: string[], callback: () => void) => {
+    if (chatIds.length === 0) return null;
+
+    return supabase
+        .channel(`chat-list:${userId}`)
+        .on(
+            'postgres_changes',
+            {
+                event: 'INSERT',
+                schema: 'public',
+                table: 'chat_messages',
+            },
+            (payload) => {
+                // Only trigger for chats the user is a member of
+                if (chatIds.includes(payload.new.chat_id)) {
+                    callback();
+                }
+            }
+        )
+        .subscribe();
+};
+
+// ============================================
+// SOCIAL: FRIEND ACTIVITY API
+// ============================================
+
+export interface FriendActivityItem {
+    eventId: string;
+    title: string;
+    image: string;
+    location: string;
+    date: string;
+    friendName: string;
+    friendAvatar: string;
+    friendAction: 'rsvp' | 'hosting';
+    category: string;
+}
+
+export const getFriendActivity = async (userId: string): Promise<FriendActivityItem[]> => {
+    // 1. Get people this user follows
+    const { data: following, error: followErr } = await supabase
+        .from('follows')
+        .select('following_id')
+        .eq('follower_id', userId);
+
+    if (followErr || !following || following.length === 0) return [];
+
+    const followedIds = following.map(f => f.following_id);
+
+    // 2. Get events those users have RSVP'd to (via tickets)
+    const { data: friendTickets, error: ticketErr } = await supabase
+        .from('tickets')
+        .select(`
+            user_id,
+            event:event_id (
+                id, title, image_url, location_name, date, category
+            ),
+            user:user_id (full_name, avatar_url)
+        `)
+        .in('user_id', followedIds)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+    // 3. Get events those users are hosting
+    const { data: friendEvents, error: eventErr } = await supabase
+        .from('events')
+        .select(`
+            id, title, image_url, location_name, date, category,
+            host:host_id (id, full_name, avatar_url)
+        `)
+        .in('host_id', followedIds)
+        .order('date', { ascending: false })
+        .limit(20);
+
+    const activityItems: FriendActivityItem[] = [];
+
+    // Map RSVP'd events
+    if (friendTickets) {
+        for (const ticket of friendTickets) {
+            const event = (ticket as any).event;
+            const friend = (ticket as any).user;
+            if (!event) continue;
+            activityItems.push({
+                eventId: event.id,
+                title: event.title,
+                image: event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=400',
+                location: event.location_name || 'Unknown',
+                date: event.date,
+                friendName: friend?.full_name || 'A friend',
+                friendAvatar: friend?.avatar_url || `https://ui-avatars.com/api/?name=U&background=D4AF37&color=000`,
+                friendAction: 'rsvp',
+                category: event.category || 'Event',
+            });
+        }
+    }
+
+    // Map hosted events
+    if (friendEvents) {
+        for (const event of friendEvents) {
+            const host = (event as any).host;
+            if (!host) continue;
+            activityItems.push({
+                eventId: event.id,
+                title: event.title,
+                image: event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=400',
+                location: event.location_name || 'Unknown',
+                date: event.date,
+                friendName: host.full_name || 'A friend',
+                friendAvatar: host.avatar_url || `https://ui-avatars.com/api/?name=U&background=D4AF37&color=000`,
+                friendAction: 'hosting',
+                category: event.category || 'Event',
+            });
+        }
+    }
+
+    // Deduplicate by eventId (keep the first occurrence)
+    const seen = new Set<string>();
+    const unique = activityItems.filter(item => {
+        if (seen.has(item.eventId)) return false;
+        seen.add(item.eventId);
+        return true;
+    });
+
+    return unique;
+};
+
+// ============================================
 // PROFILE UPDATE API
 // ============================================
 

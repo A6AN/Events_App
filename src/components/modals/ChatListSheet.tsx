@@ -1,8 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getUserChats } from '../../lib/supabase';
+import {
+    getChatsWithLastMessage,
+    subscribeToUserChatList,
+    ChatWithLastMessage,
+} from '../../lib/supabase';
 import { ChatScreen } from './ChatScreen';
 import '../modals/ModalStyles.css';
 
@@ -11,54 +15,66 @@ interface ChatListSheetProps {
     onClose: () => void;
 }
 
-interface Chat {
-    id: string;
-    eventId: string;
-    title: string;
-    image: string;
-    lastRead: string;
+function formatRelativeTime(dateString: string): string {
+    const now = Date.now();
+    const then = new Date(dateString).getTime();
+    const diffMs = now - then;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'now';
+    if (diffMin < 60) return `${diffMin}m`;
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return `${diffH}h`;
+    const diffD = Math.floor(diffH / 24);
+    if (diffD < 7) return `${diffD}d`;
+    return new Date(dateString).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
 }
-
-// Static online friends for visual richness
-const ONLINE = [
-    { id: 1, name: 'Riya', img: 'https://i.pravatar.cc/100?img=5' },
-    { id: 2, name: 'Aman', img: 'https://i.pravatar.cc/100?img=12' },
-    { id: 3, name: 'Priya', img: 'https://i.pravatar.cc/100?img=32' },
-    { id: 4, name: 'Raj', img: 'https://i.pravatar.cc/100?img=8' },
-    { id: 5, name: 'Neha', img: 'https://i.pravatar.cc/100?img=25' },
-    { id: 6, name: 'Dev', img: 'https://i.pravatar.cc/100?img=15' },
-];
 
 export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
     const { user } = useAuth();
-    const [chats, setChats] = useState<Chat[]>([]);
+    const [chats, setChats] = useState<ChatWithLastMessage[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedChat, setSelectedChat] = useState<Chat | null>(null);
+    const [selectedChat, setSelectedChat] = useState<ChatWithLastMessage | null>(null);
 
+    const loadChats = useCallback(async () => {
+        if (!user?.id) return;
+        const data = await getChatsWithLastMessage(user.id);
+        setChats(data);
+        setLoading(false);
+    }, [user?.id]);
+
+    // Initial load
     useEffect(() => {
         if (open && user?.id) {
             setLoading(true);
-            getUserChats(user.id).then((data) => {
-                const mappedChats = data.map((item: any) => {
-                    if (!item.chat || !item.chat.event) return null;
-                    return {
-                        id: item.chat.id,
-                        eventId: item.chat.event_id,
-                        title: item.chat.event.title,
-                        image: item.chat.event.image_url,
-                        lastRead: item.last_read_at
-                    };
-                }).filter(Boolean) as Chat[];
-                setChats(mappedChats);
-                setLoading(false);
-            });
+            loadChats();
         }
-    }, [open, user?.id]);
+    }, [open, user?.id, loadChats]);
+
+    // Real-time subscription — re-fetch when a new message arrives in any of the user's chats
+    useEffect(() => {
+        if (!open || !user?.id || chats.length === 0) return;
+
+        const chatIds = chats.map(c => c.id);
+        const channel = subscribeToUserChatList(user.id, chatIds, () => {
+            // Refresh the chat list when a new message comes in
+            loadChats();
+        });
+
+        return () => {
+            channel?.unsubscribe();
+        };
+    }, [open, user?.id, chats.length, loadChats]);
 
     const filteredChats = chats.filter(chat =>
         chat.title.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const handleChatClose = useCallback(() => {
+        setSelectedChat(null);
+        // Refresh to update last_read_at / unread counts
+        loadChats();
+    }, [loadChats]);
 
     return (
         <AnimatePresence>
@@ -92,22 +108,6 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                                 />
                             </div>
 
-                            {/* Online Now */}
-                            <div className="chat-online-section">
-                                <div className="chat-section-title">Online Now</div>
-                                <div className="chat-online-list">
-                                    {ONLINE.map(u => (
-                                        <div key={u.id} className="chat-online-item">
-                                            <div className="chat-online-avatar-wrap">
-                                                <img src={u.img} alt="" className="chat-online-avatar" />
-                                                <span className="chat-online-dot" />
-                                            </div>
-                                            <span className="chat-online-name">{u.name}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
                             {/* Chat list */}
                             <div className="chat-section-title">Recent</div>
                             <div className="chat-list">
@@ -134,10 +134,19 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                                             <div className="chat-item-body">
                                                 <div className="chat-item-top">
                                                     <span className="chat-item-name">{chat.title}</span>
-                                                    <span className="chat-item-time">Tap to view</span>
+                                                    <span className="chat-item-time">
+                                                        {chat.lastMessage ? formatRelativeTime(chat.lastMessage.createdAt) : ''}
+                                                    </span>
                                                 </div>
-                                                <p className="chat-item-preview">Event group chat</p>
+                                                <p className="chat-item-preview">
+                                                    {chat.lastMessage
+                                                        ? `${chat.lastMessage.senderName}: ${chat.lastMessage.content}`
+                                                        : 'No messages yet — say hi! 👋'}
+                                                </p>
                                             </div>
+                                            {chat.unreadCount > 0 && (
+                                                <span className="chat-unread">{chat.unreadCount}</span>
+                                            )}
                                         </div>
                                     ))
                                 )}
@@ -152,7 +161,7 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                                     chatId={selectedChat.id}
                                     eventTitle={selectedChat.title}
                                     eventImage={selectedChat.image}
-                                    onClose={() => setSelectedChat(null)}
+                                    onClose={handleChatClose}
                                 />
                             )}
                         </AnimatePresence>

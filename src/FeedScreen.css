@@ -3,6 +3,7 @@
     padding: 0 16px;
 }
 
+/* Top bar */
 .feed-topbar {
     position: fixed;
     top: 0;
@@ -42,35 +43,31 @@
     font-weight: 700;
     font-size: 15px;
     color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 4px;
 }
 
 .feed-city-sub {
     font-size: 11px;
-    color: var(--text-muted-new);
+    color: var(--text-muted);
     letter-spacing: 0.5px;
 }
 
 .feed-tab-toggle {
     display: flex;
     background: rgba(255, 255, 255, 0.06);
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     padding: 3px;
     border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .feed-tab-btn {
     padding: 7px 18px;
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     border: none;
     background: transparent;
-    color: var(--text-muted-new);
+    color: var(--text-muted);
     font-size: 13px;
     font-weight: 600;
     transition: all 0.3s ease;
-    cursor: pointer;
 }
 
 .feed-tab-btn.active {
@@ -89,13 +86,13 @@
     align-items: center;
     justify-content: center;
     transition: background 0.2s;
-    cursor: pointer;
 }
 
 .feed-filter-btn:hover {
     background: rgba(255, 255, 255, 0.12);
 }
 
+/* Content */
 .feed-content {
     padding-top: 110px;
 }
@@ -113,12 +110,24 @@
     position: relative;
     width: 100%;
     height: 440px;
-    border-radius: 24px;
+    border-radius: var(--radius-xl);
     overflow: hidden;
     margin-bottom: 20px;
     cursor: pointer;
     transition: transform 0.3s ease;
     animation: fadeInUp 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.poster-card:nth-child(1) {
+    animation-delay: 0.15s;
+}
+
+.poster-card:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.poster-card:nth-child(3) {
+    animation-delay: 0.45s;
 }
 
 .poster-card:hover {
@@ -153,7 +162,7 @@
     align-items: center;
     gap: 5px;
     padding: 5px 12px;
-    border-radius: 100px;
+    border-radius: 6px;
     background: var(--saffron-gradient);
     font-size: 11px;
     font-weight: 800;
@@ -168,7 +177,7 @@
     height: 6px;
     border-radius: 50%;
     background: #fff;
-    animation: pulse-dot 1.5s infinite;
+    animation: pulse 1.5s infinite;
 }
 
 .poster-price {
@@ -176,7 +185,7 @@
     top: 16px;
     left: 16px;
     padding: 5px 14px;
-    border-radius: 100px;
+    border-radius: 8px;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     border: 1px solid rgba(255, 215, 0, 0.2);
@@ -209,7 +218,6 @@
     line-height: 1.2;
     margin-bottom: 10px;
     letter-spacing: -0.3px;
-    color: var(--text-primary);
 }
 
 .poster-meta {
@@ -265,7 +273,7 @@
     background: rgba(255, 153, 51, 0.15);
     border: 1px solid rgba(255, 153, 51, 0.2);
     padding: 4px 12px;
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     font-size: 13px;
     font-weight: 700;
     color: var(--saffron);
@@ -279,13 +287,37 @@
 
 .masonry-card {
     position: relative;
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
     margin-bottom: 12px;
     break-inside: avoid;
     cursor: pointer;
     transition: transform 0.2s;
     animation: scaleIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.masonry-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.masonry-card:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.masonry-card:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.masonry-card:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.masonry-card:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.masonry-card:nth-child(6) {
+    animation-delay: 0.35s;
 }
 
 .masonry-card:hover {
@@ -295,7 +327,6 @@
 .masonry-card img {
     width: 100%;
     display: block;
-    object-fit: cover;
 }
 
 .masonry-overlay {
@@ -311,12 +342,11 @@
     font-size: 13px;
     font-weight: 700;
     margin-bottom: 3px;
-    color: var(--text-primary);
 }
 
 .masonry-sub {
     font-size: 11px;
-    color: var(--text-muted-new);
+    color: var(--text-muted);
     display: flex;
     align-items: center;
     gap: 4px;
@@ -332,7 +362,7 @@
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(8px);
     padding: 3px 10px 3px 3px;
-    border-radius: 100px;
+    border-radius: var(--radius-pill);
     font-size: 11px;
     color: var(--text-secondary);
 }
@@ -342,78 +372,4 @@
     height: 22px;
     border-radius: 50%;
     object-fit: cover;
-}
-
-.masonry-friend-action {
-    font-size: 12px;
-    margin-left: 2px;
-}
-
-/* ===== SKELETON LOADING ===== */
-.skeleton-card {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    position: relative;
-    overflow: hidden;
-}
-
-.skeleton-shimmer {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-            rgba(255, 255, 255, 0) 0%,
-            rgba(255, 255, 255, 0.04) 50%,
-            rgba(255, 255, 255, 0) 100%);
-    animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-    0% {
-        transform: translateX(-100%);
-    }
-
-    100% {
-        transform: translateX(100%);
-    }
-}
-
-.friends-loading {
-    padding-top: 8px;
-}
-
-/* ===== EMPTY STATE ===== */
-.friends-empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 60px 24px;
-    text-align: center;
-}
-
-.friends-empty-icon {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    color: rgba(255, 255, 255, 0.2);
-}
-
-.friends-empty-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-}
-
-.friends-empty-text {
-    font-size: 14px;
-    color: var(--text-muted-new);
-    max-width: 260px;
-    line-height: 1.5;
 }

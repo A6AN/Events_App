@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Clock, SlidersHorizontal, ChevronDown, Loader2, Users } from 'lucide-react';
+import { MapPin, Clock, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { Event } from '../types';
 import { useAuth } from '../context/AuthContext';
-import { getFriendActivity, FriendActivityItem } from '../lib/supabase';
 import './SocialTab.css';
 
 interface SocialTabProps {
@@ -11,14 +10,21 @@ interface SocialTabProps {
   onEventSelect: (event: Event) => void;
 }
 
+// Static friends feed data (matches the UI design reference)
+const FRIEND_EVENTS = [
+  { id: 'f1', title: "Riya's Birthday", image: 'https://images.unsplash.com/photo-1530103862676-de3c9da59af7?auto=format&fit=crop&q=80&w=400&h=500', location: 'Juhu', friend: 'Riya', friendImg: 'https://i.pravatar.cc/100?img=5', height: 260 },
+  { id: 'f2', title: 'Sunday Brunch', image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&q=80&w=400&h=350', location: 'Colaba', friend: 'Aman', friendImg: 'https://i.pravatar.cc/100?img=12', height: 200 },
+  { id: 'f3', title: 'Cricket Watch Party', image: 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&q=80&w=400&h=450', location: 'BKC', friend: 'Raj', friendImg: 'https://i.pravatar.cc/100?img=8', height: 240 },
+  { id: 'f4', title: 'Yoga Sunrise', image: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&q=80&w=400&h=300', location: 'Marine Drive', friend: 'Neha', friendImg: 'https://i.pravatar.cc/100?img=25', height: 180 },
+  { id: 'f5', title: 'Art Gallery Night', image: 'https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&q=80&w=400&h=400', location: 'Kala Ghoda', friend: 'Priya', friendImg: 'https://i.pravatar.cc/100?img=32', height: 220 },
+  { id: 'f6', title: 'Chai & Code', image: 'https://images.unsplash.com/photo-1543269865-cbf427effbad?auto=format&fit=crop&q=80&w=400&h=350', location: 'Powai', friend: 'Dev', friendImg: 'https://i.pravatar.cc/100?img=15', height: 200 },
+];
+
 export function SocialTab({ events, onEventSelect }: SocialTabProps) {
   const { user } = useAuth();
   const [tab, setTab] = useState<'live' | 'friends'>('live');
   const [city, setCity] = useState('Detecting...');
   const [suburb, setSuburb] = useState('');
-  const [friendActivity, setFriendActivity] = useState<FriendActivityItem[]>([]);
-  const [friendsLoading, setFriendsLoading] = useState(false);
-  const [friendsLoaded, setFriendsLoaded] = useState(false);
 
   // Geolocation: detect user's city/area
   useEffect(() => {
@@ -45,21 +51,6 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
     );
   }, []);
 
-  // Load friend activity when the "Friends" tab is selected (lazy-load)
-  useEffect(() => {
-    if (tab === 'friends' && user?.id && !friendsLoaded) {
-      setFriendsLoading(true);
-      getFriendActivity(user.id).then((data) => {
-        setFriendActivity(data);
-        setFriendsLoading(false);
-        setFriendsLoaded(true);
-      }).catch(() => {
-        setFriendsLoading(false);
-        setFriendsLoaded(true);
-      });
-    }
-  }, [tab, user?.id, friendsLoaded]);
-
   // User avatar
   const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.full_name || user?.email || 'U')}&background=D4AF37&color=000&bold=true`;
 
@@ -85,12 +76,6 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
     } catch {
       return event.date;
     }
-  };
-
-  // Card heights based on index for masonry variety
-  const getCardHeight = (index: number) => {
-    const heights = [260, 200, 240, 180, 220, 200, 250, 190];
-    return heights[index % heights.length];
   };
 
   return (
@@ -167,56 +152,21 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
         ) : (
           <>
             <h2 className="feed-section-title">👋 Friends Activity</h2>
-
-            {friendsLoading ? (
-              <div className="friends-loading">
-                {/* Skeleton Cards */}
-                <div className="masonry-grid">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="masonry-card skeleton-card" style={{ height: getCardHeight(i) }}>
-                      <div className="skeleton-shimmer" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : friendActivity.length === 0 ? (
-              <div className="friends-empty-state">
-                <div className="friends-empty-icon">
-                  <Users size={40} />
-                </div>
-                <h3 className="friends-empty-title">No friend activity yet</h3>
-                <p className="friends-empty-text">
-                  Follow people to see what events they're attending and hosting!
-                </p>
-              </div>
-            ) : (
-              <div className="masonry-grid">
-                {friendActivity.map((item, i) => (
-                  <div
-                    key={item.eventId}
-                    className="masonry-card"
-                    style={{ animationDelay: `${i * 0.08}s` }}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{ height: getCardHeight(i) }}
-                    />
-                    <div className="masonry-overlay">
-                      <div className="masonry-title">{item.title}</div>
-                      <div className="masonry-sub"><MapPin size={10} /> {item.location}</div>
-                    </div>
-                    <div className="masonry-friend-badge">
-                      <img src={item.friendAvatar} alt="" />
-                      {item.friendName}
-                      <span className="masonry-friend-action">
-                        {item.friendAction === 'hosting' ? '🎤' : '🎟️'}
-                      </span>
-                    </div>
+            <div className="masonry-grid">
+              {FRIEND_EVENTS.map(event => (
+                <div key={event.id} className="masonry-card">
+                  <img src={event.image} alt={event.title} style={{ height: event.height }} />
+                  <div className="masonry-overlay">
+                    <div className="masonry-title">{event.title}</div>
+                    <div className="masonry-sub"><MapPin size={10} /> {event.location}</div>
                   </div>
-                ))}
-              </div>
-            )}
+                  <div className="masonry-friend-badge">
+                    <img src={event.friendImg} alt="" />
+                    {event.friend}
+                  </div>
+                </div>
+              ))}
+            </div>
           </>
         )}
       </div>

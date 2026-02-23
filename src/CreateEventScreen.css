@@ -1,0 +1,418 @@
+/* ===== CREATE EVENT ===== */
+.create-screen {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: 52px 20px 24px;
+    overflow: hidden;
+}
+
+.create-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.create-back-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.create-title-text {
+    font-size: 16px;
+    font-weight: 700;
+}
+
+/* Steps indicator */
+.create-steps {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.create-step-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    transition: all 0.3s;
+}
+
+.create-step-dot.active {
+    background: var(--gold);
+    box-shadow: var(--shadow-glow-gold);
+    transform: scale(1.3);
+}
+
+.create-step-dot.done {
+    background: var(--gold);
+}
+
+/* Titles */
+.create-step-title {
+    font-size: 22px;
+    font-weight: 800;
+    text-align: center;
+    margin-bottom: 4px;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+}
+
+.create-step-subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+/* ===== DISC SELECTOR (Step 1) ===== */
+.disc-stage {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 0;
+}
+
+/* Main CD — realistic holographic disc */
+.main-disc {
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+    margin-bottom: 8px;
+    transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow:
+        0 16px 50px rgba(0, 0, 0, 0.5),
+        inset 0 0 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Holographic rainbow base layer */
+.main-disc::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        conic-gradient(from 0deg,
+            var(--disc-c1),
+            rgba(255, 255, 255, 0.1) 15%,
+            var(--disc-c2),
+            rgba(255, 200, 100, 0.2) 35%,
+            var(--disc-c1),
+            rgba(100, 200, 255, 0.15) 55%,
+            var(--disc-c2),
+            rgba(255, 100, 200, 0.2) 75%,
+            var(--disc-c1),
+            rgba(200, 255, 100, 0.1) 90%,
+            var(--disc-c1));
+    animation: spin 15s linear infinite;
+}
+
+/* CD data tracks — concentric grooves */
+.main-disc .disc-tracks {
+    position: absolute;
+    inset: 20px;
+    border-radius: 50%;
+    background:
+        repeating-radial-gradient(circle at center,
+            transparent 0px,
+            transparent 2px,
+            rgba(255, 255, 255, 0.04) 2px,
+            rgba(255, 255, 255, 0.04) 3px);
+    z-index: 1;
+}
+
+/* Rainbow light reflection */
+.disc-shine {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(ellipse at 30% 20%, rgba(255, 255, 255, 0.35) 0%, transparent 40%),
+        radial-gradient(ellipse at 70% 70%, rgba(255, 180, 255, 0.1) 0%, transparent 30%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, transparent 50%);
+    z-index: 3;
+    pointer-events: none;
+}
+
+/* Center spindle/hub */
+.main-disc::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle, #ddd 30%, #aaa 50%, #888 65%, #bbb 80%, #fff 100%);
+    border-radius: 50%;
+    z-index: 4;
+    box-shadow:
+        0 1px 4px rgba(0, 0, 0, 0.4),
+        inset 0 1px 2px rgba(255, 255, 255, 0.6);
+}
+
+/* Spindle center hole */
+.disc-center-hole {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    z-index: 5;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.disc-name {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    flex-shrink: 0;
+}
+
+/* Mini disc grid — 2 rows of 3 */
+.disc-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 14px;
+    width: 100%;
+    max-width: 280px;
+    flex-shrink: 0;
+}
+
+.mini-disc {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+/* Mini CD — realistic holographic */
+.mini-disc-circle {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    border: 2px solid transparent;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.mini-disc-circle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        conic-gradient(from 0deg,
+            var(--mc1),
+            rgba(255, 255, 255, 0.15) 20%,
+            var(--mc2),
+            rgba(255, 200, 150, 0.1) 40%,
+            var(--mc1),
+            rgba(150, 200, 255, 0.12) 60%,
+            var(--mc2),
+            rgba(255, 150, 200, 0.1) 80%,
+            var(--mc1));
+}
+
+/* Mini CD shininess */
+.mini-disc-circle::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 35% 25%, rgba(255, 255, 255, 0.3) 0%, transparent 50%);
+    z-index: 1;
+}
+
+/* Mini CD spindle hub */
+.mini-disc-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: radial-gradient(circle, #ddd 30%, #aaa 60%, #fff 100%);
+    border-radius: 50%;
+    z-index: 2;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.mini-disc.selected .mini-disc-circle {
+    border-color: var(--gold);
+    box-shadow: var(--shadow-glow-gold);
+    transform: scale(1.1);
+}
+
+.mini-disc-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.mini-disc.selected .mini-disc-label {
+    color: var(--gold-light);
+}
+
+/* ===== EVENT TYPE TOGGLE ===== */
+.event-type-section {
+    margin-top: auto;
+    margin-bottom: 12px;
+    width: 100%;
+    flex-shrink: 0;
+}
+
+.event-type-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+.event-type-toggle {
+    display: flex;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-pill);
+    padding: 3px;
+}
+
+.type-btn {
+    flex: 1;
+    padding: 10px 0;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.type-btn.active {
+    background: var(--gold-gradient);
+    color: #000;
+    box-shadow: 0 2px 12px rgba(212, 175, 55, 0.3);
+}
+
+.type-btn:hover:not(.active) {
+    color: var(--text-secondary);
+}
+
+/* Continue Button */
+.create-continue-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius-pill);
+    border: none;
+    background: var(--gold-gradient);
+    color: #000;
+    font-size: 15px;
+    font-weight: 800;
+    cursor: pointer;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: var(--shadow-glow-gold);
+    transition: all 0.25s;
+}
+
+.create-continue-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.5);
+}
+
+/* ===== FORM STEP (Step 2) ===== */
+.create-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    overflow-y: auto;
+}
+
+.create-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.create-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.create-input {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.create-input:focus {
+    border-color: var(--gold);
+}
+
+.create-input::placeholder {
+    color: var(--text-muted);
+}
+
+textarea.create-input {
+    min-height: 80px;
+    resize: none;
+}
+
+.create-row {
+    display: flex;
+    gap: 12px;
+}
+
+.create-row .create-field {
+    flex: 1;
+}
