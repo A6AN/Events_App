@@ -113,6 +113,29 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
     return heights[index % heights.length];
   };
 
+  // --- The FOMO Ranking Algorithm ---
+  const getFomoScore = (event: Event) => {
+    // 1. Velocity (Ticket Sales weight)
+    const velocityScore = (event.attendees || 10) * 10;
+    
+    // 2. Social Proof (Friends attending)
+    const friendsScore = (event.friendsAttending || 0) * 5;
+    
+    // 3. Time Decay (Urgency)
+    let timeDecay = 0;
+    if (event.date) {
+      const hoursUntil = (new Date(event.date).getTime() - new Date().getTime()) / (1000 * 60 * 60);
+      timeDecay = hoursUntil > 0 ? hoursUntil * 0.5 : 0;
+    }
+    
+    // 4. Host Tier Boost (Gold hosts get algorithmic preference)
+    const hostBoost = event.host?.name === 'System' ? 100 : Math.floor(Math.random() * 20);
+    
+    return velocityScore + friendsScore - timeDecay + hostBoost;
+  };
+
+  const fomoRankedEvents = [...events].sort((a, b) => getFomoScore(b) - getFomoScore(a));
+
   return (
     <div className="feed">
       {/* Top Bar */}
@@ -159,48 +182,32 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
       <div className="feed-content">
         {tab === 'live' ? (
           <>
-            <h2 className="feed-section-title">🔥 Happening Now</h2>
-            {events.map((event, i) => (
-              <div
-                key={event.id}
-                className="poster-card"
-                onClick={() => onEventSelect(event)}
-                style={{ animationDelay: `${i * 0.1}s` }}
-              >
-                <img
-                  src={event.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&q=80&w=800'}
-                  alt={event.title}
-                  className="poster-img"
-                />
-                <div className="poster-overlay" />
-
-                {i === 0 && (
-                  <div className="poster-live-badge">
-                    <span className="poster-live-dot" /> LIVE
+            <h2 className="feed-section-title">🔥 Discover (Trending)</h2>
+            <div className="masonry-grid">
+              {fomoRankedEvents.map((event, i) => (
+                <div
+                  key={`discover-${event.id}`}
+                  className="masonry-card"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                  onClick={() => onEventSelect(event)}
+                >
+                  <img
+                    src={event.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'}
+                    alt={event.title}
+                    style={{ height: getCardHeight(i) }}
+                  />
+                  <div className="masonry-overlay">
+                    <div className="masonry-title">{event.title}</div>
+                    <div className="masonry-sub"><MapPin size={10} /> {typeof event.location === 'object' ? event.location.name : (event.location || 'Mumbai')}</div>
                   </div>
-                )}
-
-                <div className="poster-price">{getPrice(event)}</div>
-
-                <div className="poster-info">
-                  <div className="poster-category">{getCategory(event)}</div>
-                  <h3 className="poster-title">{event.title}</h3>
-                  <div className="poster-meta">
-                    <span className="poster-meta-item"><MapPin size={13} /> {typeof event.location === 'object' ? event.location.name : (event.location || 'Mumbai')}</span>
-                    <span className="poster-meta-item"><Clock size={13} /> {getTime(event)}</span>
-                  </div>
-                  <div className="poster-bottom">
-                    <div className="poster-avatars">
-                      {[11, 12, 13, 14].map(n => (
-                        <img key={n} src={`https://i.pravatar.cc/100?img=${n}`} alt="" className="poster-avatar" />
-                      ))}
-                      <span className="poster-going">+{event.attendees || Math.floor(Math.random() * 100 + 20)} going</span>
-                    </div>
-                    <div className="poster-fire">🔥 {Math.floor(Math.random() * 30 + 5)}</div>
+                  <div className="masonry-friend-badge">
+                    <img src={`https://i.pravatar.cc/100?u=${event.id}`} alt="" />
+                    {event.host?.name ? event.host.name : 'Local host'}
+                    <span className="masonry-friend-action">🎤</span>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </>
         ) : (
           <>
@@ -208,7 +215,6 @@ export function SocialTab({ events, onEventSelect }: SocialTabProps) {
 
             {friendsLoading ? (
               <div className="friends-loading">
-                {/* Skeleton Cards */}
                 <div className="masonry-grid">
                   {[1, 2, 3, 4].map(i => (
                     <div key={i} className="masonry-card skeleton-card" style={{ height: getCardHeight(i) }}>

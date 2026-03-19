@@ -278,7 +278,7 @@ export function ProfileTab() {
         </AnimatePresence>
       </div>
 
-      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} profile={profile} />
       <EditProfileSheet
         open={editProfileOpen}
         onClose={() => setEditProfileOpen(false)}

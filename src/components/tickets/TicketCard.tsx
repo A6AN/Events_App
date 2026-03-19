@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { TicketQRCode } from '../ui/TicketQRCode';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, MapPin, Clock, Sparkles, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
@@ -121,14 +121,9 @@ export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
                                         initial={{ opacity: 0, scale: 0.8, rotateX: 90 }}
                                         animate={{ opacity: 1, scale: 1, rotateX: 0 }}
                                         exit={{ opacity: 0, scale: 0.8, rotateX: -90 }}
-                                        className="p-4 bg-white rounded-2xl shadow-2xl"
+                                        className="p-1 bg-white rounded-2xl shadow-2xl overflow-hidden"
                                     >
-                                        <QRCodeSVG
-                                            value={ticketData}
-                                            size={140}
-                                            level="H"
-                                            includeMargin={false}
-                                        />
+                                        <TicketQRCode data={ticketData} size={140} />
                                     </motion.div>
                                 ) : (
                                     <motion.div

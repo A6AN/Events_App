@@ -4,8 +4,10 @@ import { Map, User, Building2, Plus, Home, MessageCircle } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { SocialTab } from './components/SocialTab';
 import { MapTab } from './components/MapTab';
-import { VenuesTab } from './components/VenuesTab';
+import { ExploreTab } from './components/ExploreTab';
+import { TicketsTab } from './components/TicketsTab';
 import { ProfileTab } from './components/ProfileTab';
+import { BottomNav } from './components/BottomNav';
 import { EventDetailsSheet } from './components/modals/EventDetailsSheet';
 import { TicketBookingDialog } from './components/TicketBookingDialog';
 import { CreateEventWheel } from './components/modals/CreateEventWheel';
@@ -22,7 +24,7 @@ import { Browser } from '@capacitor/browser';
 import { supabase, fetchVenues, getEvents, mapDbEventToEvent, mapDbVenueToVenue } from './lib/supabase';
 import './App.css';
 
-type Tab = 'feed' | 'map' | 'venues' | 'profile';
+type Tab = 'feed' | 'explore' | 'map' | 'tickets' | 'profile';
 
 function AppContent() {
   const [selectedTicket, setSelectedTicket] = useState<Event | null>(null);
@@ -31,7 +33,7 @@ function AppContent() {
   const [wheelOpen, setWheelOpen] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [eventType, setEventType] = useState<'casual' | 'ticketed'>('casual');
-  const [activeTab, setActiveTab] = useState<'feed' | 'map' | 'venues' | 'profile'>('feed');
+  const [activeTab, setActiveTab] = useState<Tab>('feed');
   const [ticketBookingOpen, setTicketBookingOpen] = useState(false);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [events, setEvents] = useState<Event[]>([]);
@@ -98,14 +100,19 @@ function AppContent() {
               />
             </div>
           )}
+          {activeTab === 'explore' && (
+            <div key="explore" style={{ height: '100vh' }}>
+              <ExploreTab events={events} venues={venues} onEventSelect={handleEventSelect} />
+            </div>
+          )}
           {activeTab === 'map' && (
             <div key="map" style={{ height: '100vh' }}>
               <MapTab events={events} />
             </div>
           )}
-          {activeTab === 'venues' && (
-            <div key="venues">
-              <VenuesTab venues={venues} />
+          {activeTab === 'tickets' && (
+            <div key="tickets" style={{ height: '100vh' }}>
+              <TicketsTab tickets={[]} />
             </div>
           )}
           {activeTab === 'profile' && (
@@ -116,33 +123,12 @@ function AppContent() {
         </AnimatePresence>
       </div>
 
-      {/* Bottom Navbar */}
-      <div className="navbar-wrapper">
-        <nav className="navbar">
-          <button className={`nav - btn ${activeTab === 'feed' ? 'active' : ''} `} onClick={() => setActiveTab('feed')}>
-            <Home size={22} />
-          </button>
-          <button className={`nav - btn ${activeTab === 'map' ? 'active' : ''} `} onClick={() => setActiveTab('map')}>
-            <Map size={22} />
-          </button>
-
-          {/* Create Button Anchor */}
-          <div className="nav-create-spacer">
-            <div className="create-btn-anchor">
-              <button className="create-btn" onClick={() => setWheelOpen(true)}>
-                <Plus size={26} style={{ position: 'relative', zIndex: 2 }} />
-              </button>
-            </div>
-          </div>
-
-          <button className={`nav - btn ${activeTab === 'venues' ? 'active' : ''} `} onClick={() => setActiveTab('venues')}>
-            <Building2 size={22} />
-          </button>
-          <button className={`nav - btn ${activeTab === 'profile' ? 'active' : ''} `} onClick={() => setActiveTab('profile')}>
-            <User size={22} />
-          </button>
-        </nav>
-      </div>
+      {/* Enhanced Bottom Navbar Component */}
+      <BottomNav 
+          activeTab={activeTab} 
+          onTabChange={(tab) => setActiveTab(tab as any)} 
+          onPlusClick={() => setWheelOpen(true)} 
+      />
 
       {/* Event Detail Sheet */}
       <EventDetailsSheet

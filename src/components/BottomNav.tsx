@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Users, Map, Building2, User, Plus, Home } from 'lucide-react';
+import { Map, User, Plus, Home, Search, Ticket } from 'lucide-react';
 
 interface BottomNavProps {
     activeTab: string;
@@ -8,9 +8,10 @@ interface BottomNavProps {
 }
 
 const tabs = [
-    { id: 'social', icon: Home, label: 'Feed' },
-    { id: 'map', icon: Map, label: 'Discover' },
-    { id: 'venues', icon: Building2, label: 'Venues' },
+    { id: 'feed', icon: Home, label: 'Feed' },
+    { id: 'explore', icon: Search, label: 'Explore' },
+    { id: 'map', icon: Map, label: 'Map' },
+    { id: 'tickets', icon: Ticket, label: 'Tickets' },
     { id: 'profile', icon: User, label: 'Profile' },
 ];
 
@@ -67,7 +68,7 @@ export function BottomNav({ activeTab, onTabChange, onPlusClick }: BottomNavProp
                 className="mx-4 max-w-lg mx-auto pointer-events-auto"
             >
                 <div
-                    className="h-16 rounded-full overflow-hidden grid grid-cols-4 items-center px-2"
+                    className="h-16 rounded-full overflow-hidden grid grid-cols-5 items-center px-2"
                     style={{
                         background: 'linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.06) 100%)',
                         backdropFilter: 'blur(24px)',

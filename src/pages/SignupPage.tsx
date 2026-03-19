@@ -52,6 +52,7 @@ export function SignupPage() {
 
     const handleGoogleSignup = async () => {
         setLoading(true);
+        setError('');
         const { error } = await signInWithGoogle();
         if (error) {
             setError(error.message);
@@ -191,12 +192,12 @@ export function SignupPage() {
                     {/* Google OAuth */}
                     <Button
                         variant="outline"
-                        className="w-full h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white hover:border-white/20 rounded-xl transition-all"
+                        className="w-full h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:text-white hover:border-white/20 rounded-xl transition-all group"
                         onClick={handleGoogleSignup}
                         disabled={loading}
                     >
-                        <Chrome className="mr-2 h-5 w-5" />
-                        Google
+                        <Chrome className="mr-3 h-5 w-5 group-hover:text-emerald-400 transition-colors" />
+                        Continue with Google
                     </Button>
 
                     {/* Login Link */}
