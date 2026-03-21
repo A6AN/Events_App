@@ -209,6 +209,7 @@ function TicketCard({ ticket, onTap, dimmed }: {
   onTap: () => void
   dimmed?: boolean
 }) {
+  if (!ticket.ticket_type) return null
   const [a1, a2] = getAura(ticket.event.category)
 
   return (
@@ -340,6 +341,7 @@ function HeroTicket({ ticket, onClose }: {
   ticket: TicketWithMeta
   onClose: () => void
 }) {
+  if (!ticket.ticket_type) return null
   const [a1, a2] = getAura(ticket.event.category)
   const isUsed = ticket.status === 'scanned'
 
