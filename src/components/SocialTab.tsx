@@ -100,7 +100,7 @@ function DiscoverFeed({ events, onEventSelect }: { events: EventWithMeta[], onEv
     const now = Date.now(); const s = new Date(e.start_time).getTime(); const end = new Date(e.end_time).getTime()
     return s <= now && end >= now
   })
-  const upcoming = events.filter(e => new Date(e.start_time).getTime() > Date.now()).sort((a,b) => b.fomo_score - a.fomo_score)
+  const upcoming = events.filter(e => new Date(e.start_time).getTime() > Date.now())
   const tonight = upcoming.filter(e => new Date(e.start_time).toDateString() === new Date().toDateString())
   const later = upcoming.filter(e => new Date(e.start_time).toDateString() !== new Date().toDateString())
 
@@ -170,6 +170,9 @@ function SocialEventCard({ event, onSelect, live }: { event: EventWithMeta, onSe
          <h4 className="text-lg font-black leading-tight text-white mb-1.5 line-clamp-2 tracking-tight uppercase italic">{event.title}</h4>
          <div className="flex items-center gap-1.5 text-[9px] font-bold text-white/40 tracking-widest uppercase">
             {event.city} · {formatTime(event.start_time)}
+            {event.friends_attending_count > 0 && (
+              <> · <span style={{ color: accent }}>{event.friends_attending_count} matching pulses</span></>
+            )}
          </div>
       </div>
       {live && <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />}

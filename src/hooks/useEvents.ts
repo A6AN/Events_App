@@ -13,6 +13,7 @@ import {
   publishEvent,
   searchEvents,
   searchVenues,
+  getDiscoverFeed,
 } from '../lib/services/eventService'
 import type { CreateEventParams } from '../types'
 
@@ -29,6 +30,10 @@ export const eventKeys = {
   ticketTypes: (eventId: string) => [...eventKeys.all, 'ticketTypes', eventId] as const,
 }
 
+export const discoverKeys = {
+  feed: (userId: string, city?: string) => ['discover', userId, city] as const,
+}
+
 export const venueKeys = {
   all: ['venues'] as const,
   list: (city?: string) => [...venueKeys.all, 'list', { city }] as const,
@@ -43,6 +48,16 @@ export function usePublishedEvents(city?: string) {
     queryKey: eventKeys.list(city),
     queryFn: () => getPublishedEvents(city),
     staleTime: 1000 * 60 * 2,
+  })
+}
+
+export function useDiscoverFeed(userId: string | null, city?: string) {
+  return useQuery({
+    queryKey: discoverKeys.feed(userId ?? '', city),
+    queryFn: () => getDiscoverFeed(userId!, city),
+    enabled: !!userId,
+    staleTime: 1000 * 60 * 2,
+    refetchInterval: 1000 * 60 * 5,
   })
 }
 

@@ -17,7 +17,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import { LoginPage } from './pages/LoginPage'
 import { OnboardingWizard } from './pages/OnboardingWizard'
-import { usePublishedEvents, useVenues } from './hooks/useEvents'
+import { usePublishedEvents, useVenues, useDiscoverFeed } from './hooks/useEvents'
 import { useMyTickets } from './hooks/useTickets'
 import type { EventWithMeta, DbEvent, DbTicketType } from './types'
 import './App.css'
@@ -37,7 +37,8 @@ function AppContent() {
 
   const { profile } = useAuth()
 
-  // All data via centralised hooks — no manual useQuery in App
+  // Centralised hooks
+  const { data: discoverEvents = [] } = useDiscoverFeed(profile?.id || null, profile?.city)
   const { data: events = [] } = usePublishedEvents(profile?.city)
   const { data: venues = [] } = useVenues(profile?.city)
   const { data: tickets = [] } = useMyTickets()
@@ -79,7 +80,7 @@ function AppContent() {
           {activeTab === 'feed' && (
             <div key="feed">
               <SocialTab
-                events={events}
+                events={discoverEvents}
                 tickets={tickets}
                 onEventSelect={handleEventSelect}
               />
