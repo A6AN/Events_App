@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { DbEvent } from '../../types';
 
 interface TicketCardProps {
-    event: DbEvent;
+    event: any;
     ticketId: string;
 }
 
@@ -41,7 +41,7 @@ export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
                     <div className="relative h-40 overflow-hidden">
                         <div
                             className="absolute inset-0 bg-cover bg-center"
-                            style={{ backgroundImage: `url(${event.image_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'})` }}
+                            style={{ backgroundImage: `url(${event.cover_url || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'})` }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black" />
 
@@ -56,7 +56,7 @@ export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
                             <h3 className="text-xl font-bold text-white mb-1">{event.title}</h3>
                             <div className="flex items-center gap-1.5 text-white/80">
                                 <MapPin className="w-3 h-3" />
-                                <span className="text-sm truncate">{event.location_name}</span>
+                                <span className="text-sm truncate">{event.address}</span>
                             </div>
                         </div>
                     </div>
@@ -79,7 +79,7 @@ export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
                                 <div>
                                     <div className="text-[10px] text-white/40 uppercase tracking-wider">Date</div>
                                     <div className="text-white font-medium text-sm">
-                                        {format(new Date(event.date), 'MMM d, yyyy')}
+                                        {format(new Date(event.start_time), 'MMM d, yyyy')}
                                     </div>
                                 </div>
                             </div>
@@ -90,7 +90,7 @@ export const TicketCard = ({ event, ticketId }: TicketCardProps) => {
                                 <div>
                                     <div className="text-[10px] text-white/40 uppercase tracking-wider">Time</div>
                                     <div className="text-white font-medium text-sm">
-                                        {format(new Date(event.date), 'h:mm a')}
+                                        {format(new Date(event.start_time), 'h:mm a')}
                                     </div>
                                 </div>
                             </div>

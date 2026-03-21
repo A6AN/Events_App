@@ -1,24 +1,25 @@
 import { Calendar, X, Download, QrCode, Check, Loader2 } from 'lucide-react';
-import { Event } from '../types';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust path if needed
+import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useAuth } from '../context/AuthContext';
-import { createTicket } from '../lib/supabase';
+import { createTicket } from '../lib/services/ticketService';
+import type { DbEvent, DbTicketType } from '../types'
 
 interface TicketBookingDialogProps {
-  ticket: Event | null;
+  event: any | null;
+  ticketType: any | null;
   open: boolean;
   onClose: () => void;
 }
 
-export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDialogProps) {
+export function TicketBookingDialog({ event, ticketType, open, onClose }: TicketBookingDialogProps) {
   const { user } = useAuth();
   const [isBooked, setIsBooked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedSeats, setSelectedSeats] = useState(2);
 
-  if (!ticket) return null;
+  if (!event || !ticketType) return null;
 
   const handleBook = async () => {
     if (!user) {
@@ -28,21 +29,17 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
 
     setIsLoading(true);
     try {
-      const qrCode = `EVENT-${ticket.id}-USER-${user.id}-${Date.now()}`;
-
       await createTicket({
-        event_id: ticket.id,
+        event_id: event.id,
         user_id: user.id,
-        quantity: selectedSeats,
-        total_price: (ticket.price || 0) * selectedSeats,
-        status: 'confirmed',
-        qr_code: qrCode
+        ticket_type_id: ticketType.id,
+        status: 'active',
       });
 
       setIsBooked(true);
     } catch (error) {
       console.error('Error booking ticket:', error);
-      alert('Failed to book ticket. Please try again.');
+      alert('Failed to book event. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -80,8 +77,8 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                 {/* Hero Image Section */}
                 <div className="relative h-96">
                   <ImageWithFallback
-                    src={ticket.imageUrl}
-                    alt={ticket.title}
+                    src={event.cover_url ?? ''}
+                    alt={event.title}
                     className="w-full h-full object-cover"
                   />
 
@@ -114,17 +111,17 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                     <div className="flex items-start justify-between mb-4">
                       <div className="flex-1">
                         <h1 className="text-white text-3xl font-bold mb-2 drop-shadow-lg">
-                          {ticket.title}
+                          {event.title}
                         </h1>
                         <p className="text-white/80 text-sm">
-                          {ticket.category || 'Event'}: {ticket.location.name}
+                          {event.category || 'Event'}: {event.address ?? event.city}
                         </p>
                       </div>
                       <motion.div
                         className="bg-white rounded-3xl px-5 py-3 shadow-2xl ml-4 flex-shrink-0"
                         whileHover={{ scale: 1.05 }}
                       >
-                        <div className="text-black text-xl font-bold">₹{ticket.price}</div>
+                        <div className="text-black text-xl font-bold">₹{ticketType.price ?? 0}</div>
                       </motion.div>
                     </div>
                   </div>
@@ -143,7 +140,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         <div className="h-12 w-px bg-border" />
                         <div>
                           <div className="text-lg font-semibold text-foreground">Tuesday</div>
-                          <div className="text-sm text-muted-foreground">{ticket.startTime} - End</div>
+                          <div className="text-sm text-muted-foreground">{event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'} - End</div>
                         </div>
                       </div>
                     </div>
@@ -159,7 +156,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <div>
                     <h3 className="text-foreground text-lg font-semibold mb-3">About this event :</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      Experience {ticket.title} live at {ticket.location.name}.
+                      Experience {event.title} live at {event.address ?? event.city}.
                       An unforgettable evening of entertainment and connection.
                     </p>
                   </div>
@@ -183,7 +180,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                           <Check className="h-3.5 w-3.5 text-foreground" />
                         </div>
                         <p className="text-muted-foreground text-sm flex-1">
-                          {ticket.title} performance at {ticket.startTime}
+                          {event.title} performance at {event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'}
                         </p>
                       </div>
                       <div className="flex items-start gap-3">
@@ -201,7 +198,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                   <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-foreground text-sm font-medium">Number of tickets</span>
-                      <span className="text-muted-foreground text-xs">{ticket.capacity || 100} available</span>
+                      <span className="text-muted-foreground text-xs">{ticketType.capacity ?? 100} available</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <motion.button
@@ -295,8 +292,8 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                     {/* Hero Image */}
                     <div className="relative h-48 overflow-hidden rounded-t-3xl">
                       <ImageWithFallback
-                        src={ticket.imageUrl}
-                        alt={ticket.title}
+                        src={event.cover_url ?? ''}
+                        alt={event.title}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
@@ -312,10 +309,10 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                     {/* Ticket Details */}
                     <div className="p-6">
                       <h3 className="text-black text-lg font-bold text-center mb-1">
-                        {ticket.title}
+                        {event.title}
                       </h3>
                       <p className="text-black/60 text-sm text-center mb-6">
-                        {ticket.location.name}
+                        {event.address ?? event.city}
                       </p>
 
                       {/* Date & Time */}
@@ -326,7 +323,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Time</div>
-                          <div className="text-black font-semibold">{ticket.startTime}</div>
+                          <div className="text-black font-semibold">{event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'}</div>
                         </div>
                       </div>
 
@@ -334,7 +331,7 @@ export function TicketBookingDialog({ ticket, open, onClose }: TicketBookingDial
                       <div className="grid grid-cols-2 gap-4 mb-6">
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Location</div>
-                          <div className="text-black font-semibold truncate">{ticket.location.name}</div>
+                          <div className="text-black font-semibold truncate">{event.address ?? event.city}</div>
                         </div>
                         <div>
                           <div className="text-gray-400 text-xs mb-1">Quantity</div>

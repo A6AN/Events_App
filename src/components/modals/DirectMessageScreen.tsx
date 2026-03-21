@@ -8,14 +8,14 @@ import {
     markDMsAsRead,
     subscribeToDMMessages,
     DMMessage,
-} from '../../lib/supabase';
+} from '../../lib/services/chatService';
 import './DirectMessageScreen.css';
 
 interface DirectMessageScreenProps {
     conversationId: string;
     otherUser: {
         id: string;
-        full_name: string | null;
+        display_name: string | null;
         username: string | null;
         avatar_url: string | null;
     };
@@ -31,7 +31,7 @@ export function DirectMessageScreen({ conversationId, otherUser, onClose }: Dire
     const bottomRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const otherName = otherUser.full_name || otherUser.username || 'User';
+    const otherName = otherUser.display_name || otherUser.username || 'User';
     const otherAvatar = otherUser.avatar_url ||
         `https://ui-avatars.com/api/?name=${encodeURIComponent(otherName)}&background=D4AF37&color=000&bold=true`;
 

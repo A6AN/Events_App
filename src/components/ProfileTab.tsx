@@ -1,290 +1,664 @@
-import { Share2, Settings, Camera, Ticket, Sparkles, MapPin, Calendar, LogOut, Edit2, ChevronRight, Loader2, Star } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { getProfileStats, getUserHostedEvents, getUserTickets, uploadAvatar, updateProfile, getProfile, getUserVenueBookings } from '../lib/supabase';
-import { TicketCard } from './tickets/TicketCard';
-import { DbEvent, DbTicket } from '../types';
-import { SettingsSheet } from './modals/SettingsSheet';
-import { EditProfileSheet } from './modals/EditProfileSheet';
-import './ProfileTab.css';
+import { useState, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useAuth } from '../context/AuthContext'
+import { useMyProfile, useUploadAvatar, useUpdateProfile } from '../hooks/useProfile'
+import { useEventsByHost } from '../hooks/useEvents'
+import { useMyTickets } from '../hooks/useTickets'
+import { useMyFriends } from '../hooks/useFriends'
+import { SettingsSheet } from './modals/SettingsSheet'
+import { EditProfileSheet } from './modals/EditProfileSheet'
+import type { DbEvent, TicketWithMeta } from '../types'
+
+const TIER_CONFIG = {
+  bronze: { label: 'Bronze', color: '#cd7f32', glow: 'rgba(205,127,50,.4)' },
+  silver: { label: 'Silver', color: '#c0c0c0', glow: 'rgba(192,192,192,.4)' },
+  gold:   { label: 'Gold',   color: '#ffc83c', glow: 'rgba(255,200,60,.4)' },
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+  })
+}
 
 export function ProfileTab() {
-  const { user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState<'hosted' | 'tickets' | 'venues' | 'about'>('hosted');
-  const [stats, setStats] = useState({ followers: 0, following: 0, eventsHosted: 0 });
-  const [hostedEvents, setHostedEvents] = useState<DbEvent[]>([]);
-  const [tickets, setTickets] = useState<(DbTicket & { event: DbEvent })[]>([]);
-  const [venueBookings, setVenueBookings] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  const [uploading, setUploading] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [editProfileOpen, setEditProfileOpen] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, signOut, refreshProfile } = useAuth()
+  const [activeTab, setActiveTab] = useState<'hosted' | 'tickets' | 'about'>('hosted')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [editProfileOpen, setEditProfileOpen] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch real profile data
-  useEffect(() => {
-    if (user?.id) {
-      setLoading(true);
-      Promise.all([
-        getProfileStats(user.id),
-        getUserHostedEvents(user.id),
-        getUserTickets(user.id),
-        getUserVenueBookings(user.id),
-        getProfile(user.id)
-      ]).then(([statsData, eventsData, ticketsData, bookingsData, profileData]) => {
-        setStats(statsData);
-        setHostedEvents(eventsData || []);
-        setTickets(ticketsData || []);
-        setVenueBookings(bookingsData || []);
-        setProfile(profileData);
-        setLoading(false);
-      });
-    }
-  }, [user?.id]);
+  const { data: profile, isLoading: profileLoading } = useMyProfile()
+  const { data: hostedEvents = [] } = useEventsByHost(user?.id ?? null)
+  const { data: tickets = [] } = useMyTickets()
+  const { data: friends = [] } = useMyFriends()
+  const uploadAvatar = useUploadAvatar()
+  const updateProfile = useUpdateProfile()
 
-  const handleAvatarClick = () => {
-    fileInputRef.current?.click();
-  };
+  const displayName = profile?.display_name ?? profile?.username ?? 'You'
+  const tier = profile?.rep_tier ?? 'bronze'
+  const tierConf = TIER_CONFIG[tier as keyof typeof TIER_CONFIG] || TIER_CONFIG.bronze
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || !e.target.files[0] || !user) return;
-    const file = e.target.files[0];
-    setUploading(true);
-    try {
-      const publicUrl = await uploadAvatar(user.id, file);
-      await updateProfile(user.id, { avatar_url: publicUrl });
-      setProfile((prev: any) => ({ ...prev, avatar_url: publicUrl }));
-    } catch (error) {
-      console.error('Error uploading avatar:', error);
-      alert('Failed to upload avatar');
-    } finally {
-      setUploading(false);
-    }
-  };
+    const file = e.target.files?.[0]
+    if (!file) return
+    await uploadAvatar.mutateAsync(file)
+    await refreshProfile()
+  }
 
-  // Safe display values
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || 'User';
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || undefined;
-
-  const TABS = [
-    { id: 'hosted', label: 'Hosted' },
-    { id: 'tickets', label: 'Tickets' },
-    { id: 'venues', label: 'Venues' },
-    { id: 'about', label: 'About' },
-  ];
+  if (profileLoading) {
+    return (
+      <div style={{
+        minHeight: '100vh', background: '#000',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        fontFamily: "'Inter Tight','Inter',sans-serif",
+      }}>
+        <div style={{ color: 'rgba(255,255,255,.2)', fontSize: 13 }}>Loading...</div>
+      </div>
+    )
+  }
 
   return (
-    <div className="profile">
-      {/* Hero Section */}
-      <div className="profile-hero">
-        <img
-          src={profile?.banner_url || 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?auto=format&fit=crop&q=80&w=800'}
-          alt="cover"
-          className="profile-hero-img"
-        />
-        <div className="profile-hero-overlay" />
-        <div className="profile-top-actions">
-          <div>{/* left spacer */}</div>
-          <div className="profile-actions-right">
-            <button
-              className="profile-action-btn"
-              onClick={async () => {
-                if (navigator.share) {
-                  await navigator.share({ title: profile?.full_name || 'My Profile', text: 'Check out my profile on the app!' });
-                }
-              }}
-            >
-              <Share2 size={18} />
-            </button>
-            <button className="profile-action-btn" onClick={() => setSettingsOpen(true)}>
-              <Settings size={18} />
-            </button>
-          </div>
+    <div style={{
+      minHeight: '100vh',
+      background: '#000',
+      fontFamily: "'Inter Tight','Inter',sans-serif",
+      paddingBottom: 100,
+    }}>
+      <input
+        ref={fileInputRef} type="file" accept="image/*"
+        style={{ display: 'none' }} onChange={handleFileChange}
+      />
+
+      {/* ── HEADER ── */}
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        alignItems: 'center', padding: '20px 22px 0',
+      }}>
+        <div style={{
+          fontSize: 26, fontWeight: 800,
+          letterSpacing: '-0.03em', color: '#fff',
+        }}>
+          profile
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <IconBtn onClick={async () => {
+            if (navigator.share) {
+              await navigator.share({
+                title: displayName,
+                text: `Check out ${displayName} on Milo`,
+              })
+            }
+          }}>
+            <ShareIcon />
+          </IconBtn>
+          <IconBtn onClick={() => setSettingsOpen(true)}>
+            <SettingsIcon />
+          </IconBtn>
         </div>
       </div>
 
-      {/* Body */}
-      <div className="profile-body">
+      {/* ── IDENTITY BLOCK ── */}
+      <div style={{
+        padding: '28px 22px 24px',
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', position: 'relative',
+      }}>
+        {/* Aura behind avatar */}
+        <div style={{
+          position: 'absolute', width: 200, height: 200,
+          top: 0, left: '50%', transform: 'translateX(-50%)',
+          background: `radial-gradient(circle, ${tierConf.glow} 0%, transparent 70%)`,
+          pointerEvents: 'none',
+        }} />
+
         {/* Avatar */}
-        <div className="profile-avatar-wrap" onClick={handleAvatarClick} style={{ cursor: 'pointer' }}>
-          {avatarUrl ? (
-            <img src={avatarUrl} alt={displayName} className="profile-avatar-img" />
+        <div
+          onClick={() => fileInputRef.current?.click()}
+          style={{
+            width: 80, height: 80, borderRadius: '50%',
+            background: 'rgba(255,255,255,.06)',
+            border: `1.5px solid ${tierConf.color}40`,
+            overflow: 'hidden', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            position: 'relative', zIndex: 1,
+            flexShrink: 0,
+            marginBottom: 14,
+          }}
+        >
+          {profile?.avatar_url ? (
+            <img src={profile.avatar_url}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
-            <div className="profile-avatar-img" style={{
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              background: 'rgba(255,255,255,0.1)', fontSize: 28, fontWeight: 800, color: '#fff'
+            <span style={{
+              fontSize: 28, fontWeight: 800,
+              color: 'rgba(255,255,255,.5)',
             }}>
-              {displayName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)}
+              {displayName[0]?.toUpperCase()}
+            </span>
+          )}
+          {uploadAvatar.isPending && (
+            <div style={{
+              position: 'absolute', inset: 0,
+              background: 'rgba(0,0,0,.6)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: 11, color: 'rgba(255,255,255,.5)',
+            }}>
+              ...
             </div>
           )}
-          {uploading && (
-            <div style={{ position: 'absolute', top: 0, left: 0, width: 88, height: 88, borderRadius: '50%', background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
+        </div>
+
+        {/* Name */}
+        <div style={{
+          fontSize: 22, fontWeight: 800,
+          letterSpacing: '-0.03em', color: '#fff',
+          marginBottom: 4, position: 'relative', zIndex: 1,
+        }}>
+          {displayName}
+        </div>
+
+        {profile?.username && (
+          <div style={{
+            fontSize: 12, color: 'rgba(255,255,255,.3)',
+            marginBottom: 12, position: 'relative', zIndex: 1,
+          }}>
+            @{profile.username}
+          </div>
+        )}
+
+        {/* Tier badge */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 6,
+          background: `${tierConf.color}15`,
+          border: `0.5px solid ${tierConf.color}40`,
+          borderRadius: 99, padding: '5px 14px',
+          marginBottom: 24, position: 'relative', zIndex: 1,
+        }}>
+          <div style={{
+            width: 6, height: 6, borderRadius: '50%',
+            background: tierConf.color,
+            boxShadow: `0 0 6px ${tierConf.glow}`,
+          }} />
+          <span style={{
+            fontSize: 11, fontWeight: 700,
+            color: tierConf.color,
+            letterSpacing: '0.08em',
+          }}>
+            {tierConf.label} · {profile?.rep_score ?? 0} rep
+          </span>
+        </div>
+
+        {/* Stats row */}
+        <div style={{
+          display: 'flex', gap: 0, width: '100%',
+          background: 'rgba(255,255,255,.03)',
+          border: '0.5px solid rgba(255,255,255,.07)',
+          borderRadius: 16, overflow: 'hidden',
+          marginBottom: 16, position: 'relative', zIndex: 1,
+        }}>
+          {[
+            { label: 'Friends', value: friends.length },
+            { label: 'Hosted', value: hostedEvents.length },
+            { label: 'Tickets', value: tickets.length },
+          ].map((stat, i) => (
+            <div key={stat.label} style={{
+              flex: 1, padding: '14px 0',
+              textAlign: 'center',
+              borderLeft: i > 0 ? '0.5px solid rgba(255,255,255,.07)' : 'none',
+            }}>
+              <div style={{
+                fontSize: 20, fontWeight: 800,
+                letterSpacing: '-0.03em', color: '#fff',
+                lineHeight: 1,
+              }}>
+                {stat.value}
+              </div>
+              <div style={{
+                fontSize: 10, fontWeight: 500,
+                color: 'rgba(255,255,255,.25)',
+                letterSpacing: '0.08em',
+                marginTop: 4,
+                textTransform: 'uppercase',
+              }}>
+                {stat.label}
+              </div>
             </div>
-          )}
-          <input type="file" ref={fileInputRef} style={{ display: 'none' }} accept="image/*" onChange={handleFileChange} />
-        </div>
-
-        <h1 className="profile-name">{displayName}</h1>
-        <div className="profile-location"><MapPin size={13} /> {profile?.location || 'No location set'}</div>
-
-        {/* Rep Badge */}
-        <div className="profile-rep">
-          <Star size={16} fill="currentColor" className="profile-rep-star" />
-          <span className="profile-rep-score">4.8</span>
-          <span className="profile-rep-label">Reputation</span>
-        </div>
-
-        {/* Stats */}
-        <div className="profile-stats">
-          <div>
-            <div className="profile-stat-num">{stats.followers}</div>
-            <div className="profile-stat-label">Followers</div>
-          </div>
-          <div>
-            <div className="profile-stat-num">{stats.following}</div>
-            <div className="profile-stat-label">Following</div>
-          </div>
-          <div>
-            <div className="profile-stat-num">{stats.eventsHosted}</div>
-            <div className="profile-stat-label">Events</div>
-          </div>
-        </div>
-
-        {/* Language row */}
-        <div className="profile-lang-row">
-          {['English', 'Hindi', 'Marathi'].map(l => (
-            <span key={l} className="profile-lang">{l}</span>
           ))}
         </div>
 
-        {/* Action Buttons */}
-        <div className="profile-actions">
-          <button className="profile-btn" onClick={() => setEditProfileOpen(true)}>
-            <Edit2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Edit Profile
-          </button>
+        {/* Action buttons */}
+        <div style={{
+          display: 'flex', gap: 8, width: '100%',
+          position: 'relative', zIndex: 1,
+        }}>
           <button
-            className="profile-btn"
-            onClick={async () => {
-              if (navigator.share) await navigator.share({ title: profile?.full_name || 'My Profile', text: 'Check out my profile!' });
+            onClick={() => setEditProfileOpen(true)}
+            style={{
+              flex: 1, padding: '12px',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,.06)',
+              border: '0.5px solid rgba(255,255,255,.1)',
+              color: '#fff', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit',
+              letterSpacing: '-0.01em',
             }}
           >
-            <Share2 size={14} style={{ marginRight: 6, display: 'inline' }} /> Share
+            Edit Profile
+          </button>
+          <button
+            onClick={async () => {
+              if (navigator.share) {
+                await navigator.share({
+                  title: displayName,
+                  text: `Check out ${displayName} on Milo`,
+                })
+              }
+            }}
+            style={{
+              flex: 1, padding: '12px',
+              borderRadius: 12,
+              background: 'rgba(255,255,255,.04)',
+              border: '0.5px solid rgba(255,255,255,.07)',
+              color: 'rgba(255,255,255,.5)', fontSize: 13, fontWeight: 600,
+              cursor: 'pointer', fontFamily: 'inherit',
+              letterSpacing: '-0.01em',
+            }}
+          >
+            Share
           </button>
         </div>
-
-        {/* Tabs */}
-        <div className="profile-tabs">
-          {TABS.map(tab => (
-            <button
-              key={tab.id}
-              className={`profile-tab ${activeTab === tab.id ? 'active' : ''}`}
-              onClick={() => setActiveTab(tab.id as any)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          {activeTab === 'hosted' && (
-            <motion.div key="hosted" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                  <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
-                </div>
-              ) : hostedEvents.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <Sparkles size={24} color="rgba(255,255,255,0.2)" />
-                  </div>
-                  <h3 style={{ color: '#fff', fontWeight: 600, marginBottom: 4 }}>No events yet</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>Host your first event to get started!</p>
-                </div>
-              ) : (
-                <div className="profile-grid">
-                  {hostedEvents.map((event, i) => (
-                    <div key={event.id} className="profile-grid-item" style={{ animationDelay: `${i * 0.05}s` }}>
-                      <ImageWithFallback src={event.image_url || undefined} alt={event.title} />
-                      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10, background: 'linear-gradient(to top, rgba(0,0,0,0.85), transparent)', borderRadius: '0 0 12px 12px' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: '#fff' }}>{event.title}</div>
-                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', display: 'flex', alignItems: 'center', gap: 3, marginTop: 2 }}>
-                          <Calendar size={9} /> {new Date(event.date).toLocaleDateString()}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'tickets' && (
-            <motion.div key="tickets" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              {loading ? (
-                <div style={{ display: 'flex', justifyContent: 'center', padding: '40px 0' }}>
-                  <Loader2 size={24} style={{ animation: 'spin-slow 1s linear infinite' }} color="var(--gold-light)" />
-                </div>
-              ) : tickets.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px 0' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <Ticket size={24} color="rgba(255,255,255,0.2)" />
-                  </div>
-                  <h3 style={{ color: '#fff', fontWeight: 600, marginBottom: 4 }}>No tickets</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>You haven't booked any events yet.</p>
-                </div>
-              ) : (
-                tickets.map(ticket => (
-                  <div key={ticket.id} style={{ marginBottom: 16 }}>
-                    <TicketCard event={ticket.event} ticketId={ticket.id} />
-                  </div>
-                ))
-              )}
-            </motion.div>
-          )}
-
-          {activeTab === 'about' && (
-            <motion.div key="about" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 14 }}>
-                <h3 style={{ color: '#fff', fontWeight: 700, marginBottom: 8, fontSize: 15 }}>Bio</h3>
-                <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13, lineHeight: 1.6 }}>
-                  {user?.user_metadata?.bio || "No bio added yet. Edit your profile to add one."}
-                </p>
-              </div>
-              <div style={{ padding: 16, borderRadius: 16, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)', marginBottom: 14 }}>
-                <h3 style={{ color: '#fff', fontWeight: 700, marginBottom: 8, fontSize: 15 }}>Interests</h3>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
-                  {(profile?.interests?.length ? profile.interests : ['Music', 'Art', 'Technology', 'Nightlife', 'Food']).map((tag: string) => (
-                    <span key={tag} style={{ padding: '4px 12px', borderRadius: 100, background: 'rgba(255,255,255,0.05)', fontSize: 12, color: 'rgba(255,255,255,0.6)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <button className="profile-logout-btn" onClick={() => signOut()}>
-                <LogOut size={16} /> Sign Out
-              </button>
-
-              <div style={{ textAlign: 'center', fontSize: 11, color: 'rgba(255,255,255,0.2)', paddingTop: 12, paddingBottom: 20 }}>
-                Version 1.0.0
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} profile={profile} />
+      {/* ── REP PROGRESS ── */}
+      {profile && (
+        <div style={{ padding: '0 22px 24px' }}>
+          <RepBar repScore={profile.rep_score} repTier={tier} />
+        </div>
+      )}
+
+      {/* ── TABS ── */}
+      <div style={{
+        display: 'flex', padding: '0 22px',
+        borderBottom: '0.5px solid rgba(255,255,255,.06)',
+        marginBottom: 0,
+      }}>
+        {(['hosted', 'tickets', 'about'] as const).map(tab => (
+          <button key={tab} onClick={() => setActiveTab(tab)} style={{
+            background: 'transparent', border: 'none',
+            padding: '10px 0', marginRight: 24,
+            fontSize: 13, fontWeight: activeTab === tab ? 700 : 400,
+            color: activeTab === tab ? '#fff' : 'rgba(255,255,255,.25)',
+            cursor: 'pointer', fontFamily: 'inherit',
+            letterSpacing: '-0.01em', position: 'relative',
+            textTransform: 'capitalize',
+          }}>
+            {tab}
+            {activeTab === tab && (
+              <motion.div layoutId="profile-pip" style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                height: 1.5, background: '#fff', borderRadius: 99,
+              }} />
+            )}
+          </button>
+        ))}
+      </div>
+
+      {/* ── TAB CONTENT ── */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'hosted' && (
+          <motion.div key="hosted"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}>
+            <HostedGrid events={hostedEvents} />
+          </motion.div>
+        )}
+
+        {activeTab === 'tickets' && (
+          <motion.div key="tickets"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}>
+            <TicketsList tickets={tickets} />
+          </motion.div>
+        )}
+
+        {activeTab === 'about' && (
+          <motion.div key="about"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.15 }}>
+            <AboutTab profile={profile} signOut={signOut} />
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <SettingsSheet
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        profile={profile}
+      />
       <EditProfileSheet
         open={editProfileOpen}
         onClose={() => setEditProfileOpen(false)}
-        currentProfile={profile}
-        onSaved={(updated) => setProfile((prev: any) => ({ ...prev, ...updated }))}
+        currentProfile={profile as any}
+        onSaved={async () => { await refreshProfile() }}
       />
     </div>
-  );
+  )
+}
+
+// ─── REP BAR ──────────────────────────────────────
+
+function RepBar({ repScore, repTier }: { repScore: number; repTier: string }) {
+  const thresholds = { bronze: [0, 500], silver: [501, 2000], gold: [2000, 3000] }
+  const [min, max] = thresholds[repTier as keyof typeof thresholds] || [0, 500]
+  const progress = Math.min((repScore - min) / (max - min), 1)
+  const nextTier = repTier === 'bronze' ? 'Silver' : repTier === 'silver' ? 'Gold' : null
+  const pointsLeft = nextTier ? max - repScore : 0
+  const tierConf = TIER_CONFIG[repTier as keyof typeof TIER_CONFIG] || TIER_CONFIG.bronze
+
+  return (
+    <div style={{
+      background: 'rgba(255,255,255,.03)',
+      border: '0.5px solid rgba(255,255,255,.07)',
+      borderRadius: 16, padding: '16px 18px',
+    }}>
+      <div style={{
+        display: 'flex', justifyContent: 'space-between',
+        alignItems: 'flex-start', marginBottom: 12,
+      }}>
+        <div>
+          <div style={{
+            fontSize: 10, fontWeight: 600, letterSpacing: '0.12em',
+            textTransform: 'uppercase', color: 'rgba(255,255,255,.2)',
+            marginBottom: 2,
+          }}>
+            Your Frequency
+          </div>
+          <div style={{
+            fontSize: 22, fontWeight: 800,
+            letterSpacing: '-0.03em', color: '#fff',
+          }}>
+            {repScore.toLocaleString()} rep
+          </div>
+        </div>
+        {nextTier && (
+          <div style={{
+            fontSize: 11, color: 'rgba(255,255,255,.25)',
+            textAlign: 'right', paddingTop: 2,
+          }}>
+            {pointsLeft} to {nextTier}
+          </div>
+        )}
+      </div>
+
+      {/* Track */}
+      <div style={{
+        height: 2, background: 'rgba(255,255,255,.08)',
+        borderRadius: 2, overflow: 'hidden',
+      }}>
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: progress }}
+          transition={{ duration: 0.8, ease: 'easeOut' }}
+          style={{
+            height: '100%',
+            background: `linear-gradient(90deg, ${tierConf.color}80, ${tierConf.color})`,
+            transformOrigin: 'left', borderRadius: 2,
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── HOSTED GRID ──────────────────────────────────
+
+function HostedGrid({ events }: { events: DbEvent[] }) {
+  if (events.length === 0) {
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: '50%',
+          background: 'rgba(255,255,255,.04)',
+          border: '0.5px solid rgba(255,255,255,.07)',
+          margin: '0 auto 12px',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <div style={{
+            width: 18, height: 18,
+            border: '1.5px solid rgba(255,255,255,.2)',
+            borderRadius: 4,
+          }} />
+        </div>
+        <p style={{
+          color: 'rgba(255,255,255,.25)', fontSize: 13, lineHeight: 1.6,
+        }}>
+          No events hosted yet.<br />Tap + to create your first event.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 8, padding: '16px 16px 0',
+    }}>
+      {events.map(event => (
+        <div key={event.id} style={{
+          background: 'rgba(255,255,255,.03)',
+          border: '0.5px solid rgba(255,255,255,.07)',
+          borderRadius: 14, overflow: 'hidden',
+          position: 'relative', aspectRatio: '1',
+        }}>
+          {event.cover_url ? (
+            <img src={event.cover_url}
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            <div style={{
+              width: '100%', height: '100%',
+              background: 'rgba(255,255,255,.03)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <div style={{
+                fontSize: 24, fontWeight: 800,
+                color: 'rgba(255,255,255,.1)',
+                letterSpacing: '-0.03em',
+              }}>
+                {event.title[0]}
+              </div>
+            </div>
+          )}
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,.85) 0%, transparent 60%)',
+            padding: '0 10px 10px',
+            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+          }}>
+            <div style={{
+              fontSize: 12, fontWeight: 700,
+              letterSpacing: '-0.02em', color: '#fff',
+              marginBottom: 2,
+            }}>
+              {event.title}
+            </div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,.4)' }}>
+              {formatDate(event.start_time)}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── TICKETS LIST ─────────────────────────────────
+
+function TicketsList({ tickets }: { tickets: TicketWithMeta[] }) {
+  if (tickets.length === 0) {
+    return (
+      <div style={{ padding: '48px 24px', textAlign: 'center' }}>
+        <p style={{ color: 'rgba(255,255,255,.25)', fontSize: 13, lineHeight: 1.6 }}>
+          No tickets yet.<br />Explore events to book one.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ padding: '16px 16px 0', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      {tickets.map(ticket => (
+        <div key={ticket.id} style={{
+          background: 'rgba(255,255,255,.03)',
+          border: '0.5px solid rgba(255,255,255,.07)',
+          borderRadius: 14, padding: '14px 16px',
+          display: 'flex', justifyContent: 'space-between',
+          alignItems: 'center', gap: 12,
+        }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{
+              fontSize: 14, fontWeight: 700,
+              letterSpacing: '-0.02em', color: '#fff',
+              marginBottom: 3,
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+            }}>
+              {ticket.event.title}
+            </div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,.3)' }}>
+              {formatDate(ticket.event.start_time)} · {ticket.ticket_type.name}
+            </div>
+          </div>
+          <div style={{
+            fontSize: 10, fontWeight: 700,
+            letterSpacing: '0.08em',
+            color: ticket.status === 'scanned'
+              ? 'rgba(60,230,180,.7)'
+              : 'rgba(255,255,255,.3)',
+            textTransform: 'uppercase', flexShrink: 0,
+          }}>
+            {ticket.status === 'scanned' ? '✓ Used' : 'Active'}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ─── ABOUT TAB ────────────────────────────────────
+
+function AboutTab({ profile, signOut }: { profile: any; signOut: () => void }) {
+  return (
+    <div style={{ padding: '20px 16px 0' }}>
+      {/* Bio */}
+      <div style={{
+        background: 'rgba(255,255,255,.03)',
+        border: '0.5px solid rgba(255,255,255,.07)',
+        borderRadius: 14, padding: '16px',
+        marginBottom: 10,
+      }}>
+        <div style={{
+          fontSize: 10, fontWeight: 600, letterSpacing: '0.12em',
+          textTransform: 'uppercase', color: 'rgba(255,255,255,.2)',
+          marginBottom: 8,
+        }}>
+          Bio
+        </div>
+        <p style={{
+          fontSize: 13, color: 'rgba(255,255,255,.45)',
+          lineHeight: 1.6, margin: 0,
+        }}>
+          {profile?.bio ?? 'No bio yet. Tap Edit Profile to add one.'}
+        </p>
+      </div>
+
+      {/* University / City */}
+      <div style={{
+        background: 'rgba(255,255,255,.03)',
+        border: '0.5px solid rgba(255,255,255,.07)',
+        borderRadius: 14, padding: '16px',
+        marginBottom: 10,
+      }}>
+        {[
+          { label: 'University', value: profile?.university === 'independent' ? 'Independent' : profile?.university },
+          { label: 'City', value: profile?.city },
+        ].filter(r => r.value).map((row, i) => (
+          <div key={row.label} style={{
+            display: 'flex', justifyContent: 'space-between',
+            paddingBottom: i === 0 ? 10 : 0,
+            marginBottom: i === 0 ? 10 : 0,
+            borderBottom: i === 0 ? '0.5px solid rgba(255,255,255,.06)' : 'none',
+          }}>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.25)' }}>{row.label}</span>
+            <span style={{ fontSize: 12, color: 'rgba(255,255,255,.6)', fontWeight: 500 }}>{row.value}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Sign out */}
+      <button
+        onClick={signOut}
+        style={{
+          width: '100%', padding: '14px',
+          borderRadius: 14,
+          background: 'transparent',
+          border: '0.5px solid rgba(249,100,60,.2)',
+          color: 'rgba(249,100,60,.7)',
+          fontSize: 13, fontWeight: 700,
+          cursor: 'pointer', fontFamily: 'inherit',
+          letterSpacing: '0.02em', marginBottom: 8,
+          marginTop: 8,
+        }}
+      >
+        Sign Out
+      </button>
+
+      <div style={{
+        textAlign: 'center', fontSize: 10,
+        color: 'rgba(255,255,255,.15)',
+        paddingTop: 8, paddingBottom: 20,
+        letterSpacing: '0.06em',
+      }}>
+        MILO · VERSION 1.0.0
+      </div>
+    </div>
+  )
+}
+
+// ─── ICON COMPONENTS ─────────────────────────────
+
+function IconBtn({ onClick, children }: { onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button onClick={onClick} style={{
+      width: 34, height: 34, borderRadius: '50%',
+      background: 'rgba(255,255,255,.05)',
+      border: '0.5px solid rgba(255,255,255,.08)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      cursor: 'pointer',
+    }}>
+      {children}
+    </button>
+  )
+}
+
+function ShareIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="11" cy="2.5" r="1.5" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+      <circle cx="11" cy="11.5" r="1.5" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+      <circle cx="3" cy="7" r="1.5" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+      <line x1="4.4" y1="6.2" x2="9.6" y2="3.3" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+      <line x1="4.4" y1="7.8" x2="9.6" y2="10.7" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+    </svg>
+  )
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+      <circle cx="7" cy="7" r="2" stroke="rgba(255,255,255,.5)" strokeWidth="1.1"/>
+      <path d="M7 1v1.5M7 11.5V13M1 7h1.5M11.5 7H13M2.6 2.6l1.1 1.1M10.3 10.3l1.1 1.1M2.6 11.4l1.1-1.1M10.3 3.7l1.1-1.1"
+        stroke="rgba(255,255,255,.5)" strokeWidth="1.1" strokeLinecap="round"/>
+    </svg>
+  )
 }

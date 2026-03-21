@@ -9,7 +9,7 @@ import {
     getChatMembers,
     subscribeToChatMessages,
     markChatAsRead
-} from '../../lib/supabase';
+} from '../../lib/services/chatService';
 
 interface ChatScreenProps {
     chatId: string;

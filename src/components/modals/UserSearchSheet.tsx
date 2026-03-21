@@ -2,10 +2,10 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, UserPlus, UserCheck, MessageCircle, Loader2, Users } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { searchUsers, followUser, unfollowUser, getOrCreateDMConversation, SearchedUser } from '../../lib/supabase';
+import { searchUsers, SearchedUser } from '../../lib/services/profileService';
+import { followUser, unfollowUser } from '../../lib/services/socialService';
+import { getOrCreateDMConversation } from '../../lib/services/chatService';
 import { DirectMessageScreen } from './DirectMessageScreen';
-import '../modals/ModalStyles.css';
-import './UserSearchSheet.css';
 
 interface UserSearchSheetProps {
     open: boolean;
@@ -70,7 +70,7 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
 
     const getAvatar = (u: SearchedUser) => {
         if (u.avatar_url) return u.avatar_url;
-        const name = u.full_name || u.username || 'U';
+        const name = u.display_name || u.username || 'U';
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=D4AF37&color=000&bold=true`;
     };
 
@@ -128,9 +128,9 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                                             exit={{ opacity: 0 }}
                                             transition={{ delay: i * 0.05 }}
                                         >
-                                            <img src={getAvatar(u)} alt={u.full_name || u.username || 'User'} className="user-search-avatar" />
+                                            <img src={getAvatar(u)} alt={u.display_name || u.username || 'User'} className="user-search-avatar" />
                                             <div className="user-search-info">
-                                                <div className="user-search-name">{u.full_name || u.username || 'Unknown User'}</div>
+                                                <div className="user-search-name">{u.display_name || u.username || 'Unknown User'}</div>
                                                 {u.username && <div className="user-search-username">@{u.username}</div>}
                                             </div>
 
@@ -172,7 +172,12 @@ export function UserSearchSheet({ open, onClose }: UserSearchSheetProps) {
                                 <DirectMessageScreen
                                     key={dmTarget.conversationId}
                                     conversationId={dmTarget.conversationId}
-                                    otherUser={dmTarget.otherUser}
+                                    otherUser={{
+                                        id: dmTarget.otherUser.id,
+                                        display_name: dmTarget.otherUser.display_name,
+                                        username: dmTarget.otherUser.username,
+                                        avatar_url: dmTarget.otherUser.avatar_url
+                                    }}
                                     onClose={() => setDmTarget(null)}
                                 />
                             )}

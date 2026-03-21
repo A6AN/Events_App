@@ -1,8 +1,15 @@
+body {
+    background: #000;
+    font-family: 'Inter Tight', 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    margin: 0;
+}
+
 /* ===== APP SHELL ===== */
 .app-shell {
     min-height: 100vh;
     position: relative;
-    background: var(--bg-primary);
+    background: #000;
     overflow-x: hidden;
     padding-bottom: 110px;
 }

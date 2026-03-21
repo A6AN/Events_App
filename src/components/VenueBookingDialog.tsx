@@ -1,11 +1,11 @@
 import { X, Star, Download, QrCode, Users, IndianRupee } from 'lucide-react';
-import { Venue } from '../types';
+import { DbVenue } from '../types';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust import
 
 interface VenueBookingDialogProps {
-  venue: Venue | null;
+  venue: DbVenue | null;
   open: boolean;
   onClose: () => void;
 }
@@ -25,7 +25,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
     onClose();
   };
 
-  const totalPrice = venue.pricePerHour * selectedHours;
+  const totalPrice = (venue.price_per_hour ?? 0) * selectedHours;
 
   return (
     <AnimatePresence>
@@ -54,7 +54,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                 {/* Hero Image Section */}
                 <div className="relative h-96">
                   <ImageWithFallback
-                    src={venue.imageUrl}
+                    src={venue.cover_url ?? ''}
                     alt={venue.name}
                     className="w-full h-full object-cover"
                   />
@@ -90,7 +90,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                         <h1 className="text-white text-3xl font-bold mb-2 drop-shadow-lg">
                           {venue.name}
                         </h1>
-                        <p className="text-white/80 text-sm">{venue.category} • {venue.location}</p>
+                        <p className="text-white/80 text-sm">{venue.categories?.[0] ?? 'Venue'} • {venue.address}</p>
                       </div>
                       <motion.div
                         className="glass backdrop-blur-2xl px-4 py-2.5 rounded-2xl shadow-2xl ml-4 flex-shrink-0 border border-white/20"
@@ -98,7 +98,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                       >
                         <div className="flex items-center gap-1.5">
                           <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                          <span className="text-white text-lg font-semibold">{venue.rating}</span>
+                          <span className="text-white text-lg font-semibold">4.5</span>
                         </div>
                       </motion.div>
                     </div>
@@ -121,7 +121,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                         <IndianRupee className="h-4 w-4 text-foreground" />
                         <span className="text-muted-foreground text-xs">Per Hour</span>
                       </div>
-                      <div className="text-foreground text-2xl font-bold">₹{(venue.pricePerHour / 1000).toFixed(0)}k</div>
+                      <div className="text-foreground text-2xl font-bold">₹{((venue.price_per_hour ?? 0) / 1000).toFixed(0)}k</div>
                     </div>
                   </div>
 
@@ -129,7 +129,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                   <div>
                     <h3 className="text-foreground text-lg font-semibold mb-3">About this venue :</h3>
                     <p className="text-muted-foreground text-sm leading-relaxed">
-                      {venue.name} is a premium {venue.category.toLowerCase()} located in {venue.location}.
+                      {venue.name} is a premium {(venue.categories?.[0] ?? 'venue').toLowerCase()} located in {venue.address ?? venue.city}.
                       Perfect for hosting memorable events with excellent amenities.
                     </p>
                   </div>
@@ -138,7 +138,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                   <div>
                     <h3 className="text-foreground text-lg font-semibold mb-3">Amenities</h3>
                     <div className="flex flex-wrap gap-2">
-                      {venue.amenities.map((amenity, idx) => (
+                      {(venue.amenities ?? []).map((amenity: string, idx: number) => (
                         <div
                           key={idx}
                           className="glass backdrop-blur-xl px-3 py-2 rounded-full text-xs border border-white/10 text-foreground"
@@ -252,7 +252,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                     {/* Hero Image */}
                     <div className="relative h-48 overflow-hidden rounded-t-3xl">
                       <ImageWithFallback
-                        src={venue.imageUrl}
+                        src={venue.cover_url ?? ''}
                         alt={venue.name}
                         className="w-full h-full object-cover"
                       />
@@ -272,7 +272,7 @@ export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogP
                         {venue.name}
                       </h3>
                       <p className="text-black/60 text-sm text-center mb-6">
-                        {venue.category} • {venue.location}
+                        {venue.categories?.[0] ?? 'Venue'} • {venue.address}
                       </p>
 
                       {/* Date & Duration */}

@@ -1,271 +1,228 @@
-import { useState, useEffect } from 'react';
-import { MapPin, Clock, Search, ChevronDown, Loader2, Users, Bell } from 'lucide-react';
-import { Event } from '../types';
-import { useAuth } from '../context/AuthContext';
-import { getFriendActivity, FriendActivityItem, getUnreadNotificationCount, subscribeToNotifications } from '../lib/supabase';
-import { UserSearchSheet } from './modals/UserSearchSheet';
-import { NotificationsSheet } from './modals/NotificationsSheet';
-import './SocialTab.css';
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import type { EventWithMeta, TicketWithMeta } from '../types'
+import { useFriendsActivity } from '../hooks/useFriends'
+import { Sparkles, MapPin, Search, Plus, Users, Heart, MessageCircle, Ticket, Calendar } from 'lucide-react'
 
-interface SocialTabProps {
-  events: Event[];
-  tickets: any[];
-  onEventSelect: (event: Event) => void;
+const CATEGORY_AURA: Record<string, [string, string, string]> = {
+  club:        ['rgba(249,100,60,.5)',  'rgba(232,60,160,.4)',  '#f9643c'],
+  dj_night:    ['rgba(249,100,60,.5)',  'rgba(232,60,160,.4)',  '#f9643c'],
+  house_party: ['rgba(232,60,160,.45)','rgba(180,140,255,.35)','#e83ca0'],
+  comedy:      ['rgba(255,200,60,.45)','rgba(249,100,60,.3)',  '#ffc83c'],
+  open_mic:    ['rgba(180,140,255,.45)','rgba(240,180,130,.3)','#b48cff'],
+  networking:  ['rgba(180,140,255,.45)','rgba(60,230,180,.3)', '#b48cff'],
+  sports:      ['rgba(60,230,180,.4)', 'rgba(80,160,255,.35)', '#3ce6b4'],
+  other:       ['rgba(80,160,255,.4)', 'rgba(60,230,180,.3)',  '#50a0ff'],
 }
 
-export function SocialTab({ events, onEventSelect }: SocialTabProps) {
-  const { user } = useAuth();
-  const [tab, setTab] = useState<'live' | 'friends'>('live');
-  const [city, setCity] = useState('Detecting...');
-  const [suburb, setSuburb] = useState('');
-  const [friendActivity, setFriendActivity] = useState<FriendActivityItem[]>([]);
-  const [friendsLoading, setFriendsLoading] = useState(false);
-  const [friendsLoaded, setFriendsLoaded] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [notifsOpen, setNotifsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
+const DEFAULT_AURA: [string, string, string] = ['rgba(180,140,255,.4)', 'rgba(249,100,60,.3)', '#b48cff']
 
-  // Geolocation: detect user's city/area
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      setCity('Your City');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json&zoom=16`
-          );
-          const data = await res.json();
-          const addr = data.address || {};
-          setCity(addr.city || addr.town || addr.state_district || addr.state || 'Your City');
-          setSuburb(addr.suburb || addr.neighbourhood || addr.county || '');
-        } catch {
-          setCity('Your City');
-        }
-      },
-      () => setCity('Your City'),
-      { timeout: 8000 }
-    );
-  }, []);
+function getAura(category: string) { return CATEGORY_AURA[category] ?? DEFAULT_AURA }
 
-  // Load friend activity when the "Friends" tab is selected (lazy-load)
-  useEffect(() => {
-    if (tab === 'friends' && user?.id && !friendsLoaded) {
-      setFriendsLoading(true);
-      getFriendActivity(user.id).then((data) => {
-        setFriendActivity(data);
-        setFriendsLoading(false);
-        setFriendsLoaded(true);
-      }).catch(() => {
-        setFriendsLoading(false);
-        setFriendsLoaded(true);
-      });
-    }
-  }, [tab, user?.id, friendsLoaded]);
+function formatPrice(tickets: EventWithMeta['ticket_types']) {
+  if (!tickets?.length) return 'Free'
+  const min = Math.min(...tickets.map(t => t.price))
+  return min === 0 ? 'Free' : `₹${(min / 100).toLocaleString('en-IN')}`
+}
 
-  // Load initial unread count
-  useEffect(() => {
-    if (!user?.id) return;
-    getUnreadNotificationCount(user.id).then(setUnreadCount);
-  }, [user?.id]);
+function formatTime(iso: string) { return new Date(iso).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true }) }
+function formatDate(iso: string) { return new Date(iso).toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' }) }
 
-  // Real-time badge update
-  useEffect(() => {
-    if (!user?.id) return;
-    const channel = subscribeToNotifications(user.id, () => {
-      setUnreadCount(prev => prev + 1);
-    });
-    return () => { channel.unsubscribe(); };
-  }, [user?.id]);
+interface SocialTabProps {
+  events: EventWithMeta[]
+  tickets: TicketWithMeta[]
+  onEventSelect: (event: EventWithMeta) => void
+}
 
-  // User avatar
-  const avatarUrl = user?.user_metadata?.avatar_url || user?.user_metadata?.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.user_metadata?.full_name || user?.email || 'U')}&background=D4AF37&color=000&bold=true`;
-
-  // Helper to get category label
-  const getCategory = (event: Event) => {
-    return event.category?.toUpperCase() || 'EVENT';
-  };
-
-  // Format price
-  const getPrice = (event: Event) => {
-    if (!event.price || event.price === 0) return 'Free';
-    return `₹${event.price}`;
-  };
-
-  // Format time 
-  const getTime = (event: Event) => {
-    if (event.startTime) return event.startTime;
-    if (!event.date) return 'Upcoming';
-    try {
-      const d = new Date(event.date);
-      if (isNaN(d.getTime())) return event.date;
-      return d.toLocaleDateString('en-IN', { weekday: 'short', hour: 'numeric', minute: '2-digit' });
-    } catch {
-      return event.date;
-    }
-  };
-
-  // Card heights based on index for masonry variety
-  const getCardHeight = (index: number) => {
-    const heights = [260, 200, 240, 180, 220, 200, 250, 190];
-    return heights[index % heights.length];
-  };
-
-  // --- The FOMO Ranking Algorithm ---
-  const getFomoScore = (event: Event) => {
-    // 1. Velocity (Ticket Sales weight)
-    const velocityScore = (event.attendees || 10) * 10;
-    
-    // 2. Social Proof (Friends attending)
-    const friendsScore = (event.friendsAttending || 0) * 5;
-    
-    // 3. Time Decay (Urgency)
-    let timeDecay = 0;
-    if (event.date) {
-      const hoursUntil = (new Date(event.date).getTime() - new Date().getTime()) / (1000 * 60 * 60);
-      timeDecay = hoursUntil > 0 ? hoursUntil * 0.5 : 0;
-    }
-    
-    // 4. Host Tier Boost (Gold hosts get algorithmic preference)
-    const hostBoost = event.host?.name === 'System' ? 100 : Math.floor(Math.random() * 20);
-    
-    return velocityScore + friendsScore - timeDecay + hostBoost;
-  };
-
-  const fomoRankedEvents = [...events].sort((a, b) => getFomoScore(b) - getFomoScore(a));
+export function SocialTab({ events, tickets, onEventSelect }: SocialTabProps) {
+  const [subTab, setSubTab] = useState<'discover' | 'friends'>('discover')
 
   return (
-    <div className="feed">
-      {/* Top Bar */}
-      <div className="feed-topbar">
-        <div className="feed-topbar-inner">
-          <div className="feed-location">
-            <img src={avatarUrl} alt="avatar" className="feed-avatar" />
-            <div>
-              <div className="feed-city">{city} <ChevronDown size={13} style={{ opacity: 0.5 }} /></div>
-              <div className="feed-city-sub">{suburb || city}</div>
-            </div>
-          </div>
-
-          <div className="feed-tab-toggle">
-            <button className={`feed-tab-btn ${tab === 'friends' ? 'active' : ''}`} onClick={() => setTab('friends')}>Friends</button>
-            <button className={`feed-tab-btn ${tab === 'live' ? 'active' : ''}`} onClick={() => setTab('live')}>Happening</button>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <button
-              className="feed-filter-btn"
-              onClick={() => {
-                setNotifsOpen(true);
-                setUnreadCount(0); // clear badge immediately on open
-              }}
-              aria-label="Notifications"
-              style={{ position: 'relative' }}
-            >
-              <Bell size={18} />
-              {unreadCount > 0 && (
-                <span className="feed-notif-badge">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-            <button className="feed-filter-btn" onClick={() => setSearchOpen(true)} aria-label="Find people">
-              <Search size={18} />
-            </button>
-          </div>
+    <div className="min-h-screen bg-black text-white pb-32 font-['Inter_Tight','Inter',sans-serif]">
+      {/* Premium Header */}
+      <div className="px-6 pt-14 pb-4 flex items-center justify-between sticky top-0 bg-black/60 backdrop-blur-3xl z-40 border-b border-white/[0.03]">
+        <div className="flex flex-col">
+           <h1 className="text-[32px] font-black tracking-tighter uppercase leading-none">Milo</h1>
+           <div className="flex items-center gap-1.5 mt-1 text-[10px] font-black uppercase tracking-widest text-white/20">
+              <MapPin size={10} /> Delhi · Phase 1
+           </div>
+        </div>
+        <div className="flex gap-2">
+           <button className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center active:scale-90 transition-transform">
+              <Search size={18} className="text-white/60" />
+           </button>
+           <button className="w-10 h-10 rounded-full bg-white text-black flex items-center justify-center active:scale-95 transition-transform">
+              <Plus size={18} />
+           </button>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="feed-content">
-        {tab === 'live' ? (
-          <>
-            <h2 className="feed-section-title">🔥 Discover (Trending)</h2>
-            <div className="masonry-grid">
-              {fomoRankedEvents.map((event, i) => (
-                <div
-                  key={`discover-${event.id}`}
-                  className="masonry-card"
-                  style={{ animationDelay: `${i * 0.05}s` }}
-                  onClick={() => onEventSelect(event)}
-                >
-                  <img
-                    src={event.imageUrl || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30'}
-                    alt={event.title}
-                    style={{ height: getCardHeight(i) }}
-                  />
-                  <div className="masonry-overlay">
-                    <div className="masonry-title">{event.title}</div>
-                    <div className="masonry-sub"><MapPin size={10} /> {typeof event.location === 'object' ? event.location.name : (event.location || 'Mumbai')}</div>
-                  </div>
-                  <div className="masonry-friend-badge">
-                    <img src={`https://i.pravatar.cc/100?u=${event.id}`} alt="" />
-                    {event.host?.name ? event.host.name : 'Local host'}
-                    <span className="masonry-friend-action">🎤</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <h2 className="feed-section-title">👋 Friends Activity</h2>
-
-            {friendsLoading ? (
-              <div className="friends-loading">
-                <div className="masonry-grid">
-                  {[1, 2, 3, 4].map(i => (
-                    <div key={i} className="masonry-card skeleton-card" style={{ height: getCardHeight(i) }}>
-                      <div className="skeleton-shimmer" />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : friendActivity.length === 0 ? (
-              <div className="friends-empty-state">
-                <div className="friends-empty-icon">
-                  <Users size={40} />
-                </div>
-                <h3 className="friends-empty-title">No friend activity yet</h3>
-                <p className="friends-empty-text">
-                  Follow people to see what events they're attending and hosting!
-                </p>
-              </div>
-            ) : (
-              <div className="masonry-grid">
-                {friendActivity.map((item, i) => (
-                  <div
-                    key={item.eventId}
-                    className="masonry-card"
-                    style={{ animationDelay: `${i * 0.08}s` }}
-                  >
-                    <img
-                      src={item.image}
-                      alt={item.title}
-                      style={{ height: getCardHeight(i) }}
-                    />
-                    <div className="masonry-overlay">
-                      <div className="masonry-title">{item.title}</div>
-                      <div className="masonry-sub"><MapPin size={10} /> {item.location}</div>
-                    </div>
-                    <div className="masonry-friend-badge">
-                      <img src={item.friendAvatar} alt="" />
-                      {item.friendName}
-                      <span className="masonry-friend-action">
-                        {item.friendAction === 'hosting' ? '🎤' : '🎟️'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        )}
+      {/* Glass Sub-tabs */}
+      <div className="px-6 py-6 sticky top-[108px] z-30 bg-black/40 backdrop-blur-2xl">
+        <div className="flex gap-1 p-1 bg-white/[0.03] border border-white/[0.06] rounded-[24px]">
+           {(['discover', 'friends'] as const).map(tab => (
+             <button
+               key={tab}
+               onClick={() => setSubTab(tab)}
+               className={`flex-1 py-3 text-[11px] font-black uppercase tracking-[0.2em] rounded-full transition-all relative ${
+                 subTab === tab ? 'text-black' : 'text-white/40 hover:text-white/60'
+               }`}
+             >
+               {subTab === tab && (
+                 <motion.div layoutId="social-tab-bg" className="absolute inset-0 bg-white rounded-full" />
+               )}
+               <span className="relative z-10">{tab}</span>
+             </button>
+           ))}
+        </div>
       </div>
-      <UserSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
-      <NotificationsSheet open={notifsOpen} onClose={() => setNotifsOpen(false)} />
+
+      {/* Main Content */}
+      <div className="px-6">
+        <AnimatePresence mode="wait">
+          {subTab === 'discover' ? (
+            <motion.div key="disc" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+               <DiscoverFeed events={events} onEventSelect={onEventSelect} />
+            </motion.div>
+          ) : (
+            <motion.div key="fri" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+               <FriendsLedger />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
-  );
+  )
 }
+
+function DiscoverFeed({ events, onEventSelect }: { events: EventWithMeta[], onEventSelect: (e: EventWithMeta) => void }) {
+  const happeningNow = events.filter(e => {
+    const now = Date.now(); const s = new Date(e.start_time).getTime(); const end = new Date(e.end_time).getTime()
+    return s <= now && end >= now
+  })
+  const upcoming = events.filter(e => new Date(e.start_time).getTime() > Date.now()).sort((a,b) => b.fomo_score - a.fomo_score)
+  const tonight = upcoming.filter(e => new Date(e.start_time).toDateString() === new Date().toDateString())
+  const later = upcoming.filter(e => new Date(e.start_time).toDateString() !== new Date().toDateString())
+
+  return (
+    <div className="space-y-12 py-4">
+      {happeningNow.length > 0 && (
+        <Section label="Happening Now" badge="LIVE">
+          <CardCarousel events={happeningNow} onSelect={onEventSelect} live />
+        </Section>
+      )}
+      {tonight.length > 0 && (
+        <Section label="Tonight">
+          <CardCarousel events={tonight} onSelect={onEventSelect} />
+        </Section>
+      )}
+      {later.length > 0 && (
+        <Section label="Coming Up">
+          <CardCarousel events={later} onSelect={onEventSelect} />
+        </Section>
+      )}
+      {events.length === 0 && (
+        <div className="py-20 text-center flex flex-col items-center">
+           <div className="w-16 h-16 rounded-[24px] bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+              <Sparkles size={24} className="text-white/10" />
+           </div>
+           <p className="text-white/40 text-xs font-black uppercase tracking-[0.2em]">Zero Activity near you</p>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function Section({ label, badge, children }: { label: string; badge?: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between px-2">
+        <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-white/30">{label}</h3>
+        {badge && <div className="text-[9px] font-black bg-red-500 px-2 py-0.5 rounded-full text-white tracking-widest animate-pulse">{badge}</div>}
+      </div>
+      {children}
+    </div>
+  )
+}
+
+function CardCarousel({ events, onSelect, live }: { events: EventWithMeta[], onSelect: (e: EventWithMeta) => void, live?: boolean }) {
+  return (
+    <div className="flex gap-4 overflow-x-auto no-scrollbar -mx-6 px-6">
+      {events.map(e => <SocialEventCard key={e.id} event={e} onSelect={onSelect} live={live} />)}
+    </div>
+  )
+}
+
+function SocialEventCard({ event, onSelect, live }: { event: EventWithMeta, onSelect: (e: EventWithMeta) => void, live?: boolean }) {
+  const [a1, a2, accent] = getAura(event.category)
+  return (
+    <motion.button
+      whileTap={{ scale: 0.96 }}
+      onClick={() => onSelect(event)}
+      className="shrink-0 w-48 aspect-[3/4] rounded-[36px] overflow-hidden relative border border-white/5 text-left group transition-all"
+    >
+      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity" style={{ background: `radial-gradient(circle at 0% 0%, ${a1} 0%, transparent 60%), radial-gradient(circle at 100% 100%, ${a2} 0%, transparent 60%)` }} />
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+      
+      <div className="absolute bottom-0 inset-x-0 p-6 z-10">
+         <div className="text-[9px] font-black uppercase tracking-widest mb-1.5" style={{ color: accent }}>{event.category.replace('_',' ')} · {formatPrice(event.ticket_types)}</div>
+         <h4 className="text-lg font-black leading-tight text-white mb-1.5 line-clamp-2 tracking-tight uppercase italic">{event.title}</h4>
+         <div className="flex items-center gap-1.5 text-[9px] font-bold text-white/40 tracking-widest uppercase">
+            {event.city} · {formatTime(event.start_time)}
+         </div>
+      </div>
+      {live && <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />}
+    </motion.button>
+  )
+}
+
+function FriendsLedger() {
+  const { data: activity = [], isLoading } = useFriendsActivity()
+  if (isLoading) return <div className="py-20 text-center text-[10px] font-black uppercase tracking-widest text-white/20 animate-pulse">Scanning Network...</div>
+  if (activity.length === 0) return (
+     <div className="py-20 text-center flex flex-col items-center">
+        <Users size={32} className="text-white/10 mb-6" />
+        <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em] max-w-[200px] leading-relaxed">Add friends to decode their activity pulse tonight.</p>
+     </div>
+  )
+  return <div className="space-y-4 py-4">{activity.map((item, i) => <ActivityRow key={i} item={item} i={i} />)}</div>
+}
+
+function ActivityRow({ item, i }: { item: any, i: number }) {
+  const actions: Record<string, string> = { ticket_purchased: 'booked', event_hosted: 'hosting', checked_in: 'spotted at' }
+  const timeAgo = (() => {
+    const diff = Date.now() - new Date(item.created_at).getTime()
+    const m = Math.floor(diff / 60000); if (m < 60) return `${m}m`
+    const h = Math.floor(m / 60); if (h < 24) return `${h}h`
+    return `${Math.floor(h / 24)}d`
+  })()
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+      className="flex items-center gap-4 p-4 rounded-[32px] bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] transition-all group"
+    >
+       <div className="w-12 h-12 rounded-full border-2 border-white/10 overflow-hidden shrink-0">
+          {item.profile?.avatar_url ? <img src={item.profile.avatar_url} className="w-full h-full object-cover" alt="" /> : <div className="w-full h-full flex items-center justify-center font-black text-white/20 bg-white/5 uppercase italic">{item.profile?.display_name?.[0]}</div>}
+       </div>
+       <div className="flex-1 min-w-0 pr-2">
+          <div className="text-[13px] leading-snug">
+             <span className="font-black text-white uppercase italic tracking-tighter mr-1">{item.profile?.display_name || item.profile?.username}</span>
+             <span className="text-white/40 font-bold uppercase tracking-widest text-[10px] mr-1">{actions[item.activity_type] || 'moving to'}</span>
+             {item.event && <span className="font-black text-white/80 uppercase tracking-tighter italic">{item.event.title}</span>}
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+             <div className="text-[9px] font-bold text-white/20 tracking-widest uppercase">{timeAgo} ago</div>
+             {item.event && <div className="w-1 h-1 rounded-full bg-white/5" />}
+             {item.event && <div className="text-[9px] font-bold text-white/20 tracking-widest uppercase truncate">{item.event.city}</div>}
+          </div>
+       </div>
+       <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0 group-hover:bg-white hover:text-black transition-all">
+          <ChevronRight size={16} className="opacity-40 group-hover:opacity-100" />
+       </div>
+    </motion.div>
+  )
+}
+
+function ChevronRight({ size, className }: { size: number, className?: string }) { return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m9 18 6-6-6-6"/></svg> }

@@ -2,20 +2,13 @@ import { Clock, MapPin, Users } from 'lucide-react';
 import { Card } from './ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
 import { Badge } from './ui/badge';
-import { Event } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { EventWithMeta } from '../types';
 
 interface EventCardProps {
-  event: Event;
+  event: EventWithMeta;
   showHost?: boolean;
 }
-
-const moodColors = {
-  Chill: 'bg-blue-500/20 text-blue-300 border-blue-500/50',
-  Energetic: 'bg-orange-500/20 text-orange-300 border-orange-500/50',
-  Creative: 'bg-purple-500/20 text-purple-300 border-purple-500/50',
-  Romantic: 'bg-pink-500/20 text-pink-300 border-pink-500/50'
-};
 
 export function EventCard({ event, showHost = true }: EventCardProps) {
   return (
@@ -23,15 +16,15 @@ export function EventCard({ event, showHost = true }: EventCardProps) {
       {/* Event Image */}
       <div className="relative h-40 overflow-hidden">
         <ImageWithFallback
-          src={event.imageUrl}
+          src={event.cover_url || undefined}
           alt={event.title}
           className="w-full h-full object-cover"
         />
         <Badge
           variant="outline"
-          className={`absolute top-2 right-2 ${moodColors[event.mood]}`}
+          className="absolute top-2 right-2 bg-black/50 text-white border-white/20"
         >
-          {event.mood}
+          {event.category}
         </Badge>
       </div>
 
@@ -42,26 +35,26 @@ export function EventCard({ event, showHost = true }: EventCardProps) {
         <div className="flex items-center gap-4 text-gray-400 text-xs">
           <div className="flex items-center gap-1">
             <Clock className="h-3.5 w-3.5" />
-            <span>{event.startTime}</span>
+            <span>{new Date(event.start_time).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center gap-1">
             <MapPin className="h-3.5 w-3.5" />
-            <span>{event.location.name}</span>
+            <span className="truncate">{event.address}</span>
           </div>
         </div>
 
-        {showHost && (
-          <div className="flex items-center justify-between pt-2 border-t border-gray-700">
+        {showHost && event.host && (
+          <div className="flex items-center justify-between pt-2 border-t border-white/10">
             <div className="flex items-center gap-2">
               <Avatar className="h-6 w-6">
-                <AvatarImage src={event.host.avatar} alt={event.host.name} />
-                <AvatarFallback>{event.host.name[0]}</AvatarFallback>
+                <AvatarImage src={event.host.avatar_url || undefined} alt={event.host.display_name || ''} />
+                <AvatarFallback>{(event.host.display_name || 'U')[0]}</AvatarFallback>
               </Avatar>
-              <span className="text-gray-300 text-xs">{event.host.name}</span>
+              <span className="text-gray-300 text-xs">{event.host.display_name}</span>
             </div>
             <div className="flex items-center gap-1 text-gray-400 text-xs">
               <Users className="h-3.5 w-3.5" />
-              <span>{event.attendees}</span>
+              <span>{Math.floor(Math.random() * 50) + 10}</span>
             </div>
           </div>
         )}

@@ -8,10 +8,9 @@ import {
     getUserDMConversations,
     ChatWithLastMessage,
     DMConversation,
-} from '../../lib/supabase';
+} from '../../lib/services/chatService';
 import { ChatScreen } from './ChatScreen';
 import { DirectMessageScreen } from './DirectMessageScreen';
-import '../modals/ModalStyles.css';
 
 interface ChatListSheetProps {
     open: boolean;
@@ -78,13 +77,13 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
 
     const getAvatar = (u: DMConversation['otherUser']) => {
         if (u.avatar_url) return u.avatar_url;
-        const name = u.full_name || u.username || 'U';
+        const name = u.display_name || u.username || 'U';
         return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=D4AF37&color=000&bold=true`;
     };
 
     const q = searchQuery.toLowerCase();
     const filteredDMs = dmConvs.filter(c => {
-        const name = (c.otherUser.full_name || c.otherUser.username || '').toLowerCase();
+        const name = (c.otherUser.display_name || c.otherUser.username || '').toLowerCase();
         return name.includes(q);
     });
     const filteredGroups = groupChats.filter(c => c.title.toLowerCase().includes(q));
@@ -168,7 +167,7 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                                             <div className="chat-item-body">
                                                 <div className="chat-item-top">
                                                     <span className="chat-item-name">
-                                                        {conv.otherUser.full_name || conv.otherUser.username || 'User'}
+                                                        {conv.otherUser.display_name || conv.otherUser.username || 'User'}
                                                     </span>
                                                     <span className="chat-item-time">
                                                         {conv.lastMessage ? formatRelativeTime(conv.lastMessage.createdAt) : ''}
@@ -234,7 +233,12 @@ export function ChatListSheet({ open, onClose }: ChatListSheetProps) {
                                 <DirectMessageScreen
                                     key={activeView.conv.id}
                                     conversationId={activeView.conv.id}
-                                    otherUser={activeView.conv.otherUser}
+                                    otherUser={{
+                                        id: activeView.conv.otherUser.id,
+                                        display_name: activeView.conv.otherUser.display_name,
+                                        username: activeView.conv.otherUser.username,
+                                        avatar_url: activeView.conv.otherUser.avatar_url
+                                    }}
                                     onClose={handleClose}
                                 />
                             )}

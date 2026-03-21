@@ -1,597 +1,551 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion';
-import { Mail, Lock, Chrome, Loader2, ArrowRight, Sparkles, PartyPopper, Phone, ArrowLeft } from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { useAuth } from '../context/AuthContext';
+import { useState, useRef, useEffect } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
-// Map Supabase error messages to user-friendly strings
-const getFriendlyError = (message: string): string => {
-    const map: Record<string, string> = {
-        'Invalid login credentials': 'Wrong email or password. Please try again.',
-        'Email not confirmed': 'Please check your inbox and confirm your email first.',
-        'User already registered': 'An account with this email already exists. Try signing in.',
-        'Password should be at least 6 characters': 'Password must be at least 6 characters long.',
-        'Email rate limit exceeded': 'Too many attempts. Please wait a moment and try again.',
-        'For security purposes, you can only request this once every 60 seconds': 'Please wait 60 seconds before requesting another code.',
-        'Token has expired or is invalid': 'That code has expired or is invalid. Please request a new one.',
-    };
-    return map[message] || message;
-};
+type Screen = 'phone' | 'otp'
 
-type AuthMode = 'email' | 'phone' | 'reset';
+// Aura colors per vibe — used as ambient background glows
+const AURA = {
+  a: 'rgba(249,100,60,.18)',
+  b: 'rgba(180,140,255,.14)',
+  c: 'rgba(60,230,180,.12)',
+}
 
 export function LoginPage() {
-    const [authMode, setAuthMode] = useState<AuthMode>('email');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [phone, setPhone] = useState('');
-    const [otp, setOtp] = useState('');
-    const [otpSent, setOtpSent] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [resetSent, setResetSent] = useState(false);
-    const { signIn, signInWithGoogle, signInWithPhone, verifyOtp, resetPassword, user } = useAuth();
-    const navigate = useNavigate();
+  const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const { signInWithPhone, verifyOtp, signInWithGoogle, user } = useAuth()
 
-    // Eye-following card effect
-    const cardRef = useRef<HTMLDivElement>(null);
-    const mouseX = useMotionValue(0);
-    const mouseY = useMotionValue(0);
+  const [screen, setScreen] = useState<Screen>('phone')
+  const [phone, setPhone] = useState('')
+  const [otp, setOtp] = useState(['', '', '', '', '', ''])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([])
+  const redirect = searchParams.get('redirect') ?? '/'
 
-    const rotateX = useSpring(useTransform(mouseY, [-300, 300], [10, -10]), { stiffness: 100, damping: 30 });
-    const rotateY = useSpring(useTransform(mouseX, [-300, 300], [-10, 10]), { stiffness: 100, damping: 30 });
+  // Already logged in — redirect
+  useEffect(() => {
+    if (user) navigate(redirect, { replace: true })
+  }, [user, navigate, redirect])
 
-    const handleMouseMove = (e: React.MouseEvent) => {
-        if (!cardRef.current) return;
-        const rect = cardRef.current.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        mouseX.set(e.clientX - centerX);
-        mouseY.set(e.clientY - centerY);
-    };
+  // ─── PHONE SUBMIT ──────────────────────────────
 
-    const handleMouseLeave = () => {
-        mouseX.set(0);
-        mouseY.set(0);
-    };
+  const handlePhoneSubmit = async () => {
+    const cleaned = phone.replace(/\s/g, '')
+    if (cleaned.length < 10) {
+      setError('Enter a valid phone number')
+      return
+    }
+    setError('')
+    setLoading(true)
+    const formatted = cleaned.startsWith('+') ? cleaned : `+91${cleaned}`
+    const { error } = await signInWithPhone(formatted)
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+    } else {
+      setScreen('otp')
+    }
+  }
 
-    useEffect(() => {
-        if (user) {
-            navigate('/');
-        }
-    }, [user, navigate]);
+  // ─── OTP INPUT ─────────────────────────────────
 
-    const handleEmailLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoading(true);
-        setError('');
+  const handleOtpChange = (i: number, val: string) => {
+    if (!/^\d*$/.test(val)) return
+    const next = [...otp]
+    next[i] = val.slice(-1)
+    setOtp(next)
+    if (val && i < 5) otpRefs.current[i + 1]?.focus()
+    // Auto-submit when all 6 digits filled
+    if (next.every(d => d) && next.join('').length === 6) {
+      handleOtpSubmit(next.join(''))
+    }
+  }
 
-        const { error } = await signIn(email, password);
+  const handleOtpKeyDown = (i: number, e: React.KeyboardEvent) => {
+    if (e.key === 'Backspace' && !otp[i] && i > 0) {
+      otpRefs.current[i - 1]?.focus()
+    }
+  }
 
-        if (error) {
-            setError(getFriendlyError(error.message));
-            setLoading(false);
-        } else {
-            navigate('/');
-        }
-    };
+  const handleOtpSubmit = async (code?: string) => {
+    const token = code ?? otp.join('')
+    if (token.length < 6) return
+    setError('')
+    setLoading(true)
+    const cleaned = phone.replace(/\s/g, '')
+    const formatted = cleaned.startsWith('+') ? cleaned : `+91${cleaned}`
+    const { error } = await verifyOtp(formatted, token)
+    setLoading(false)
+    if (error) {
+      setError(error.message)
+      setOtp(['', '', '', '', '', ''])
+      otpRefs.current[0]?.focus()
+    }
+    // Success — useEffect handles redirect via user state change
+  }
 
-    const handleSendOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!phone) {
-            setError('Please enter your phone number.');
-            return;
-        }
-        setLoading(true);
-        setError('');
+  const handleGoogle = async () => {
+    setLoading(true)
+    setError('')
+    const { error } = await signInWithGoogle()
+    if (error) {
+      setError(error.message)
+      setLoading(false)
+    }
+  }
 
-        const { error } = await signInWithPhone(phone);
+  // ─── RENDER ────────────────────────────────────
 
-        if (error) {
-            setError(getFriendlyError(error.message));
-        } else {
-            setOtpSent(true);
-        }
-        setLoading(false);
-    };
+  return (
+    <div style={{
+      minHeight: '100vh',
+      background: '#000',
+      fontFamily: "'Inter Tight', 'Inter', sans-serif",
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 400,
+      margin: '0 auto',
+      position: 'relative',
+      overflow: 'hidden',
+    }}>
 
-    const handleVerifyOtp = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!otp || otp.length < 6) {
-            setError('Please enter the 6-digit code.');
-            return;
-        }
-        setLoading(true);
-        setError('');
+      {/* Ambient aura glows */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+        <div style={{
+          position: 'absolute',
+          width: 320, height: 320,
+          top: -80, left: -80,
+          background: `radial-gradient(circle, ${AURA.b} 0%, transparent 70%)`,
+        }} />
+        <div style={{
+          position: 'absolute',
+          width: 280, height: 280,
+          bottom: 60, right: -80,
+          background: `radial-gradient(circle, ${AURA.a} 0%, transparent 70%)`,
+        }} />
+        <div style={{
+          position: 'absolute',
+          width: 200, height: 200,
+          bottom: -40, left: '30%',
+          background: `radial-gradient(circle, ${AURA.c} 0%, transparent 70%)`,
+        }} />
+      </div>
 
-        const { error } = await verifyOtp(phone, otp);
+      {/* Content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '0 24px', position: 'relative', zIndex: 1 }}>
 
-        if (error) {
-            setError(getFriendlyError(error.message));
-            setLoading(false);
-        } else {
-            navigate('/');
-        }
-    };
-
-    const handleResetPassword = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!email) {
-            setError('Please enter your email address.');
-            return;
-        }
-        setLoading(true);
-        setError('');
-
-        const { error } = await resetPassword(email);
-
-        if (error) {
-            setError(getFriendlyError(error.message));
-        } else {
-            setResetSent(true);
-        }
-        setLoading(false);
-    };
-
-    const handleGoogleLogin = async () => {
-        setLoading(true);
-        setError('');
-        const { error } = await signInWithGoogle();
-        if (error) {
-            setError(getFriendlyError(error.message));
-            setLoading(false);
-        }
-    };
-
-    const switchMode = (mode: AuthMode) => {
-        setAuthMode(mode);
-        setError('');
-        setResetSent(false);
-        setOtpSent(false);
-        setOtp('');
-    };
-
-    const headerText = authMode === 'reset' ? 'Reset Password' : 'Welcome Back';
-    const subtitleText = authMode === 'reset'
-        ? 'Enter your email to receive a reset link'
-        : authMode === 'phone'
-            ? 'Sign in with your phone number'
-            : 'Sign in to continue the party';
-
-    return (
-        <div
-            className="min-h-screen min-h-[100dvh] w-full flex items-center justify-center p-6 relative overflow-hidden"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-            style={{ background: 'linear-gradient(135deg, #0a0a0a 0%, rgba(6, 78, 59, 0.4) 50%, #0a0a0a 100%)' }}
-        >
-            {/* Animated gradient orbs */}
-            <div className="absolute inset-0 overflow-hidden">
-                <motion.div
-                    animate={{ x: [0, 100, 0], y: [0, -50, 0], scale: [1, 1.2, 1] }}
-                    transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -top-1/4 -left-1/4 w-1/2 h-1/2 rounded-full"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.4) 0%, rgba(20, 184, 166, 0.3) 100%)',
-                        filter: 'blur(80px)'
-                    }}
-                />
-                <motion.div
-                    animate={{ x: [0, -80, 0], y: [0, 60, 0], scale: [1, 1.3, 1] }}
-                    transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute -bottom-1/4 -right-1/4 w-1/2 h-1/2 rounded-full"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(6, 182, 212, 0.3) 0%, rgba(16, 185, 129, 0.4) 100%)',
-                        filter: 'blur(80px)'
-                    }}
-                />
-                <motion.div
-                    animate={{ x: [0, 50, 0], y: [0, -30, 0] }}
-                    transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/3 h-1/3 rounded-full"
-                    style={{
-                        background: 'linear-gradient(135deg, rgba(52, 211, 153, 0.3) 0%, rgba(20, 184, 166, 0.3) 100%)',
-                        filter: 'blur(60px)'
-                    }}
-                />
-            </div>
-
-            {/* Grid pattern overlay */}
-            <div
-                className="absolute inset-0"
-                style={{
-                    backgroundImage: 'linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)',
-                    backgroundSize: '50px 50px'
-                }}
-            />
-
-            <motion.div
-                ref={cardRef}
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                style={{ rotateX, rotateY, transformPerspective: 1000 }}
-                className="w-full max-w-sm relative z-10"
-            >
-                {/* Glass Card */}
-                <div
-                    className="relative backdrop-blur-2xl border border-white/20 rounded-3xl p-8 overflow-hidden"
-                    style={{
-                        background: 'rgba(255, 255, 255, 0.08)',
-                        boxShadow: '0 8px 64px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1), 0 0 100px rgba(16, 185, 129, 0.15)'
-                    }}
-                >
-                    {/* Inner glow effects */}
-                    <div
-                        className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px"
-                        style={{ background: 'linear-gradient(90deg, transparent, rgba(16, 185, 129, 0.6), transparent)' }}
-                    />
-                    <div
-                        className="absolute inset-0 pointer-events-none"
-                        style={{ background: 'linear-gradient(180deg, rgba(16, 185, 129, 0.1) 0%, transparent 50%)' }}
-                    />
-
-                    {/* Header */}
-                    <div className="text-center mb-8 relative">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.5 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: 0.2, type: "spring" }}
-                            className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4 shadow-lg"
-                            style={{
-                                background: 'linear-gradient(135deg, #10b981 0%, #14b8a6 100%)',
-                                boxShadow: '0 10px 30px rgba(16, 185, 129, 0.4)'
-                            }}
-                        >
-                            <PartyPopper className="h-8 w-8 text-white" />
-                        </motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            <h1
-                                className="text-3xl font-bold mb-2"
-                                style={{
-                                    background: 'linear-gradient(90deg, #fff, #6ee7b7, #fff)',
-                                    WebkitBackgroundClip: 'text',
-                                    WebkitTextFillColor: 'transparent',
-                                    backgroundClip: 'text'
-                                }}
-                            >
-                                {headerText}
-                            </h1>
-                            <p className="text-white/50">{subtitleText}</p>
-                        </motion.div>
-                    </div>
-
-                    {/* Error Message */}
-                    {error && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-300 text-sm flex items-center gap-3"
-                        >
-                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-                            {error}
-                        </motion.div>
-                    )}
-
-                    {/* Success Messages */}
-                    {resetSent && (
-                        <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-300 text-sm flex items-center gap-3"
-                        >
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse flex-shrink-0" />
-                            Check your inbox! We've sent a password reset link to <strong>{email}</strong>.
-                        </motion.div>
-                    )}
-
-                    {/* =================== RESET PASSWORD MODE =================== */}
-                    {authMode === 'reset' && (
-                        <form onSubmit={handleResetPassword} className="space-y-5 mb-6">
-                            <div className="space-y-2">
-                                <Label htmlFor="reset-email" className="text-white/70 ml-1 text-sm">Email</Label>
-                                <div className="relative group">
-                                    <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
-                                    <Input
-                                        id="reset-email"
-                                        type="email"
-                                        placeholder="you@example.com"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
-                                        required
-                                    />
-                                </div>
-                            </div>
-
-                            <Button
-                                type="submit"
-                                className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 border-0"
-                                style={{
-                                    background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
-                                    boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
-                                }}
-                                disabled={loading || resetSent}
-                            >
-                                {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : resetSent ? 'Email Sent ✓' : 'Send Reset Link'}
-                            </Button>
-
-                            <button
-                                type="button"
-                                onClick={() => switchMode('email')}
-                                className="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white/80 text-sm transition-colors mt-2"
-                            >
-                                <ArrowLeft className="h-4 w-4" /> Back to Sign In
-                            </button>
-                        </form>
-                    )}
-
-                    {/* =================== PHONE OTP MODE =================== */}
-                    {authMode === 'phone' && (
-                        <>
-                            {!otpSent ? (
-                                <form onSubmit={handleSendOtp} className="space-y-5 mb-6">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="space-y-2"
-                                    >
-                                        <Label htmlFor="phone" className="text-white/70 ml-1 text-sm">Phone Number</Label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
-                                            <Input
-                                                id="phone"
-                                                type="tel"
-                                                placeholder="+91 98765 43210"
-                                                value={phone}
-                                                onChange={(e) => setPhone(e.target.value)}
-                                                className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
-                                                required
-                                            />
-                                        </div>
-                                        <p className="text-white/30 text-xs ml-1">Include country code (e.g., +91 for India)</p>
-                                    </motion.div>
-
-                                    <Button
-                                        type="submit"
-                                        className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 group border-0"
-                                        style={{
-                                            background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
-                                            boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
-                                        }}
-                                        disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                        ) : (
-                                            <span className="flex items-center justify-center gap-2">
-                                                Send OTP
-                                                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                            </span>
-                                        )}
-                                    </Button>
-                                </form>
-                            ) : (
-                                <form onSubmit={handleVerifyOtp} className="space-y-5 mb-6">
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        className="p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl text-emerald-300 text-sm text-center"
-                                    >
-                                        We sent a 6-digit code to <strong>{phone}</strong>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="space-y-2"
-                                    >
-                                        <Label htmlFor="otp" className="text-white/70 ml-1 text-sm">Verification Code</Label>
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                            <Input
-                                                id="otp"
-                                                type="text"
-                                                inputMode="numeric"
-                                                maxLength={6}
-                                                placeholder="000000"
-                                                value={otp}
-                                                onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                                                className="h-14 bg-white/5 border-white/10 text-white text-center text-2xl tracking-[0.5em] font-mono placeholder:text-white/15 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
-                                                required
-                                            />
-                                        </div>
-                                    </motion.div>
-
-                                    <Button
-                                        type="submit"
-                                        className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 group border-0"
-                                        style={{
-                                            background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
-                                            boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
-                                        }}
-                                        disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                        ) : (
-                                            <span className="flex items-center justify-center gap-2">
-                                                Verify & Sign In
-                                                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                            </span>
-                                        )}
-                                    </Button>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => { setOtpSent(false); setOtp(''); setError(''); }}
-                                        className="w-full text-center text-white/40 hover:text-white/70 text-xs transition-colors"
-                                    >
-                                        Didn't get the code? Send again
-                                    </button>
-                                </form>
-                            )}
-
-                            {/* Switch to email */}
-                            <button
-                                type="button"
-                                onClick={() => switchMode('email')}
-                                className="w-full flex items-center justify-center gap-2 text-white/50 hover:text-white/80 text-sm transition-colors"
-                            >
-                                <Mail className="h-4 w-4" /> Use email instead
-                            </button>
-                        </>
-                    )}
-
-                    {/* =================== EMAIL PASSWORD MODE =================== */}
-                    {authMode === 'email' && (
-                        <>
-                            <form onSubmit={handleEmailLogin} className="space-y-5 mb-6">
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="space-y-2"
-                                >
-                                    <Label htmlFor="email" className="text-white/70 ml-1 text-sm">Email</Label>
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
-                                        <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="you@example.com"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
-                                            required
-                                        />
-                                    </div>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.5 }}
-                                    className="space-y-2"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="password" className="text-white/70 ml-1 text-sm">Password</Label>
-                                        <button
-                                            type="button"
-                                            onClick={() => switchMode('reset')}
-                                            className="text-emerald-400/70 hover:text-emerald-400 text-xs transition-colors"
-                                        >
-                                            Forgot password?
-                                        </button>
-                                    </div>
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-white/30 group-focus-within:text-emerald-400 transition-colors z-10" />
-                                        <Input
-                                            id="password"
-                                            type="password"
-                                            placeholder="••••••••"
-                                            value={password}
-                                            onChange={(e) => setPassword(e.target.value)}
-                                            className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:bg-white/10 focus:border-emerald-500/50 rounded-xl transition-all relative"
-                                            required
-                                        />
-                                    </div>
-                                </motion.div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.6 }}
-                                >
-                                    <Button
-                                        type="submit"
-                                        className="w-full h-12 text-base font-semibold text-white rounded-xl transition-all duration-300 group border-0"
-                                        style={{
-                                            background: 'linear-gradient(135deg, #7c3aed 0%, #c026d3 100%)',
-                                            boxShadow: '0 0 30px rgba(139, 92, 246, 0.4)'
-                                        }}
-                                        disabled={loading}
-                                    >
-                                        {loading ? (
-                                            <Loader2 className="h-5 w-5 animate-spin" />
-                                        ) : (
-                                            <span className="flex items-center justify-center gap-2">
-                                                Sign In
-                                                <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                                            </span>
-                                        )}
-                                    </Button>
-                                </motion.div>
-                            </form>
-
-                            {/* Phone login toggle */}
-                            <button
-                                type="button"
-                                onClick={() => switchMode('phone')}
-                                className="w-full flex items-center justify-center gap-2 text-white/40 hover:text-white/70 text-sm transition-colors mb-4"
-                            >
-                                <Phone className="h-4 w-4" /> Use phone number instead
-                            </button>
-
-                            {/* Divider */}
-                            <div className="relative my-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-white/10" />
-                                </div>
-                                <div className="relative flex justify-center">
-                                    <span className="px-4 text-xs uppercase tracking-widest text-white/30 bg-transparent">
-                                        Or continue with
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Google OAuth */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.7 }}
-                            >
-                                <Button
-                                    variant="outline"
-                                    className="w-full h-12 bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 rounded-xl transition-all group"
-                                    onClick={handleGoogleLogin}
-                                    disabled={loading}
-                                >
-                                    <Chrome className="mr-3 h-5 w-5 group-hover:text-emerald-400 transition-colors" />
-                                    Continue with Google
-                                </Button>
-                            </motion.div>
-
-                            {/* Sign Up Link */}
-                            <motion.p
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 0.8 }}
-                                className="mt-8 text-center text-white/50"
-                            >
-                                Don't have an account?{' '}
-                                <Link
-                                    to="/signup"
-                                    className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors inline-flex items-center gap-1"
-                                >
-                                    Sign up <Sparkles className="h-3 w-3" />
-                                </Link>
-                            </motion.p>
-                        </>
-                    )}
-                </div>
-            </motion.div>
+        {/* Logo */}
+        <div style={{ paddingTop: 72, paddingBottom: 64 }}>
+          <div style={{
+            fontSize: 42,
+            fontWeight: 800,
+            letterSpacing: '-0.03em',
+            color: '#fff',
+            lineHeight: 1,
+          }}>
+            milo
+          </div>
+          <div style={{
+            fontSize: 13,
+            fontWeight: 400,
+            color: 'rgba(255,255,255,.25)',
+            marginTop: 6,
+            letterSpacing: '0.04em',
+          }}>
+            find your frequency.
+          </div>
         </div>
-    );
+
+        {screen === 'phone' ? (
+          <PhoneScreen
+            phone={phone}
+            setPhone={setPhone}
+            error={error}
+            loading={loading}
+            onSubmit={handlePhoneSubmit}
+            onGoogle={handleGoogle}
+          />
+        ) : (
+          <OtpScreen
+            phone={phone}
+            otp={otp}
+            otpRefs={otpRefs}
+            error={error}
+            loading={loading}
+            onChange={handleOtpChange}
+            onKeyDown={handleOtpKeyDown}
+            onSubmit={() => handleOtpSubmit()}
+            onBack={() => {
+              setScreen('phone')
+              setOtp(['', '', '', '', '', ''])
+              setError('')
+            }}
+          />
+        )}
+      </div>
+
+      {/* Bottom legal */}
+      <div style={{
+        padding: '16px 24px 40px',
+        position: 'relative',
+        zIndex: 1,
+        textAlign: 'center',
+      }}>
+        <p style={{
+          fontSize: 11,
+          color: 'rgba(255,255,255,.15)',
+          lineHeight: 1.6,
+        }}>
+          By continuing you agree to our Terms of Use and Privacy Policy.
+          You must be 18+ to use Milo.
+        </p>
+      </div>
+    </div>
+  )
+}
+
+// ─── PHONE SCREEN ─────────────────────────────────
+
+function PhoneScreen({ phone, setPhone, error, loading, onSubmit, onGoogle }: {
+  phone: string
+  setPhone: (v: string) => void
+  error: string
+  loading: boolean
+  onSubmit: () => void
+  onGoogle: () => void
+}) {
+  return (
+    <div style={{ flex: 1 }}>
+      <h1 style={{
+        fontSize: 28,
+        fontWeight: 800,
+        letterSpacing: '-0.03em',
+        color: '#fff',
+        marginBottom: 8,
+        lineHeight: 1.1,
+      }}>
+        What's your number?
+      </h1>
+      <p style={{
+        fontSize: 14,
+        color: 'rgba(255,255,255,.3)',
+        marginBottom: 40,
+        lineHeight: 1.5,
+      }}>
+        We'll send a one-time code. No passwords, ever.
+      </p>
+
+      {/* Phone input */}
+      <div style={{
+        background: 'rgba(255,255,255,.04)',
+        border: `0.5px solid ${error ? 'rgba(249,100,60,.5)' : 'rgba(255,255,255,.08)'}`,
+        borderRadius: 16,
+        display: 'flex',
+        alignItems: 'center',
+        padding: '0 18px',
+        marginBottom: 12,
+        transition: 'border-color 0.2s',
+      }}>
+        <span style={{
+          fontSize: 15,
+          fontWeight: 600,
+          color: 'rgba(255,255,255,.35)',
+          marginRight: 10,
+          letterSpacing: '0.02em',
+        }}>
+          +91
+        </span>
+        <input
+          type="tel"
+          inputMode="numeric"
+          value={phone}
+          onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+          onKeyDown={e => e.key === 'Enter' && onSubmit()}
+          placeholder="00000 00000"
+          autoFocus
+          style={{
+            flex: 1,
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            fontSize: 22,
+            fontWeight: 700,
+            letterSpacing: '0.04em',
+            color: '#fff',
+            padding: '18px 0',
+            fontFamily: 'inherit',
+          }}
+        />
+      </div>
+
+      {error && (
+        <p style={{ color: 'rgba(249,100,60,.9)', fontSize: 12, marginBottom: 16 }}>
+          {error}
+        </p>
+      )}
+
+      {/* Send OTP CTA */}
+      <button
+        onClick={onSubmit}
+        disabled={loading || phone.length < 10}
+        style={{
+          width: '100%',
+          padding: '17px',
+          borderRadius: 14,
+          border: 'none',
+          background: phone.length >= 10 && !loading
+            ? 'rgba(255,255,255,.97)'
+            : 'rgba(255,255,255,.08)',
+          color: phone.length >= 10 && !loading ? '#000' : 'rgba(255,255,255,.2)',
+          fontSize: 15,
+          fontWeight: 800,
+          letterSpacing: '0.02em',
+          cursor: phone.length >= 10 ? 'pointer' : 'not-allowed',
+          transition: 'background 0.2s, color 0.2s',
+          fontFamily: 'inherit',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Aura glow on active button */}
+        {phone.length >= 10 && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(180,140,255,.2) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+        )}
+        <span style={{ position: 'relative', zIndex: 1 }}>
+          {loading ? 'Sending...' : 'Get Code →'}
+        </span>
+      </button>
+
+      {/* Divider */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        margin: '28px 0',
+      }}>
+        <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,.07)' }} />
+        <span style={{ fontSize: 11, color: 'rgba(255,255,255,.2)', letterSpacing: '0.08em' }}>OR</span>
+        <div style={{ flex: 1, height: '0.5px', background: 'rgba(255,255,255,.07)' }} />
+      </div>
+
+      {/* Google */}
+      <button
+        onClick={onGoogle}
+        disabled={loading}
+        style={{
+          width: '100%',
+          padding: '15px',
+          borderRadius: 14,
+          border: '0.5px solid rgba(255,255,255,.08)',
+          background: 'rgba(255,255,255,.03)',
+          color: 'rgba(255,255,255,.6)',
+          fontSize: 14,
+          fontWeight: 600,
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          fontFamily: 'inherit',
+          transition: 'background 0.15s',
+        }}
+        onMouseOver={e => (e.currentTarget.style.background = 'rgba(255,255,255,.06)')}
+        onMouseOut={e => (e.currentTarget.style.background = 'rgba(255,255,255,.03)')}
+      >
+        {/* Google G icon */}
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M15.36 8.18c0-.56-.05-1.1-.14-1.62H8v3.07h4.12a3.52 3.52 0 01-1.53 2.31v1.92h2.47c1.45-1.33 2.3-3.3 2.3-5.68z" fill="rgba(255,255,255,.5)"/>
+          <path d="M8 16c2.07 0 3.8-.68 5.07-1.85l-2.47-1.92c-.69.46-1.56.73-2.6.73-2 0-3.7-1.35-4.3-3.17H1.15v1.98A7.99 7.99 0 008 16z" fill="rgba(255,255,255,.4)"/>
+          <path d="M3.7 9.79A4.82 4.82 0 013.45 8c0-.62.11-1.23.25-1.79V4.23H1.15A7.99 7.99 0 000 8c0 1.29.31 2.51.86 3.59l2.84-1.8z" fill="rgba(255,255,255,.3)"/>
+          <path d="M8 3.18c1.13 0 2.14.39 2.94 1.15l2.2-2.2A7.96 7.96 0 008 0 7.99 7.99 0 001.15 4.23L4 6.21C4.6 4.38 6.3 3.18 8 3.18z" fill="rgba(255,255,255,.45)"/>
+        </svg>
+        Continue with Google
+      </button>
+    </div>
+  )
+}
+
+// ─── OTP SCREEN ───────────────────────────────────
+
+function OtpScreen({ phone, otp, otpRefs, error, loading, onChange, onKeyDown, onSubmit, onBack }: {
+  phone: string
+  otp: string[]
+  otpRefs: React.MutableRefObject<(HTMLInputElement | null)[]>
+  error: string
+  loading: boolean
+  onChange: (i: number, v: string) => void
+  onKeyDown: (i: number, e: React.KeyboardEvent) => void
+  onSubmit: () => void
+  onBack: () => void
+}) {
+  // Focus first input on mount
+  useEffect(() => {
+    setTimeout(() => otpRefs.current[0]?.focus(), 100)
+  }, [])
+
+  const formatted = phone.startsWith('+91') ? phone : `+91 ${phone.slice(0, 5)} ${phone.slice(5)}`
+
+  return (
+    <div style={{ flex: 1 }}>
+      {/* Back */}
+      <button
+        onClick={onBack}
+        style={{
+          background: 'transparent',
+          border: 'none',
+          color: 'rgba(255,255,255,.3)',
+          fontSize: 13,
+          cursor: 'pointer',
+          padding: '0 0 32px',
+          fontFamily: 'inherit',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+        }}
+      >
+        ← back
+      </button>
+
+      <h1 style={{
+        fontSize: 28,
+        fontWeight: 800,
+        letterSpacing: '-0.03em',
+        color: '#fff',
+        marginBottom: 8,
+        lineHeight: 1.1,
+      }}>
+        Check your messages.
+      </h1>
+      <p style={{
+        fontSize: 14,
+        color: 'rgba(255,255,255,.3)',
+        marginBottom: 48,
+        lineHeight: 1.5,
+      }}>
+        Code sent to {formatted}
+      </p>
+
+      {/* OTP inputs */}
+      <div style={{
+        display: 'flex',
+        gap: 8,
+        marginBottom: 12,
+        justifyContent: 'space-between',
+      }}>
+        {otp.map((digit, i) => (
+          <input
+            key={i}
+            ref={el => { otpRefs.current[i] = el }}
+            type="tel"
+            inputMode="numeric"
+            maxLength={1}
+            value={digit}
+            onChange={e => onChange(i, e.target.value)}
+            onKeyDown={e => onKeyDown(i, e)}
+            style={{
+              width: 48,
+              height: 58,
+              background: digit
+                ? 'rgba(255,255,255,.06)'
+                : 'rgba(255,255,255,.03)',
+              border: `0.5px solid ${
+                error
+                  ? 'rgba(249,100,60,.4)'
+                  : digit
+                  ? 'rgba(255,255,255,.15)'
+                  : 'rgba(255,255,255,.07)'
+              }`,
+              borderRadius: 12,
+              textAlign: 'center',
+              fontSize: 24,
+              fontWeight: 800,
+              color: '#fff',
+              outline: 'none',
+              fontFamily: 'inherit',
+              transition: 'border-color 0.15s, background 0.15s',
+              letterSpacing: '-0.02em',
+            }}
+          />
+        ))}
+      </div>
+
+      {error && (
+        <p style={{ color: 'rgba(249,100,60,.9)', fontSize: 12, marginBottom: 16 }}>
+          {error}
+        </p>
+      )}
+
+      {/* Verify CTA */}
+      <button
+        onClick={onSubmit}
+        disabled={loading || otp.some(d => !d)}
+        style={{
+          width: '100%',
+          marginTop: 8,
+          padding: '17px',
+          borderRadius: 14,
+          border: 'none',
+          background: otp.every(d => d) && !loading
+            ? 'rgba(255,255,255,.97)'
+            : 'rgba(255,255,255,.08)',
+          color: otp.every(d => d) && !loading
+            ? '#000'
+            : 'rgba(255,255,255,.2)',
+          fontSize: 15,
+          fontWeight: 800,
+          letterSpacing: '0.02em',
+          cursor: otp.every(d => d) ? 'pointer' : 'not-allowed',
+          transition: 'background 0.2s, color 0.2s',
+          fontFamily: 'inherit',
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {otp.every(d => d) && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'radial-gradient(ellipse at center, rgba(60,230,180,.15) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+        )}
+        <span style={{ position: 'relative', zIndex: 1 }}>
+          {loading ? 'Verifying...' : 'Verify →'}
+        </span>
+      </button>
+
+      {/* Resend */}
+      <p style={{
+        fontSize: 13,
+        color: 'rgba(255,255,255,.2)',
+        textAlign: 'center',
+        marginTop: 28,
+      }}>
+        Didn't get it?{' '}
+        <button
+          onClick={onBack}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: 'rgba(255,255,255,.45)',
+            fontSize: 13,
+            cursor: 'pointer',
+            fontFamily: 'inherit',
+            padding: 0,
+            textDecoration: 'underline',
+            textDecorationColor: 'rgba(255,255,255,.2)',
+          }}
+        >
+          Try again
+        </button>
+      </p>
+    </div>
+  )
 }

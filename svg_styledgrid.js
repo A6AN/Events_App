@@ -1,7 +1,7 @@
 const QRCode = require('qrcode');
 const fs = require('fs');
 
-const data = "https://www.google.com";
+const data = "https://chat.whatsapp.com/GzTG445P70x8MfifnKg1uy?mode=gi_t";
 
 // Get the raw logical matrix from the library
 const qr = QRCode.create(data, { errorCorrectionLevel: 'H' });
