@@ -12,4 +12,3 @@ export * from './profileService';
 export * from './socialService';
 export * from './chatService';
 export * from './notificationService';
-export * from './friendService';

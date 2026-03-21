@@ -10,7 +10,7 @@ export interface AppNotification {
   id: string
   user_id: string
   actor_id: string | null
-  type: 'follow' | 'like' | 'comment' | 'booking' | 'dm' | 'event_reminder'
+  type: 'follow' | 'like' | 'comment' | 'booking' | 'dm' | 'event_reminder' | 'friend_request' | 'friend_accepted'
   title: string
   body: string
   data: Record<string, any> | null

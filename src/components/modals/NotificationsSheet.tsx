@@ -52,6 +52,8 @@ const TYPE_CONFIG: Record<AppNotification['type'], { icon: any; color: string }>
   booking: { icon: Ticket, color: '#34d399' },
   dm: { icon: MessageCircle, color: '#facc15' },
   event_reminder: { icon: Calendar, color: '#fb923c' },
+  friend_request: { icon: UserPlus, color: '#a78bfa' },
+  friend_accepted: { icon: Sparkles, color: '#34d399' },
 }
 
 export function NotificationsSheet({ open, onClose }: NotificationsSheetProps) {

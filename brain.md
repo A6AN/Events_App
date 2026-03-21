@@ -1827,7 +1827,6 @@ Every item below was identified as a gap in the original document and has been a
 | 71 | Live Settings in Settings (notifications, viewer requests, low data mode) | §27 |
 | 72 | Co-host Permissions default in Creator Tools Event Defaults | §27 |
 | 73 | Music Bookings + Event Reminders nodes in Manage settings | §27 |
-```
 
 ---
 
@@ -1836,6 +1835,10 @@ Every item below was identified as a gap in the original document and has been a
 > **Legend:** ✅ Done · 🟡 Partial/Mocked · ❌ Not Started · ⚠️ Done Differently
 >
 > This is the single source of truth on what has actually been built vs what is specced in this document. Update after every sprint.
+
+### 29.0 March 21 OLED Overhaul
+
+This audit reflects the state of the codebase after the significant UI overhaul on March 21, focusing on high-fidelity OLED-style components and interactions across the application.
 
 ---
 
@@ -1847,8 +1850,8 @@ Every item below was identified as a gap in the original document and has been a
 | TailwindCSS | §2 | ✅ Done | Used across all components |
 | Supabase client init (`supabase.ts`) | §3 | ✅ Done | Client-only, no query logic |
 | Service layer (`src/lib/services/`) | §3 | ✅ Done | 7 files: `eventService`, `ticketService`, `profileService`, `socialService`, `chatService`, `notificationService`, `index.ts` |
-| `src/hooks/` directory (React Query hooks) | §3 | ❌ Not Started | Directory doesn't exist. All data fetching lives in components via `useEffect` |
-| `src/lib/utils.ts` for pure helpers | §3 | ❌ Not Started | No utils file |
+| `src/hooks/` directory (React Query hooks) | §3 | ✅ Done | Directory exists. Hooks like `useEventSearch`, `useVenueSearch`, `useMyProfile` are active. |
+| `src/lib/utils.ts` for pure helpers | §3 | ❌ Not Started | No central utils file yet. |
 | `supabase/migrations/` versioned SQL files | §3 | ❌ Not Started | DB managed manually in Supabase Studio. Zero migration files |
 | TanStack React Query | §2 | 🟡 Partial | `QueryClientProvider` in `main.tsx`. `useQuery` used in `App.tsx` only. All other components still use raw `useEffect` |
 | OlaMaps Web SDK | §15 | ✅ Done | `MapTab.tsx` + location search in `CreateEventWizard.tsx` |
@@ -1870,11 +1873,11 @@ Every item below was identified as a gap in the original document and has been a
 
 | Table | Spec | Status | Notes |
 |---|---|---|---|
-| `profiles` | §4.1 | 🟡 Partial | Exists. `types.ts` `DbProfile` is outdated — missing `date_of_birth`, `university`, `is_private`, `attendance_visibility`, `rep_score`, `rep_tier`, `is_verified`, `vip_badge`, `fcm_token`, `account_status` |
+| `profiles` | §4.1 | ✅ Done | Fully aligned with `display_name`. Rep tiers and scores integrated into UI. |
 | `device_tokens` | §4.2 | ❌ Not Started | Not created |
-| `friendships` | §4.3 | ❌ Not Started | **Critical gap.** App still has a `follows` table (old asymmetric follower model). `types.ts` has `DbFollow` with `follower_id/following_id` — this must be replaced |
-| `venues` | §4.4 | 🟡 Partial | Exists. `DbVenue` uses `location TEXT` instead of `address TEXT + lat + lng`. Missing `photo_urls[]`, `is_verified`, `is_active` |
-| `events` | §4.5 | 🟡 Partial | Exists. `DbEvent` in `types.ts` is severely outdated — uses `date` string instead of `start_time`/`end_time`, has `mood` field (removed from spec), missing `venue_id`, `visibility`, `status`, `is_free`, `min_age`, `is_sponsored`, `fomo_score`, `total_capacity`, `is_staff_pick` |
+| `friendships` | §4.3 | ❌ Not Started | **Critical gap.** App still has a `follows` table (old asymmetric follower model). This is the next major structural push. |
+| `venues` | §4.4 | 🟡 Partial | Exists. Using real DB search hooks. |
+| `events` | §4.5 | ✅ Done | Schema aligned. Categories matched to DB enum. FOMO score/ranking not yet algorithmic. |
 | `ticket_types` | §4.6 | ❌ Not Started | No ticket tiers. Events have a single flat price |
 | `ticket_holds` | §4.7 | ❌ Not Started | No race-condition protection |
 | `tickets` | §4.8 | ⚠️ Done Differently | `DbTicket` exists but has `qr_code` column (stored JWT — **security anti-pattern per §13.1**), `quantity`, `total_price`. Missing `ticket_type_id`, `purchaser_id`, `scanned_at`, `scanned_by` |
@@ -1932,12 +1935,12 @@ Every item below was identified as a gap in the original document and has been a
 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
-| Bottom nav (5 tabs) | §23.1 | ✅ Done | `BottomNav.tsx` |
-| Feed tab (`Discover` + `Friends`) | §23.1 | ✅ Done | `SocialTab.tsx` with `live`/`friends` sub-tabs |
-| Explore tab (Events + Venues) | §23.1 | ✅ Done | `ExploreTab.tsx` + `VenuesTab.tsx` |
-| Map tab | §23.1 | ✅ Done | `MapTab.tsx` with OlaMaps |
-| Tickets tab | §23.1 | ✅ Done | `TicketsTab.tsx` |
-| Profile tab | §23.1 | ✅ Done | `ProfileTab.tsx` |
+| Bottom nav (5 tabs) | §23.1 | ✅ Done | `BottomNav.tsx` — Premium floating glass dock. |
+| Feed tab (`Discover` + `Friends`) | §23.1 | ✅ Done | `SocialTab.tsx` — High-fidelity OLED pulse feed. |
+| Explore tab (Events + Venues) | §23.1 | ✅ Done | `ExploreTab.tsx` — Premium cards with real DB search hooks. |
+| Map tab | §23.1 | ✅ Done | `MapTab.tsx` — Category-colored glows + OLED search. |
+| Tickets tab | §23.1 | 🟡 Partial | Functional, but needs final OLED style parity with Explore/Social. |
+| Profile tab | §23.1 | ✅ Done | `ProfileTab.tsx` — Premium OLED layout with Rep/Tier support. |
 
 ---
 
@@ -2042,7 +2045,7 @@ Every item below was identified as a gap in the original document and has been a
 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
-| Settings sheet (all top-level sections) | §27 | ✅ Done | `SettingsSheet.tsx` — full drill-down nav UI |
+| Settings sheet (all top-level sections) | §27 | ✅ Done | `SettingsSheet.tsx` — Rebuilt as premium multi-view glass modal. |
 | Theme toggle (Light/Dark/Auto) | §27 | ✅ Done | `ThemeContext.tsx` |
 | Attendance visibility + private account toggles | §27 | 🟡 Partial | UI exists but not persisted to `profiles` columns |
 | Change password | §27 | ✅ Done | Via Supabase `updateUser` |
@@ -2075,4 +2078,4 @@ Every item below was identified as a gap in the original document and has been a
 
 ---
 
-> **Last audited:** March 19, 2026. Update this section after every sprint.
+> **Last audited:** March 21, 2026. Updated after the massive high-fidelity OLED UI overhaul.
