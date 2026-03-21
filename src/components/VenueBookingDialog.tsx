@@ -1,353 +1,191 @@
-import { X, Star, Download, QrCode, Users, IndianRupee } from 'lucide-react';
-import { DbVenue } from '../types';
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ImageWithFallback } from './figma/ImageWithFallback'; // Adjust import
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X, Users, IndianRupee } from 'lucide-react'
+import type { DbVenue } from '../types'
 
-interface VenueBookingDialogProps {
-  venue: DbVenue | null;
-  open: boolean;
-  onClose: () => void;
+interface Props {
+  venue: DbVenue | null
+  open: boolean
+  onClose: () => void
 }
 
-export function VenueBookingDialog({ venue, open, onClose }: VenueBookingDialogProps) {
-  const [isBooked, setIsBooked] = useState(false);
-  const [selectedHours, setSelectedHours] = useState(4);
+export function VenueBookingDialog({ venue, open, onClose }: Props) {
+  const [hours, setHours] = useState(4)
+  const [booked, setBooked] = useState(false)
 
-  if (!venue) return null;
+  if (!venue) return null
 
-  const handleBook = () => {
-    setIsBooked(true);
-  };
+  const pricePerHour = venue.price_per_hour ?? 0
+  const total = pricePerHour * hours
+  const totalDisplay = total === 0 ? 'Free' : `₹${total.toLocaleString('en-IN')}`
 
-  const handleCloseConfirmation = () => {
-    setIsBooked(false);
-    onClose();
-  };
+  const handleClose = () => {
+    setBooked(false)
+    setHours(4)
+    onClose()
+  }
 
-  const totalPrice = (venue.price_per_hour ?? 0) * selectedHours;
+  const FF = "'Inter Tight','Inter',sans-serif"
 
   return (
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
-            onClick={!isBooked ? onClose : undefined}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)', zIndex: 40 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={!booked ? handleClose : undefined}
           />
 
-          {!isBooked ? (
-            /* Booking Detail View */
-            <motion.div
-              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            >
-              <div className="h-full overflow-y-auto scrollbar-hide bg-background">
-                {/* Hero Image Section */}
-                <div className="relative h-96">
-                  <ImageWithFallback
-                    src={venue.cover_url ?? ''}
-                    alt={venue.name}
-                    className="w-full h-full object-cover"
-                  />
+          <motion.div
+            style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0,
+              maxWidth: 400, margin: '0 auto',
+              background: '#000',
+              border: '0.5px solid rgba(255,255,255,.08)',
+              borderRadius: '24px 24px 0 0',
+              zIndex: 50, overflow: 'hidden',
+              fontFamily: FF,
+            }}
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            {/* Aura */}
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div style={{
+                position: 'absolute', width: 300, height: 300, top: -100, right: -60,
+                background: 'radial-gradient(circle, rgba(80,160,255,.4) 0%, transparent 70%)',
+                filter: 'blur(20px)',
+              }} />
+            </div>
 
-                  {/* Gradient Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-                  <div className="absolute inset-0 grain opacity-30" />
+            <div style={{ position: 'relative', zIndex: 1, padding: '28px 24px 48px' }}>
+              {/* Handle + close */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+                <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,.15)' }} />
+                <button onClick={handleClose} style={{
+                  background: 'rgba(255,255,255,.07)', border: '0.5px solid rgba(255,255,255,.1)',
+                  borderRadius: '50%', width: 32, height: 32,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
+                }}>
+                  <X size={16} color="rgba(255,255,255,.5)" />
+                </button>
+              </div>
 
-                  {/* Header Controls */}
-                  <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
-                    <motion.button
-                      onClick={onClose}
-                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <X className="h-5 w-5 text-white" />
-                    </motion.button>
-
-                    <motion.button
-                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
-                        <path d="M18 8h3M21 5v6M12 13v9M8 20h8M3 21l6-6M12 13l3 8 3-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </motion.button>
+              {!booked ? (
+                <>
+                  {/* Venue info */}
+                  <div style={{ marginBottom: 24 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', color: 'rgba(255,255,255,.25)', marginBottom: 6 }}>
+                      {(venue.categories?.[0] ?? 'VENUE').toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.1, marginBottom: 6 }}>
+                      {venue.name}
+                    </div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>
+                      {venue.address ?? venue.city}
+                    </div>
                   </div>
 
-                  {/* Venue Title & Rating Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h1 className="text-white text-3xl font-bold mb-2 drop-shadow-lg">
-                          {venue.name}
-                        </h1>
-                        <p className="text-white/80 text-sm">{venue.categories?.[0] ?? 'Venue'} • {venue.address}</p>
-                      </div>
-                      <motion.div
-                        className="glass backdrop-blur-2xl px-4 py-2.5 rounded-2xl shadow-2xl ml-4 flex-shrink-0 border border-white/20"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                          <span className="text-white text-lg font-semibold">4.5</span>
+                  {/* Stats row */}
+                  <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+                    {[
+                      { icon: <Users size={14} />, label: 'CAPACITY', value: `${venue.capacity ?? '—'} people` },
+                      { icon: <IndianRupee size={14} />, label: 'PER HOUR', value: pricePerHour === 0 ? 'Free' : `₹${(pricePerHour / 100).toLocaleString('en-IN')}` },
+                    ].map(({ icon, label, value }) => (
+                      <div key={label} style={{
+                        flex: 1, background: 'rgba(255,255,255,.04)',
+                        border: '0.5px solid rgba(255,255,255,.07)',
+                        borderRadius: 14, padding: '14px 16px',
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: 'rgba(255,255,255,.25)', marginBottom: 6 }}>
+                          {icon}
+                          <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: '0.12em' }}>{label}</span>
                         </div>
-                      </motion.div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="p-6 space-y-6">
-                  {/* Capacity & Price Info */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Users className="h-4 w-4 text-foreground" />
-                        <span className="text-muted-foreground text-xs">Capacity</span>
+                        <div style={{ fontSize: 16, fontWeight: 800, color: '#fff' }}>{value}</div>
                       </div>
-                      <div className="text-foreground text-2xl font-bold">{venue.capacity}</div>
-                    </div>
-                    <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                      <div className="flex items-center gap-2 mb-2">
-                        <IndianRupee className="h-4 w-4 text-foreground" />
-                        <span className="text-muted-foreground text-xs">Per Hour</span>
-                      </div>
-                      <div className="text-foreground text-2xl font-bold">₹{((venue.price_per_hour ?? 0) / 1000).toFixed(0)}k</div>
-                    </div>
-                  </div>
-
-                  {/* About Section */}
-                  <div>
-                    <h3 className="text-foreground text-lg font-semibold mb-3">About this venue :</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      {venue.name} is a premium {(venue.categories?.[0] ?? 'venue').toLowerCase()} located in {venue.address ?? venue.city}.
-                      Perfect for hosting memorable events with excellent amenities.
-                    </p>
+                    ))}
                   </div>
 
                   {/* Amenities */}
-                  <div>
-                    <h3 className="text-foreground text-lg font-semibold mb-3">Amenities</h3>
-                    <div className="flex flex-wrap gap-2">
-                      {(venue.amenities ?? []).map((amenity: string, idx: number) => (
-                        <div
-                          key={idx}
-                          className="glass backdrop-blur-xl px-3 py-2 rounded-full text-xs border border-white/10 text-foreground"
-                        >
-                          {amenity}
-                        </div>
+                  {(venue.amenities ?? []).length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                      {(venue.amenities ?? []).map((a, i) => (
+                        <div key={i} style={{
+                          padding: '5px 12px', borderRadius: 99,
+                          background: 'rgba(255,255,255,.04)',
+                          border: '0.5px solid rgba(255,255,255,.08)',
+                          fontSize: 11, color: 'rgba(255,255,255,.45)',
+                        }}>{a}</div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Hours stepper */}
+                  <div style={{
+                    background: 'rgba(255,255,255,.04)', border: '0.5px solid rgba(255,255,255,.07)',
+                    borderRadius: 16, padding: '16px 20px', marginBottom: 24,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', letterSpacing: '0.1em', marginBottom: 4 }}>DURATION</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{hours} hours</div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      {[{ label: '−', action: () => setHours(h => Math.max(2, h - 1)) }, { label: '+', action: () => setHours(h => Math.min(12, h + 1)) }].map(({ label, action }) => (
+                        <button key={label} onClick={action} style={{
+                          width: 32, height: 32, borderRadius: '50%',
+                          background: 'rgba(255,255,255,.07)', border: '0.5px solid rgba(255,255,255,.1)',
+                          color: '#fff', fontSize: 18, cursor: 'pointer',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>{label}</button>
                       ))}
                     </div>
                   </div>
 
-                  {/* Hours Selection */}
-                  <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-foreground text-sm font-medium">Number of hours</span>
-                      <span className="text-muted-foreground text-xs">Min 2 hours</span>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <motion.button
-                        onClick={() => setSelectedHours(Math.max(2, selectedHours - 1))}
-                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <span className="text-foreground text-xl">−</span>
-                      </motion.button>
-                      <div className="flex-1 glass backdrop-blur-xl rounded-xl py-2 text-center border border-white/10">
-                        <span className="text-foreground text-lg font-semibold">{selectedHours} hours</span>
-                      </div>
-                      <motion.button
-                        onClick={() => setSelectedHours(Math.min(12, selectedHours + 1))}
-                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <span className="text-foreground text-xl">+</span>
-                      </motion.button>
-                    </div>
-                  </div>
-
-                  {/* Total Price Display */}
-                  <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground text-sm">Total Price</span>
-                      <span className="text-foreground text-2xl font-bold">₹{totalPrice.toLocaleString()}</span>
-                    </div>
-                  </div>
-
-                  {/* Bottom Actions */}
-                  <div className="pb-6">
-                    <motion.button
-                      onClick={handleBook}
-                      className="w-full rounded-2xl text-white font-semibold py-4 shadow-lg relative overflow-hidden"
-                      style={{
-                        background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <span className="relative z-10">Book Venue</span>
-                      {/* Shimmer effect */}
-                      <motion.div
-                        className="absolute inset-0"
-                        style={{
-                          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
-                        }}
-                        animate={{
-                          x: ['-100%', '200%'],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: 'linear',
-                        }}
-                      />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            /* Booking Confirmation View */
-            <motion.div
-              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden flex flex-col"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            >
-              <div className="flex-1 overflow-y-auto scrollbar-hide p-6" style={{ background: '#4A2424' }}>
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                  <motion.button
-                    onClick={handleCloseConfirmation}
-                    className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="h-5 w-5 text-white" />
-                  </motion.button>
-                  <h2 className="text-white text-xl font-semibold">Booking</h2>
-                  <div className="w-10" />
-                </div>
-
-                {/* Booking Card */}
-                <motion.div
-                  className="relative mx-auto"
-                  style={{ maxWidth: '340px' }}
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {/* Ticket Shape with Notches */}
-                  <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl">
-                    {/* Hero Image */}
-                    <div className="relative h-48 overflow-hidden rounded-t-3xl">
-                      <ImageWithFallback
-                        src={venue.cover_url ?? ''}
-                        alt={venue.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    </div>
-
-                    {/* Notches */}
-                    <div className="absolute left-0 top-48 -ml-4 w-8 h-8 rounded-full bg-[#4A2424]" />
-                    <div className="absolute right-0 top-48 -mr-4 w-8 h-8 rounded-full bg-[#4A2424]" />
-
-                    {/* Dashed Line */}
-                    <div className="border-t-2 border-dashed border-gray-300" />
-
-                    {/* Booking Details */}
-                    <div className="p-6">
-                      <h3 className="text-black text-lg font-bold text-center mb-1">
-                        {venue.name}
-                      </h3>
-                      <p className="text-black/60 text-sm text-center mb-6">
-                        {venue.categories?.[0] ?? 'Venue'} • {venue.address}
-                      </p>
-
-                      {/* Date & Duration */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Date</div>
-                          <div className="text-black font-semibold">Dec 29, 2024</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Duration</div>
-                          <div className="text-black font-semibold">{selectedHours} hours</div>
-                        </div>
-                      </div>
-
-                      {/* Capacity & Total */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Capacity</div>
-                          <div className="text-black font-semibold">{venue.capacity} people</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Total</div>
-                          <div className="text-black font-semibold">₹{totalPrice.toLocaleString()}</div>
-                        </div>
-                      </div>
-
-                      {/* Barcode */}
-                      <div className="border-t-2 border-dashed border-gray-300 pt-4">
-                        <div className="flex justify-center">
-                          <svg width="280" height="60" viewBox="0 0 280 60">
-                            {[...Array(40)].map((_, i) => (
-                              <rect
-                                key={i}
-                                x={i * 7}
-                                y="0"
-                                width={Math.random() > 0.5 ? 3 : 2}
-                                height="60"
-                                fill="black"
-                              />
-                            ))}
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex gap-3">
-                  <motion.button
-                    className="flex-1 rounded-2xl text-white font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
+                  {/* CTA */}
+                  <button
+                    onClick={() => setBooked(true)}
                     style={{
-                      background: 'linear-gradient(135deg, #FF5757 0%, #FF3D3D 100%)',
+                      width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+                      background: 'rgba(255,255,255,.97)', color: '#000',
+                      fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: FF,
                     }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    <Download className="h-5 w-5" />
-                    <span>Image</span>
-                  </motion.button>
-
-                  <motion.button
-                    className="flex-1 bg-white rounded-2xl text-black font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <QrCode className="h-5 w-5" />
-                    <span>QR Code</span>
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+                    Book · {totalDisplay}
+                  </button>
+                </>
+              ) : (
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ textAlign: 'center', paddingTop: 16 }}
+                >
+                  <div style={{
+                    width: 64, height: 64, borderRadius: '50%',
+                    background: 'rgba(80,160,255,.12)', border: '0.5px solid rgba(80,160,255,.3)',
+                    margin: '0 auto 20px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28,
+                  }}>✓</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', marginBottom: 6 }}>
+                    Venue booked.
+                  </div>
+                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,.35)', marginBottom: 4 }}>{venue.name}</div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.25)', marginBottom: 32 }}>
+                    {hours} hours · {totalDisplay}
+                  </div>
+                  <button onClick={handleClose} style={{
+                    width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+                    background: 'rgba(255,255,255,.97)', color: '#000',
+                    fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: FF,
+                  }}>
+                    Done →
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }
