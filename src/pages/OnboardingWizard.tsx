@@ -199,6 +199,7 @@ export function OnboardingWizard() {
                 onCheckUsername={checkUsername}
                 onAvatarClick={() => fileRef.current?.click()}
                 uploadAvatar={uploadAvatar}
+                aura={aura}
               />
             )}
             {step === 1 && <Step2University data={data} setData={setData} />}
@@ -282,7 +283,7 @@ export function OnboardingWizard() {
 // ─── STEP 1: PROFILE ──────────────────────────────
 
 function Step1Profile({ data, setData, usernameError, usernameOk,
-  checkingUsername, onCheckUsername, onAvatarClick, uploadAvatar }: any) {
+  checkingUsername, onCheckUsername, onAvatarClick, uploadAvatar, aura }: any) {
   return (
     <div>
       <h1 style={headingStyle}>Who are you?</h1>
@@ -291,17 +292,18 @@ function Step1Profile({ data, setData, usernameError, usernameOk,
       {/* Avatar */}
       <div style={{ display: 'flex', justifyContent: 'center', margin: '32px 0' }}>
         <button onClick={onAvatarClick} style={{
-          width: 80, height: 80, borderRadius: '50%',
+          width: 96, height: 96, borderRadius: '50%',
           background: 'rgba(255,255,255,.04)',
           border: `0.5px dashed ${data.avatar_url ? 'rgba(255,255,255,.2)' : 'rgba(255,255,255,.1)'}`,
           cursor: 'pointer', overflow: 'hidden',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: `0 0 32px ${aura.a}`,
         }}>
           {data.avatar_url
             ? <img src={data.avatar_url} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             : uploadAvatar.isPending
             ? <div style={{ color: 'rgba(255,255,255,.2)', fontSize: 11 }}>...</div>
-            : <Camera size={20} color="rgba(255,255,255,.2)" />
+            : <Camera size={24} color="rgba(255,255,255,.2)" />
           }
         </button>
       </div>
@@ -550,6 +552,7 @@ function PermissionRow({ title, description, granted, onRequest }: {
     <div style={{
       background: 'rgba(255,255,255,.03)',
       border: '0.5px solid rgba(255,255,255,.07)',
+      borderLeft: '2px solid rgba(180,140,255,.4)',
       borderRadius: 16, padding: '18px 20px',
       display: 'flex', justifyContent: 'space-between',
       alignItems: 'center', gap: 16,
@@ -600,7 +603,7 @@ function Step4Friends({ university, city }: { university: string; city: string }
             textAlign: 'center',
             color: 'rgba(255,255,255,.2)', fontSize: 13,
           }}>
-            Be one of the first from your campus.
+            Drop your referral code — be the one who brought the wave.
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -662,8 +665,8 @@ function Step4Friends({ university, city }: { university: string; city: string }
 // ─── SHARED STYLES ────────────────────────────────
 
 const headingStyle: React.CSSProperties = {
-  fontSize: 28, fontWeight: 800, letterSpacing: '-0.03em',
-  color: '#fff', lineHeight: 1.1, marginBottom: 8,
+  fontSize: 44, fontWeight: 800, letterSpacing: '-0.04em',
+  color: '#fff', lineHeight: 1.05, marginBottom: 8,
 }
 
 const subStyle: React.CSSProperties = {
