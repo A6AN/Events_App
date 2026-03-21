@@ -1,393 +1,233 @@
-import { Calendar, X, Download, QrCode, Check, Loader2 } from 'lucide-react';
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useAuth } from '../context/AuthContext';
-import { createTicket } from '../lib/services/ticketService';
-import type { DbEvent, DbTicketType } from '../types'
+import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { X } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
+import { createTicket } from '../lib/services/ticketService'
+import type { EventWithMeta, DbTicketType } from '../types'
 
-interface TicketBookingDialogProps {
-  event: any | null;
-  ticketType: any | null;
-  open: boolean;
-  onClose: () => void;
+const CATEGORY_AURA: Record<string, string> = {
+  club: 'rgba(249,100,60,.5)',
+  dj_night: 'rgba(249,100,60,.5)',
+  house_party: 'rgba(232,60,160,.45)',
+  comedy: 'rgba(255,200,60,.45)',
+  open_mic: 'rgba(180,140,255,.45)',
+  networking: 'rgba(60,230,180,.4)',
+  sports: 'rgba(60,230,180,.45)',
+  other: 'rgba(80,160,255,.45)',
 }
 
-export function TicketBookingDialog({ event, ticketType, open, onClose }: TicketBookingDialogProps) {
-  const { user } = useAuth();
-  const [isBooked, setIsBooked] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedSeats, setSelectedSeats] = useState(2);
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('en-IN', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+}
 
-  if (!event || !ticketType) return null;
+function formatTime(iso: string) {
+  return new Date(iso).toLocaleTimeString('en-IN', {
+    hour: '2-digit', minute: '2-digit', hour12: true,
+  }).toUpperCase()
+}
+
+interface Props {
+  event: EventWithMeta | null
+  ticketType: DbTicketType | null
+  open: boolean
+  onClose: () => void
+}
+
+export function TicketBookingDialog({ event, ticketType, open, onClose }: Props) {
+  const { user } = useAuth()
+  const [qty, setQty] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [booked, setBooked] = useState(false)
+  const [error, setError] = useState('')
+
+  if (!event || !ticketType) return null
+
+  const aura = CATEGORY_AURA[event.category] ?? 'rgba(180,140,255,.45)'
+  const total = ticketType.price === 0 ? 'Free' : `₹${((ticketType.price * qty) / 100).toLocaleString('en-IN')}`
 
   const handleBook = async () => {
-    if (!user) {
-      alert("Please login to book tickets");
-      return;
-    }
-
-    setIsLoading(true);
+    if (!user) { setError('Please log in to book.'); return }
+    setLoading(true)
+    setError('')
     try {
       await createTicket({
         event_id: event.id,
         user_id: user.id,
         ticket_type_id: ticketType.id,
-        status: 'active',
-      });
-
-      setIsBooked(true);
-    } catch (error) {
-      console.error('Error booking ticket:', error);
-      alert('Failed to book event. Please try again.');
+        quantity: qty,
+      })
+      setBooked(true)
+    } catch (e: any) {
+      setError(e.message ?? 'Booking failed. Try again.')
     } finally {
-      setIsLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
-  const handleCloseConfirmation = () => {
-    setIsBooked(false);
-    onClose();
-  };
+  const handleClose = () => {
+    setBooked(false)
+    setQty(1)
+    setError('')
+    onClose()
+  }
 
   return (
     <AnimatePresence>
       {open && (
         <>
-          {/* Backdrop */}
           <motion.div
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
-            onClick={!isBooked ? onClose : undefined}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)', zIndex: 40 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={!booked ? handleClose : undefined}
           />
 
-          {!isBooked ? (
-            /* Booking Detail View */
-            <motion.div
-              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            >
-              <div className="h-full overflow-y-auto scrollbar-hide bg-background">
-                {/* Hero Image Section */}
-                <div className="relative h-96">
-                  <ImageWithFallback
-                    src={event.cover_url ?? ''}
-                    alt={event.title}
-                    className="w-full h-full object-cover"
-                  />
+          <motion.div
+            style={{
+              position: 'fixed', bottom: 0, left: 0, right: 0,
+              maxWidth: 400, margin: '0 auto',
+              background: '#000',
+              border: '0.5px solid rgba(255,255,255,.08)',
+              borderRadius: '24px 24px 0 0',
+              zIndex: 50, overflow: 'hidden',
+              fontFamily: "'Inter Tight','Inter',sans-serif",
+            }}
+            initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+          >
+            {/* Aura */}
+            <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}>
+              <div style={{
+                position: 'absolute', width: 300, height: 300,
+                top: -100, left: -60,
+                background: `radial-gradient(circle, ${aura} 0%, transparent 70%)`,
+                filter: 'blur(20px)',
+              }} />
+            </div>
 
-                  {/* Gradient Overlays */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
+            <div style={{ position: 'relative', zIndex: 1, padding: '28px 24px 48px' }}>
+              {/* Handle + close */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 }}>
+                <div style={{ width: 36, height: 4, borderRadius: 99, background: 'rgba(255,255,255,.15)', margin: '0 auto' }} />
+                <button onClick={handleClose} style={{
+                  background: 'rgba(255,255,255,.07)', border: '0.5px solid rgba(255,255,255,.1)',
+                  borderRadius: '50%', width: 32, height: 32,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  cursor: 'pointer',
+                }}>
+                  <X size={16} color="rgba(255,255,255,.5)" />
+                </button>
+              </div>
 
-                  {/* Header Controls */}
-                  <div className="absolute top-0 left-0 right-0 flex items-center justify-between p-4">
-                    <motion.button
-                      onClick={onClose}
-                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <X className="h-5 w-5 text-white" />
-                    </motion.button>
-
-                    <motion.button
-                      className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      {/* Share Icon */}
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" className="text-white">
-                        <path d="M18 8h3M21 5v6M12 13v9M8 20h8M3 21l6-6M12 13l3 8 3-8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </motion.button>
-                  </div>
-
-                  {/* Event Title & Price Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex-1">
-                        <h1 className="text-white text-3xl font-bold mb-2 drop-shadow-lg">
-                          {event.title}
-                        </h1>
-                        <p className="text-white/80 text-sm">
-                          {event.category || 'Event'}: {event.address ?? event.city}
-                        </p>
-                      </div>
-                      <motion.div
-                        className="bg-white rounded-3xl px-5 py-3 shadow-2xl ml-4 flex-shrink-0"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        <div className="text-black text-xl font-bold">₹{ticketType.price ?? 0}</div>
-                      </motion.div>
+              {!booked ? (
+                <>
+                  {/* Event info */}
+                  <div style={{ marginBottom: 28 }}>
+                    <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.14em', color: 'rgba(255,255,255,.25)', marginBottom: 6 }}>
+                      {event.category.replace('_', ' ').toUpperCase()}
+                    </div>
+                    <div style={{ fontSize: 26, fontWeight: 800, letterSpacing: '-0.03em', color: '#fff', lineHeight: 1.1, marginBottom: 6 }}>
+                      {event.title}
+                    </div>
+                    <div style={{ fontSize: 13, color: 'rgba(255,255,255,.35)' }}>
+                      {event.address ?? event.city}
                     </div>
                   </div>
-                </div>
 
-                {/* Content Section */}
-                <div className="p-6 space-y-6">
-                  {/* Date & Time Info */}
-                  <div className="flex items-center justify-between">
+                  {/* Date / time row */}
+                  <div style={{
+                    background: 'rgba(255,255,255,.04)', border: '0.5px solid rgba(255,255,255,.07)',
+                    borderRadius: 16, padding: '16px 20px', marginBottom: 16,
+                    display: 'flex', justifyContent: 'space-between',
+                  }}>
                     <div>
-                      <div className="flex items-center gap-4 mb-1">
-                        <div>
-                          <div className="text-3xl font-bold text-foreground">29</div>
-                          <div className="text-xs text-muted-foreground uppercase">December</div>
-                        </div>
-                        <div className="h-12 w-px bg-border" />
-                        <div>
-                          <div className="text-lg font-semibold text-foreground">Tuesday</div>
-                          <div className="text-sm text-muted-foreground">{event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'} - End</div>
-                        </div>
-                      </div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', letterSpacing: '0.1em', marginBottom: 4 }}>DATE</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{formatDate(event.start_time)}</div>
                     </div>
-                    <motion.div
-                      className="glass backdrop-blur-xl p-3 rounded-2xl border border-white/10"
-                      whileTap={{ scale: 0.9 }}
-                    >
-                      <Calendar className="h-6 w-6 text-foreground" />
-                    </motion.div>
-                  </div>
-
-                  {/* About Section */}
-                  <div>
-                    <h3 className="text-foreground text-lg font-semibold mb-3">About this event :</h3>
-                    <p className="text-muted-foreground text-sm leading-relaxed">
-                      Experience {event.title} live at {event.address ?? event.city}.
-                      An unforgettable evening of entertainment and connection.
-                    </p>
-                  </div>
-
-                  {/* Description with Rating */}
-                  <div>
-                    <div className="flex items-center justify-between mb-4">
-                      <h3 className="text-foreground text-lg font-semibold">Description</h3>
-                      <div className="flex items-center gap-1.5 glass backdrop-blur-xl px-3 py-1.5 rounded-full border border-white/10">
-                        <svg className="h-4 w-4 text-yellow-400 fill-yellow-400" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        <span className="text-foreground text-sm font-medium">4.8</span>
-                      </div>
-                    </div>
-
-                    {/* Checklist Items */}
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-3">
-                        <div className="glass backdrop-blur-xl w-6 h-6 rounded-full flex items-center justify-center border border-white/20 flex-shrink-0 mt-0.5">
-                          <Check className="h-3.5 w-3.5 text-foreground" />
-                        </div>
-                        <p className="text-muted-foreground text-sm flex-1">
-                          {event.title} performance at {event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'}
-                        </p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="glass backdrop-blur-xl w-6 h-6 rounded-full flex items-center justify-center border border-white/20 flex-shrink-0 mt-0.5">
-                          <Check className="h-3.5 w-3.5 text-muted-foreground" />
-                        </div>
-                        <p className="text-muted-foreground text-sm flex-1">
-                          Meet and greet opportunities available
-                        </p>
-                      </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', letterSpacing: '0.1em', marginBottom: 4 }}>TIME</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{formatTime(event.start_time)}</div>
                     </div>
                   </div>
 
-                  {/* Seats Available */}
-                  <div className="glass backdrop-blur-xl rounded-2xl p-4 border border-white/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-foreground text-sm font-medium">Number of tickets</span>
-                      <span className="text-muted-foreground text-xs">{ticketType.capacity ?? 100} available</span>
+                  {/* Ticket type + qty */}
+                  <div style={{
+                    background: 'rgba(255,255,255,.04)', border: '0.5px solid rgba(255,255,255,.07)',
+                    borderRadius: 16, padding: '16px 20px', marginBottom: 24,
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 10, color: 'rgba(255,255,255,.2)', letterSpacing: '0.1em', marginBottom: 4 }}>TICKET</div>
+                      <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{ticketType.name}</div>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <motion.button
-                        onClick={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
-                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <span className="text-foreground text-xl">−</span>
-                      </motion.button>
-                      <div className="flex-1 glass backdrop-blur-xl rounded-xl py-2 text-center border border-white/10">
-                        <span className="text-foreground text-lg font-semibold">{selectedSeats}</span>
-                      </div>
-                      <motion.button
-                        onClick={() => setSelectedSeats(Math.min(10, selectedSeats + 1))}
-                        className="glass backdrop-blur-xl w-10 h-10 rounded-xl flex items-center justify-center border border-white/10"
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <span className="text-foreground text-xl">+</span>
-                      </motion.button>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                      <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: 'rgba(255,255,255,.07)', border: '0.5px solid rgba(255,255,255,.1)',
+                        color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>−</button>
+                      <span style={{ color: '#fff', fontWeight: 700, fontSize: 16, minWidth: 16, textAlign: 'center' }}>{qty}</span>
+                      <button onClick={() => setQty(q => Math.min(6, q + 1))} style={{
+                        width: 32, height: 32, borderRadius: '50%',
+                        background: 'rgba(255,255,255,.07)', border: '0.5px solid rgba(255,255,255,.1)',
+                        color: '#fff', fontSize: 18, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>+</button>
                     </div>
                   </div>
 
-                  {/* Bottom Actions */}
-                  <div className="pb-6">
-                    <motion.button
-                      onClick={handleBook}
-                      disabled={isLoading}
-                      className="w-full rounded-2xl text-white font-semibold py-4 shadow-lg relative overflow-hidden disabled:opacity-70 disabled:cursor-not-allowed"
-                      style={{
-                        background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      }}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        {isLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Confirm Booking'}
-                      </span>
-                      {/* Shimmer effect */}
-                      <motion.div
-                        className="absolute inset-0"
-                        style={{
-                          background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)',
-                        }}
-                        animate={{
-                          x: ['-100%', '200%'],
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: 'linear',
-                        }}
-                      />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
-            /* Ticket Confirmation View */
-            <motion.div
-              className="fixed inset-0 z-50 max-w-lg mx-auto overflow-hidden flex flex-col"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            >
-              <div className="flex-1 overflow-y-auto scrollbar-hide p-6" style={{ background: '#022c22' }}>
-                {/* Header */}
-                <div className="flex items-center justify-between mb-8">
-                  <motion.button
-                    onClick={handleCloseConfirmation}
-                    className="glass backdrop-blur-2xl w-10 h-10 rounded-full flex items-center justify-center border border-white/20"
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    <X className="h-5 w-5 text-white" />
-                  </motion.button>
-                  <h2 className="text-white text-xl font-semibold">Tickets</h2>
-                  <div className="w-10" />
-                </div>
+                  {error && <p style={{ color: 'rgba(249,100,60,.9)', fontSize: 12, marginBottom: 12 }}>{error}</p>}
 
-                {/* Ticket Card */}
-                <motion.div
-                  className="relative mx-auto"
-                  style={{ maxWidth: '340px' }}
-                  initial={{ y: 50, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.2 }}
-                >
-                  {/* Ticket Shape with Notches */}
-                  <div className="relative bg-white rounded-3xl overflow-hidden shadow-2xl">
-                    {/* Hero Image */}
-                    <div className="relative h-48 overflow-hidden rounded-t-3xl">
-                      <ImageWithFallback
-                        src={event.cover_url ?? ''}
-                        alt={event.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
-                    </div>
-
-                    {/* Notches */}
-                    <div className="absolute left-0 top-48 -ml-4 w-8 h-8 rounded-full bg-[#4A2424]" />
-                    <div className="absolute right-0 top-48 -mr-4 w-8 h-8 rounded-full bg-[#4A2424]" />
-
-                    {/* Dashed Line */}
-                    <div className="border-t-2 border-dashed border-gray-300" />
-
-                    {/* Ticket Details */}
-                    <div className="p-6">
-                      <h3 className="text-black text-lg font-bold text-center mb-1">
-                        {event.title}
-                      </h3>
-                      <p className="text-black/60 text-sm text-center mb-6">
-                        {event.address ?? event.city}
-                      </p>
-
-                      {/* Date & Time */}
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Date</div>
-                          <div className="text-black font-semibold">Dec 29, 2024</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Time</div>
-                          <div className="text-black font-semibold">{event.start_time ? new Date(event.start_time).toLocaleTimeString('en-IN', {hour: '2-digit', minute: '2-digit'}) : 'TBD'}</div>
-                        </div>
-                      </div>
-
-                      {/* Venue & Seat */}
-                      <div className="grid grid-cols-2 gap-4 mb-6">
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Location</div>
-                          <div className="text-black font-semibold truncate">{event.address ?? event.city}</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-400 text-xs mb-1">Quantity</div>
-                          <div className="text-black font-semibold">{selectedSeats} Tickets</div>
-                        </div>
-                      </div>
-
-                      {/* Barcode */}
-                      <div className="border-t-2 border-dashed border-gray-300 pt-4">
-                        <div className="flex justify-center">
-                          <svg width="280" height="60" viewBox="0 0 280 60">
-                            {[...Array(40)].map((_, i) => (
-                              <rect
-                                key={i}
-                                x={i * 7}
-                                y="0"
-                                width={Math.random() > 0.5 ? 3 : 2}
-                                height="60"
-                                fill="black"
-                              />
-                            ))}
-                          </svg>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Action Buttons */}
-                <div className="mt-8 flex gap-3">
-                  <motion.button
-                    className="flex-1 rounded-2xl text-white font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
+                  {/* CTA */}
+                  <button
+                    onClick={handleBook}
+                    disabled={loading}
                     style={{
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                      width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+                      background: loading ? 'rgba(255,255,255,.06)' : 'rgba(255,255,255,.97)',
+                      color: loading ? 'rgba(255,255,255,.2)' : '#000',
+                      fontSize: 15, fontWeight: 800, cursor: loading ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit', position: 'relative', overflow: 'hidden',
                     }}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
                   >
-                    <Download className="h-5 w-5" />
-                    <span>Image</span>
-                  </motion.button>
-
-                  <motion.button
-                    className="flex-1 bg-white rounded-2xl text-black font-semibold py-4 shadow-lg flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    <QrCode className="h-5 w-5" />
-                    <span>QR Code</span>
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
+                    {loading ? 'Booking...' : `Confirm · ${total}`}
+                  </button>
+                </>
+              ) : (
+                /* Confirmation */
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ textAlign: 'center', paddingTop: 16 }}
+                >
+                  <div style={{
+                    width: 64, height: 64, borderRadius: '50%',
+                    background: 'rgba(60,230,180,.12)', border: '0.5px solid rgba(60,230,180,.3)',
+                    margin: '0 auto 20px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontSize: 28,
+                  }}>✓</div>
+                  <div style={{ fontSize: 24, fontWeight: 800, color: '#fff', letterSpacing: '-0.03em', marginBottom: 6 }}>
+                    You're in.
+                  </div>
+                  <div style={{ fontSize: 14, color: 'rgba(255,255,255,.35)', marginBottom: 8 }}>
+                    {event.title}
+                  </div>
+                  <div style={{ fontSize: 13, color: 'rgba(255,255,255,.25)', marginBottom: 32 }}>
+                    {formatDate(event.start_time)} · {formatTime(event.start_time)}
+                  </div>
+                  <button onClick={handleClose} style={{
+                    width: '100%', padding: '16px', borderRadius: 14, border: 'none',
+                    background: 'rgba(255,255,255,.97)', color: '#000',
+                    fontSize: 15, fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit',
+                  }}>
+                    View in Tickets →
+                  </button>
+                </motion.div>
+              )}
+            </div>
+          </motion.div>
         </>
       )}
     </AnimatePresence>
-  );
+  )
 }
