@@ -122,14 +122,12 @@ export async function searchEvents(query: string, city?: string): Promise<DbEven
  * per brain.md §12.2
  */
 export async function getDiscoverFeed(userId: string, city?: string): Promise<EventWithMeta[]> {
-  // We use a raw RPC or a complex query because of the dynamic friend count component
-  // which cannot be stored in the materialized view.
   const { data, error } = await supabase
     .rpc('get_discover_feed', { 
       p_user_id: userId,
       p_city: city || 'Delhi'
     })
-
+  console.log('[getDiscoverFeed]', { data, error })
   if (error) throw error
   return (data ?? []) as EventWithMeta[]
 }
