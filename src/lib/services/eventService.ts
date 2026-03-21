@@ -103,16 +103,35 @@ export async function cancelEvent(eventId: string): Promise<void> {
   if (error) throw error
 }
 
-export async function searchEvents(query: string): Promise<DbEvent[]> {
+export async function searchEvents(query: string, city?: string): Promise<DbEvent[]> {
+  if (!query.trim()) return []
   const { data, error } = await supabase
     .from('events')
     .select('*')
     .eq('status', 'published')
-    .textSearch('title', query, { type: 'plain', config: 'english' })
+    .textSearch('title', query, { type: 'websearch', config: 'english' })
+    .order('start_time', { ascending: true })
     .limit(20)
 
   if (error) throw error
   return data ?? []
+}
+
+/**
+ * Get Discover Feed — Ranked by FOMO score (base + per-user friend component)
+ * per brain.md §12.2
+ */
+export async function getDiscoverFeed(userId: string, city?: string): Promise<EventWithMeta[]> {
+  // We use a raw RPC or a complex query because of the dynamic friend count component
+  // which cannot be stored in the materialized view.
+  const { data, error } = await supabase
+    .rpc('get_discover_feed', { 
+      p_user_id: userId,
+      p_city: city || 'Delhi'
+    })
+
+  if (error) throw error
+  return (data ?? []) as EventWithMeta[]
 }
 
 export async function getHappeningNow(
@@ -171,11 +190,12 @@ export async function getVenueById(id: string): Promise<DbVenue | null> {
 }
 
 export async function searchVenues(query: string): Promise<DbVenue[]> {
+  if (!query.trim()) return []
   const { data, error } = await supabase
     .from('venues')
     .select('*')
     .eq('is_active', true)
-    .textSearch('name', query, { type: 'plain', config: 'english' })
+    .textSearch('name', query, { type: 'websearch', config: 'english' })
     .limit(20)
 
   if (error) throw error
