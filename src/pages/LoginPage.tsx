@@ -12,8 +12,9 @@ const AURA = {
 export function LoginPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const { signInWithGoogle, user } = useAuth()
-
+  const { signIn, signInWithGoogle, user } = useAuth()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const redirect = searchParams.get('redirect') ?? '/'
@@ -118,6 +119,35 @@ export function LoginPage() {
               {error}
             </p>
           )}
+
+          {/* Email Login Form — Temp for Debug */}
+          <form onSubmit={async (e) => {
+            e.preventDefault()
+            setLoading(true)
+            setError('')
+            const { error } = await signIn(email, password)
+            if (error) {
+              setError(error.message)
+              setLoading(false)
+            }
+          }} style={{ marginBottom: 24 }}>
+            <input 
+              value={email} 
+              onChange={e => setEmail(e.target.value)} 
+              placeholder="Email" 
+              style={{ width: '100%', padding: '12px', marginBottom: 12, borderRadius: 8, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#fff' }} 
+            />
+            <input 
+              type="password" 
+              value={password} 
+              onChange={e => setPassword(e.target.value)} 
+              placeholder="Password" 
+              style={{ width: '100%', padding: '12px', marginBottom: 12, borderRadius: 8, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#fff' }} 
+            />
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#fff', color: '#000', fontWeight: 'bold', width: '100%' }}>
+              {loading ? 'Signing in...' : 'Sign In'}
+            </button>
+          </form>
 
           {/* Google Button */}
           <button
