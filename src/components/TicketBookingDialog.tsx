@@ -78,7 +78,7 @@ export function TicketBookingDialog({ event, ticketType, open, onClose }: Props)
       {open && (
         <>
           <motion.div
-            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)', zIndex: 40 }}
+            style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.85)', backdropFilter: 'blur(12px)', zIndex: 9500 }}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={!booked ? handleClose : undefined}
           />
@@ -90,7 +90,7 @@ export function TicketBookingDialog({ event, ticketType, open, onClose }: Props)
               background: '#000',
               border: '0.5px solid rgba(255,255,255,.08)',
               borderRadius: '24px 24px 0 0',
-              zIndex: 50, overflow: 'hidden',
+              zIndex: 9501, overflow: 'hidden',
               fontFamily: "'Inter Tight','Inter',sans-serif",
             }}
             initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
