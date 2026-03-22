@@ -10,11 +10,13 @@ import {
 import { createEvent, uploadEventImage, createVenueBooking } from '../../lib/services/eventService'
 import { useAuth } from '../../context/AuthContext'
 import { DbVenue, EventCategory } from '../../types'
+import { supabase } from '../../lib/supabase'
 
 const STEPS = {
   VIBE: 0,
   LOCATION: 1,
   DETAILS: 2,
+  TICKETS: 3,
 }
 
 const CATEGORIES: { id: EventCategory; label: string; icon: any; color: string }[] = [
@@ -63,7 +65,12 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
     price: 0,
     category: '' as EventCategory | '',
     mood: '',
-    capacity: 100
+    capacity: 100,
+    visibility: 'public' as 'public' | 'friends_only' | 'invite_only',
+    ticketName: 'General Admission',
+    ticketPrice: 0,
+    ticketCapacity: 100,
+    endTime: '',
   })
 
   useEffect(() => {
@@ -82,7 +89,12 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         price: 0,
         category: '',
         mood: '',
-        capacity: 100
+        capacity: 100,
+        visibility: 'public',
+        ticketName: 'General Admission',
+        ticketPrice: 0,
+        ticketCapacity: 100,
+        endTime: '',
       })
       setImageFile(null)
       setImagePreview(null)
@@ -131,7 +143,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
   }
 
   const handleNext = () => {
-    if (currentStep < STEPS.DETAILS) setCurrentStep(prev => prev + 1)
+    if (currentStep < STEPS.TICKETS) setCurrentStep(prev => prev + 1)
     else handleSubmit()
   }
 
@@ -179,11 +191,13 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         }
       }
 
-      await createEvent({
+      const createdEvent = await createEvent({
         title: formData.title,
         description: formData.description,
         start_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
-        end_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+        end_time: formData.endTime 
+          ? new Date(`${formData.date}T${formData.endTime}`).toISOString()
+          : new Date(new Date(`${formData.date}T${formData.time}`).getTime() + 3 * 60 * 60 * 1000).toISOString(),
         address: formData.location_name,
         lat: formData.lat,
         lng: formData.lng,
@@ -192,7 +206,8 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         category: formData.category as EventCategory,
         city: 'Delhi',
         status: 'published',
-        visibility: 'public',
+        visibility: formData.visibility,
+        total_capacity: formData.ticketCapacity,
         is_free: eventType === 'casual',
         event_type: 'standard',
         min_age: 0,
@@ -200,6 +215,19 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         is_staff_pick: false,
         fomo_score: 0,
       })
+
+      if (eventType === 'ticketed') {
+        const { error: ttError } = await supabase
+          .from('ticket_types')
+          .insert({
+            event_id: createdEvent.id,
+            name: formData.ticketName,
+            price: formData.ticketPrice * 100,
+            capacity: formData.ticketCapacity,
+            sort_order: 0,
+          })
+        if (ttError) throw ttError
+      }
       onClose()
       onEventCreated?.()
     } catch (error: any) {
@@ -207,7 +235,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
     } finally { setIsLoading(false) }
   }
 
-  const TITLES = ["The Vibe", "The Spot", "The Details"]
+  const TITLES = ["The Vibe", "The Spot", "The Details", "The Tickets"]
 
   return createPortal(
     <AnimatePresence>
@@ -231,7 +259,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
                    <div className="text-[10px] font-black uppercase tracking-widest text-white/30 flex items-center gap-2">
                      {eventType} • Step {currentStep + 1}
                      <div className="w-1 h-1 rounded-full bg-white/10" />
-                     {Math.round(((currentStep + 1) / 3) * 100)}%
+                     {Math.round(((currentStep + 1) / 4) * 100)}%
                    </div>
                 </div>
               </div>
@@ -244,7 +272,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
             <div className="h-[2px] w-full bg-white/5">
                <motion.div 
                 className="h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" 
-                animate={{ width: `${((currentStep + 1) / 3) * 100}%` }}
+                animate={{ width: `${((currentStep + 1) / 4) * 100}%` }}
                />
             </div>
 
@@ -424,6 +452,86 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
                       </div>
                    </motion.div>
                  )}
+
+                 {currentStep === STEPS.TICKETS && (
+                   <motion.div key="tickets" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
+                     
+                     {/* Visibility */}
+                     <div className="space-y-3">
+                       <label className="text-[10px] text-white/30 font-black uppercase tracking-widest px-2">Who can see this?</label>
+                       {([
+                         { value: 'public', label: 'Everyone', sub: 'Visible to all Milo users' },
+                         { value: 'friends_only', label: 'Friends Only', sub: 'Only your connections' },
+                         { value: 'invite_only', label: 'Invite Only', sub: 'Only people you invite' },
+                       ] as const).map(opt => (
+                         <button
+                           key={opt.value}
+                           onClick={() => setFormData(prev => ({ ...prev, visibility: opt.value }))}
+                           className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all text-left ${
+                             formData.visibility === opt.value ? 'bg-white border-white' : 'bg-white/[0.03] border-white/[0.06]'
+                           }`}
+                         >
+                           <div>
+                             <div className={`text-sm font-black uppercase tracking-widest ${formData.visibility === opt.value ? 'text-black' : 'text-white'}`}>{opt.label}</div>
+                             <div className={`text-[10px] mt-0.5 ${formData.visibility === opt.value ? 'text-black/50' : 'text-white/30'}`}>{opt.sub}</div>
+                           </div>
+                           {formData.visibility === opt.value && <CheckCircle2 size={20} className="text-black" />}
+                         </button>
+                       ))}
+                     </div>
+
+                     {/* Ticket type — only for ticketed events */}
+                     {eventType === 'ticketed' && (
+                       <div className="space-y-4">
+                         <label className="text-[10px] text-white/30 font-black uppercase tracking-widest px-2">Ticket Type</label>
+                         
+                         <div className="space-y-2 px-2">
+                           <label className="text-[10px] text-white/20 uppercase tracking-widest">Ticket Name</label>
+                           <input
+                             placeholder="e.g. General Admission, VIP"
+                             value={formData.ticketName}
+                             onChange={e => setFormData(prev => ({ ...prev, ticketName: e.target.value }))}
+                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-white/30"
+                           />
+                         </div>
+
+                         <div className="flex gap-4">
+                           <div className="flex-1 space-y-2 px-2">
+                             <label className="text-[10px] text-white/20 uppercase tracking-widest">Price (₹)</label>
+                             <input
+                               type="number"
+                               placeholder="0"
+                               value={formData.ticketPrice || ''}
+                               onChange={e => setFormData(prev => ({ ...prev, ticketPrice: parseInt(e.target.value) || 0 }))}
+                               className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none"
+                             />
+                           </div>
+                           <div className="flex-1 space-y-2 px-2">
+                             <label className="text-[10px] text-white/20 uppercase tracking-widest">Capacity</label>
+                             <input
+                               type="number"
+                               placeholder="100"
+                               value={formData.ticketCapacity || ''}
+                               onChange={e => setFormData(prev => ({ ...prev, ticketCapacity: parseInt(e.target.value) || 100 }))}
+                               className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none"
+                             />
+                           </div>
+                         </div>
+                       </div>
+                     )}
+
+                     {/* End time */}
+                     <div className="space-y-2 px-2">
+                       <label className="text-[10px] text-white/30 font-black uppercase tracking-widest">End Time · optional</label>
+                       <input
+                         type="time"
+                         value={formData.endTime}
+                         onChange={e => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                         className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none [color-scheme:dark]"
+                       />
+                     </div>
+                   </motion.div>
+                 )}
                </AnimatePresence>
             </div>
 
@@ -436,11 +544,11 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
                )}
                <button 
                 onClick={handleNext}
-                disabled={isLoading || (currentStep === 0 && !formData.category) || (currentStep === 1 && !formData.location_name)}
+                disabled={isLoading || (currentStep === 0 && !formData.category) || (currentStep === 1 && !formData.location_name) || (currentStep === STEPS.TICKETS && eventType === 'ticketed' && !formData.ticketName)}
                 className="flex-1 h-14 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-30 disabled:grayscale"
                >
                  {isLoading ? <Loader2 size={24} className="animate-spin" /> : 
-                  currentStep === STEPS.DETAILS ? <>Go Live <Sparkles size={18} /></> : <>Next Step <ArrowRight size={18} /></>}
+                  currentStep === STEPS.TICKETS ? <>Go Live <Sparkles size={18} /></> : <>Next Step <ArrowRight size={18} /></>}
                </button>
             </div>
           </motion.div>
