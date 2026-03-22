@@ -10,7 +10,7 @@ import {
   likeEvent, unlikeEvent, getEventLikeStatus, 
   getComments, addComment, deleteComment 
 } from '../../lib/services/socialService'
-import type { EventWithMeta } from '../../types'
+import type { EventWithMeta, DbTicketType } from '../../types'
 
 interface Comment {
   id: string
@@ -28,7 +28,7 @@ interface EventDetailsSheetProps {
   event: EventWithMeta | null
   open: boolean
   onClose: () => void
-  onBook?: () => void
+  onBook?: (ticketType?: DbTicketType) => void
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -354,7 +354,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
                 </button>
 
                 <button 
-                  onClick={onBook}
+                  onClick={() => onBook?.(event.ticket_types?.[0])}
                   className="px-8 h-14 rounded-2xl bg-white text-black font-black flex items-center gap-2 active:scale-95 transition-transform shadow-[0_20px_40px_rgba(255,255,255,0.1)]"
                 >
                   BOOK NOW
