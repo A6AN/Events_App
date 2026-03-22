@@ -215,6 +215,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         is_staff_pick: false,
         fomo_score: 0,
       })
+      console.log('[createEvent result]', JSON.stringify(createdEvent))
 
       if (eventType === 'ticketed') {
         const { error: ttError } = await supabase
