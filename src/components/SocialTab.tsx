@@ -161,7 +161,9 @@ function SocialEventCard({ event, onSelect, live }: { event: EventWithMeta, onSe
       onClick={() => onSelect(event)}
       className="shrink-0 w-48 aspect-[3/4] rounded-[36px] overflow-hidden relative border border-white/5 text-left group transition-all"
     >
-      <div className="absolute inset-0 bg-black" />
+      <div className="absolute inset-0" style={{
+        background: `radial-gradient(circle at 30% 30%, ${a1} 0%, transparent 60%), radial-gradient(circle at 70% 70%, ${a2} 0%, transparent 60%), #0a0a0a`
+      }} />
       <div className="absolute inset-0 opacity-40 group-hover:opacity-60 transition-opacity" style={{ background: `radial-gradient(circle at 0% 0%, ${a1} 0%, transparent 60%), radial-gradient(circle at 100% 100%, ${a2} 0%, transparent 60%)` }} />
       <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
       
