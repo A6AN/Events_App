@@ -58,8 +58,8 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
     locationType: 'custom' as 'custom' | 'venue',
     selectedVenueId: '',
     location_name: '',
-    latitude: 28.6139,
-    longitude: 77.2090,
+    lat: 28.6139,
+    lng: 77.2090,
     price: 0,
     category: '' as EventCategory | '',
     mood: '',
@@ -77,8 +77,8 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         locationType: 'custom',
         selectedVenueId: '',
         location_name: '',
-        latitude: 28.6139,
-        longitude: 77.2090,
+        lat: 28.6139,
+        lng: 77.2090,
         price: 0,
         category: '',
         mood: '',
@@ -125,7 +125,7 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
         const res = await fetch(`https://api.olamaps.io/places/v1/details?place_id=${result.place_id}&api_key=${OLA_MAPS_API_KEY}`)
         const data = await res.json()
         const geo = data.result?.geometry?.location
-        if (geo) setFormData(prev => ({ ...prev, latitude: geo.lat, longitude: geo.lng }))
+        if (geo) setFormData(prev => ({ ...prev, lat: geo.lat, lng: geo.lng }))
       } catch (err) { console.error(err) }
     }
   }
@@ -180,11 +180,25 @@ export const CreateEventWizard: React.FC<CreateEventWizardProps> = ({ open, onCl
       }
 
       await createEvent({
-        title: formData.title, description: formData.description,
-        date: new Date(`${formData.date}T${formData.time}`).toISOString(),
-        location_name: formData.location_name, latitude: formData.latitude, longitude: formData.longitude,
-        price: eventType === 'casual' ? 0 : formData.price, capacity: formData.capacity,
-        cover_url: imageUrl, host_id: user.id, category: formData.category as EventCategory, mood: formData.mood || 'Chill'
+        title: formData.title,
+        description: formData.description,
+        start_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+        end_time: new Date(`${formData.date}T${formData.time}`).toISOString(),
+        address: formData.location_name,
+        lat: formData.lat,
+        lng: formData.lng,
+        cover_url: imageUrl,
+        host_id: user.id,
+        category: formData.category as EventCategory,
+        city: 'Delhi',
+        status: 'published',
+        visibility: 'public',
+        is_free: eventType === 'casual',
+        event_type: 'standard',
+        min_age: 0,
+        is_sponsored: false,
+        is_staff_pick: false,
+        fomo_score: 0,
       })
       onClose()
       onEventCreated?.()
