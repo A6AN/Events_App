@@ -49,6 +49,7 @@ function AppContent() {
   }
 
   const handleBookTicket = (ticketType?: DbTicketType) => {
+    console.log('[handleBookTicket]', ticketType)
     setSelectedTicketType(ticketType ?? null)
     setTicketBookingOpen(true)
     setSheetOpen(false)
