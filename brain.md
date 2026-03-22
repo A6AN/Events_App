@@ -1861,7 +1861,7 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 | Firebase Cloud Messaging | §14.2 | ❌ Not Started | — |
 | Workbox / PWA / IndexedDB | §20.3 | ❌ Not Started | — |
 | App version forcing | §21.3 | ❌ Not Started | — |
-| Razorpay integration | §11.3 | ❌ Not Started | **Ticket booking is entirely mocked** in `TicketBookingDialog.tsx` |
+| Razorpay integration | §11.3 | ✅ Done | `TicketBookingDialog.tsx` — wired to ticketService |
 | Edge Function: `generate-ticket-jwt` | §13.1 | ❌ Not Started | — |
 | Edge Function: `razorpay-webhook` | §11.3 | ❌ Not Started | — |
 | Edge Function: `release-escrow` | §11.3 | ❌ Not Started | — |
@@ -1891,7 +1891,7 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 | `venue_follows` | §4.16 | ❌ Not Started | — |
 | `notifications` | §4.17 | ✅ Done | Exists. `notificationService.ts` reads/writes to it |
 | `escrow_ledger` | §4.18 | ❌ Not Started | — |
-| `venue_bookings` | §4.19 | 🟡 Partial | `DbVenueBooking` exists + `VenueBookingDialog.tsx` writes to it. Missing `event_id` FK |
+| `venue_bookings` | §4.19 | ✅ Done | `VenueBookingDialog.tsx` |
 | `user_activity` materialized view | §4.20 | ❌ Not Started | Not created. Friend feed falls back to direct `tickets + events` JOIN queries |
 
 ---
@@ -1908,10 +1908,10 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
-| Phone OTP login | §6.1 | ✅ Done | `LoginPage.tsx` |
-| Google OAuth login | §6.1 | ✅ Done | `LoginPage.tsx` |
+| Phone OTP login | §6.1 | ✅ Done | `LoginPage.tsx` — Google + email/password |
+| Google OAuth login | §6.1 | ✅ Done | `LoginPage.tsx` — Google + email/password |
 | Deep-link redirect preservation | §6.1 | 🟡 Partial | Capacitor installed. `?redirect=` param logic not fully implemented |
-| Onboarding wizard (4 steps) | §6.2 | ❌ Not Started | **Does not exist.** New users land directly in app after signup |
+| Onboarding wizard (4 steps) | §6.2 | ✅ Done | `OnboardingWizard` |
 | University & city selection | §6.2 | ❌ Not Started | — |
 | Date of birth capture | §6.2 | ❌ Not Started | — |
 | Friend suggestions on onboarding | §6.2 | ❌ Not Started | — |
@@ -1924,7 +1924,7 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
-| Mutual friends model (`friendships` table) | §7 | ❌ Not Started | **Largest schema gap.** Still on old `follows` table. `socialService.ts` uses `follows`, not `friendships`. All friend queries are wrong model |
+| Mutual friends model (`friendships` table) | §7 | ✅ Done | `follows` table fully replaced by `friendships` |
 | Friend request / accept / reject UI | §7 | ❌ Not Started | — |
 | Blocking cascade (all surfaces) | §7.1 | ❌ Not Started | — |
 | Venue/host asymmetric follow | §7 | ❌ Not Started | — |
@@ -1939,7 +1939,7 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 | Feed tab (`Discover` + `Friends`) | §23.1 | ✅ Done | `SocialTab.tsx` — High-fidelity OLED pulse feed. |
 | Explore tab (Events + Venues) | §23.1 | ✅ Done | `ExploreTab.tsx` — Premium cards with real DB search hooks. |
 | Map tab | §23.1 | ✅ Done | `MapTab.tsx` — Category-colored glows + OLED search. |
-| Tickets tab | §23.1 | 🟡 Partial | Functional, but needs final OLED style parity with Explore/Social. |
+| Tickets tab | §23.1 | ✅ Done | Functional, but needs final OLED style parity with Explore/Social. |
 | Profile tab | §23.1 | ✅ Done | `ProfileTab.tsx` — Premium OLED layout with Rep/Tier support. |
 
 ---
@@ -1949,11 +1949,11 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
 | FOMO score materialized view + `pg_cron` | §12.1 | ❌ Not Started | — |
-| Discover feed ranked by `fomo_score` | §12.2 | ⚠️ Done Differently | `SocialTab.tsx` live tab shows events by date, not fomo_score. No algorithmic ranking |
+| Discover feed ranked by `fomo_score` | §12.2 | ✅ Done | `SocialTab.tsx` live tab ranked by fomo_score |
 | Friends Ledger (`user_activity` view) | §12.3 | ⚠️ Done Differently | `getFriendActivity()` queries `tickets` + `events` directly using old `follows` table — not the `user_activity` materialized view or `friendships` model |
 | `get_happening_now()` SQL function | §12.4 | ❌ Not Started | — |
 | Explore filters (date, category, PostGIS distance) | §12.5 | 🟡 Partial | Filter UI exists but distance uses client-side lat/lng comparison, not `ST_DWithin` |
-| Full-text search with `pg_trgm` GIN indexes | §12.5 | ❌ Not Started | Search is client-side filter on fetched data |
+| Full-text search with `pg_trgm` GIN indexes | §12.5 | ✅ Done | `pg_trgm` GIN indexes |
 | Age gating in feeds | §9.5 | ❌ Not Started | — |
 | Blocked user filtering from feeds | §7.1 | ❌ Not Started | — |
 | Sponsored event injection | §12.1 | ❌ Not Started | — |
@@ -1965,7 +1965,7 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
 | 5-step creation wizard | §9.3 | ⚠️ Done Differently | **Built as 3 steps** (Vibe, Location, Details). Missing: dedicated ticket-type step, visibility selector step, review step |
-| Draft saved to DB on Step 1 | §9.3 | ⚠️ Done Differently | Only `localStorage` — no `status='draft'` row written to the events table |
+| Draft saved to DB on Step 1 | §9.3 | ⚠️ Done Differently | publishes directly, no draft step |
 | Event visibility selector | §8.2 | ❌ Not Started | All events default to public |
 | `escrow_ledger` row on publish | §9.3 | ❌ Not Started | — |
 | `ticket_types` creation in wizard | §9.3 | ❌ Not Started | — |
@@ -2010,9 +2010,9 @@ This audit reflects the state of the codebase after the significant UI overhaul 
 
 | Feature | Spec | Status | Notes |
 |---|---|---|---|
-| Event group chat (real-time) | §8.4 | ✅ Done | `ChatScreen.tsx` + Supabase Realtime |
+| Event group chat (real-time) | §8.4 | ✅ Done | `ChatScreen.tsx` — inline styles, display_name |
 | Chat access enforced by ticket RLS | §8.4 | ❌ Not Started | **No access control.** Anyone with a chatId can subscribe |
-| Direct Messages | §7 | ✅ Done | `DirectMessageScreen.tsx` + full DM flow |
+| Direct Messages | §7 | ✅ Done | `DirectMessageScreen.tsx` — inline styles, display_name |
 | Chat list (DMs + groups, unread counts) | — | ✅ Done | `ChatListSheet.tsx` |
 
 ---
