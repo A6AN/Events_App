@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -73,7 +74,7 @@ export function TicketBookingDialog({ event, ticketType, open, onClose }: Props)
     onClose()
   }
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -228,6 +229,7 @@ export function TicketBookingDialog({ event, ticketType, open, onClose }: Props)
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
