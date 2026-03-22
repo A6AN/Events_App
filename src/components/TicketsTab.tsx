@@ -35,9 +35,9 @@ function formatTime(iso: string) {
 
 // ─── QR PATTERN GENERATOR ─────────────────────────
 // Generates a deterministic visual QR-like pattern from ticket ID
-function QRPattern({ ticketId }: { ticketId: string }) {
+function QRPattern({ ticketId, value }: { ticketId: string; value?: string | null }) {
   // Seed a simple grid from ticketId characters
-  const seed = ticketId.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  const seed = (value ?? ticketId).split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
   const size = 9
   const cells = Array.from({ length: size * size }, (_, i) => {
     // Corner finders — always filled
@@ -341,9 +341,39 @@ function HeroTicket({ ticket, onClose }: {
   ticket: TicketWithMeta
   onClose: () => void
 }) {
+  const [jwt, setJwt] = useState<string | null>(null)
+  const [jwtLoading, setJwtLoading] = useState(true)
+
   if (!ticket.ticket_type) return null
   const [a1, a2] = getAura(ticket.event.category)
   const isUsed = ticket.status === 'scanned'
+
+  useEffect(() => {
+    const fetchJwt = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) return
+        const res = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-ticket-jwt`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ ticket_id: ticket.id }),
+          }
+        )
+        const data = await res.json()
+        if (data.jwt) setJwt(data.jwt)
+      } catch (e) {
+        console.error('JWT fetch failed', e)
+      } finally {
+        setJwtLoading(false)
+      }
+    }
+    fetchJwt()
+  }, [ticket.id])
 
   return (
     <motion.div
@@ -444,7 +474,13 @@ function HeroTicket({ ticket, onClose }: {
             overflow: 'hidden',
           }}
         >
-          <QRPattern ticketId={ticket.id} />
+          {jwtLoading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+              <div style={{ color: 'rgba(0,0,0,.3)', fontSize: 11 }}>securing...</div>
+            </div>
+          ) : (
+            <QRPattern ticketId={ticket.id} value={jwt} />
+          )}
         </motion.div>
 
         {/* Event info */}
