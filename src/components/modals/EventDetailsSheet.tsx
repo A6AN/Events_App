@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Calendar, Clock, MapPin, ArrowLeft, Share2, 
@@ -101,7 +102,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
 
   const startDate = event.start_time ? new Date(event.start_time) : new Date()
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {open && (
         <>
@@ -109,7 +110,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[4998] bg-black/90 backdrop-blur-md"
+            style={{ position: 'fixed', inset: 0, zIndex: 9000, background: 'rgba(0,0,0,.9)', backdropFilter: 'blur(12px)' }}
             onClick={onClose}
           />
 
@@ -118,7 +119,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[4999] flex flex-col bg-black overflow-hidden"
+            style={{ position: 'fixed', inset: 0, zIndex: 9001, display: 'flex', flexDirection: 'column', background: '#000', overflow: 'hidden' }}
           >
             {/* ─── HEADER ACTIONS ────────────────────────── */}
             <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
@@ -340,7 +341,12 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
                 <div className="flex-1">
                   <div className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Standard Entry</div>
                   <div className="text-2xl font-black text-white flex items-baseline gap-1">
-                    {event.is_free ? 'FREE' : `₹${event.ticket_types?.[0]?.price || '??'}`}
+                    {event.is_free 
+                      ? 'FREE' 
+                      : event.ticket_types?.[0]?.price 
+                        ? `₹${event.ticket_types[0].price / 100}` 
+                        : 'FREE'
+                    }
                     {!event.is_free && <span className="text-[10px] text-white/30 font-bold">/ PERSON</span>}
                   </div>
                 </div>
@@ -365,6 +371,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
           </motion.div>
         </>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   )
 }
