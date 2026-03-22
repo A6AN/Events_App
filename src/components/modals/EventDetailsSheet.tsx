@@ -109,7 +109,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[1000] bg-black/90 backdrop-blur-md"
+            className="fixed inset-0 z-[4998] bg-black/90 backdrop-blur-md"
             onClick={onClose}
           />
 
@@ -118,7 +118,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[1001] flex flex-col bg-black overflow-hidden"
+            className="fixed inset-0 z-[4999] flex flex-col bg-black overflow-hidden"
           >
             {/* ─── HEADER ACTIONS ────────────────────────── */}
             <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center bg-gradient-to-b from-black/60 to-transparent">
@@ -259,7 +259,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
                     </div>
                     <div className="text-[11px] font-bold text-white/60 mt-2 flex items-center gap-1">
                       <Users size={12} />
-                      {Math.floor(Math.random() * 50) + 12} Friends Attending
+                      {event.friends_attending_count || 0} Friends Attending
                     </div>
                   </div>
                   <div className="text-right">
@@ -335,7 +335,7 @@ export function EventDetailsSheet({ event, open, onClose, onBook }: EventDetails
             </div>
 
             {/* ─── STICKY FOOTER ─────────────────────────── */}
-            <div className="absolute bottom-0 left-0 right-0 p-6 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
+            <div className="absolute bottom-0 left-0 right-0 z-50 p-6 pb-10 bg-black/60 backdrop-blur-3xl border-t border-white/10 shadow-[0_-20px_50px_rgba(0,0,0,0.8)]">
               <div className="max-w-[400px] mx-auto flex items-center gap-4">
                 <div className="flex-1">
                   <div className="text-[10px] text-white/30 font-black uppercase tracking-widest mb-1">Standard Entry</div>

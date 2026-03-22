@@ -144,7 +144,7 @@ export function LoginPage() {
               placeholder="Password" 
               style={{ width: '100%', padding: '12px', marginBottom: 12, borderRadius: 8, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(255,255,255,.1)', color: '#fff' }} 
             />
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#fff', color: '#000', fontWeight: 'bold', width: '100%' }}>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '12px', borderRadius: 8, background: '#fff', color: '#000', fontWeight: 'bold' }}>
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
